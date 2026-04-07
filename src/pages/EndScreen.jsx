@@ -54,7 +54,7 @@ export default function EndScreen({ teams, participantId }) {
             key={team.id}
             onClick={() => setActiveTab(team.id)}
             className={`card text-left transition-all ${
-              activeTab === team.id ? 'border-cartola-green bg-cartola-green/10' : 'hover:border-gray-600'
+              activeTab === team.id ? 'border-draft-green bg-draft-green/10' : 'hover:border-gray-600'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
@@ -65,7 +65,7 @@ export default function EndScreen({ teams, participantId }) {
               </span>
             </div>
             <div className="text-xs text-gray-500">{team.formation} · {team.picks.length} jogadores</div>
-            <div className="text-xs text-cartola-gold mt-1">
+            <div className="text-xs text-draft-gold mt-1">
               ★ {totalScore(team.picks).toFixed(2)} pontos
             </div>
           </button>
@@ -81,7 +81,7 @@ export default function EndScreen({ teams, participantId }) {
               <p className="text-gray-400 text-sm">{team.formation} · {team.picks.length} jogadores</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-cartola-gold">{totalScore(team.picks).toFixed(2)}</div>
+              <div className="text-2xl font-bold text-draft-gold">{totalScore(team.picks).toFixed(2)}</div>
               <div className="text-xs text-gray-500">total de pontos</div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function EndScreen({ teams, participantId }) {
               </thead>
               <tbody>
                 {mainPicks(team.picks).map((p, i) => (
-                  <tr key={p.cartola_id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                  <tr key={p.player_id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
                     <td className="py-2 px-3 text-gray-600">{i + 1}</td>
                     <td className="py-2 px-3">
                       <span className={`font-bold text-xs ${pickColor(p)}`}>
@@ -111,20 +111,20 @@ export default function EndScreen({ teams, participantId }) {
                       <div className="flex items-center gap-2">
                         {p.photo && <img src={p.photo} className="w-7 h-7 rounded-full object-cover" alt="" />}
                         <span className="font-medium text-white">{p.nickname}</span>
-                        {p.cartola_id === team.captainId && (
+                        {p.player_id === team.captainId && (
                           <span className="bg-yellow-400 text-black text-[10px] font-black px-1.5 py-0.5 rounded leading-none flex-shrink-0">C</span>
                         )}
                       </div>
                     </td>
                     <td className="py-2 px-3 text-gray-400">{p.club?.abbreviation || `Clube ${p.club_id}`}</td>
-                    <td className="py-2 px-3 text-right font-semibold text-cartola-gold">{(p.average_score || 0).toFixed(1)}</td>
+                    <td className="py-2 px-3 text-right font-semibold text-draft-gold">{(p.average_score || 0).toFixed(1)}</td>
                   </tr>
                 ))}
                 {benchPicks(team.picks).length > 0 && (
                   <>
                     <tr><td colSpan={5} className="py-2 px-3 text-xs font-semibold text-gray-600 uppercase tracking-wide border-t border-gray-800">Reservas</td></tr>
                     {benchPicks(team.picks).map((p, i) => (
-                      <tr key={`bench-${p.cartola_id}`} className="border-b border-gray-800/30 hover:bg-gray-800/20 opacity-80">
+                      <tr key={`bench-${p.player_id}`} className="border-b border-gray-800/30 hover:bg-gray-800/20 opacity-80">
                         <td className="py-2 px-3 text-gray-700">{i + 1}</td>
                         <td className="py-2 px-3">
                           <span className={`font-bold text-xs ${pickColor(p)}`}>
@@ -167,14 +167,14 @@ export default function EndScreen({ teams, participantId }) {
               {sortedTeams.map(team => {
                 const best = [...team.picks].sort((a, b) => (b.average_score || 0) - (a.average_score || 0))[0];
                 return (
-                  <tr key={team.id} className={`border-b border-gray-800/50 ${team.id === participantId ? 'bg-cartola-green/5' : ''}`}>
+                  <tr key={team.id} className={`border-b border-gray-800/50 ${team.id === participantId ? 'bg-draft-green/5' : ''}`}>
                     <td className="py-2 px-3 font-medium text-white">
                       {team.name}
                       {team.id === participantId && <span className="text-xs text-gray-500 ml-1">(você)</span>}
                     </td>
                     <td className="py-2 px-3 text-center text-gray-400 font-mono">{team.formation}</td>
                     <td className="py-2 px-3 text-center text-gray-400">{team.picks.length}</td>
-                    <td className="py-2 px-3 text-center text-cartola-gold font-semibold">
+                    <td className="py-2 px-3 text-center text-draft-gold font-semibold">
                       {totalScore(team.picks).toFixed(2)}
                     </td>
                     <td className="py-2 px-3 text-center text-gray-300">

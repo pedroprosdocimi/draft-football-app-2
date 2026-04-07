@@ -48,7 +48,7 @@ function StatusBadge({ statusId }) {
 
 function scoreColor(score) {
   if (score >= 6) return 'text-green-400';
-  if (score >= 3) return 'text-cartola-gold';
+  if (score >= 3) return 'text-draft-gold';
   return 'text-red-400';
 }
 
@@ -218,7 +218,7 @@ function PosFilter({ value, onChange, players, countStatus }) {
       <button
         onClick={() => onChange(0)}
         className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-          value === 0 ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+          value === 0 ? 'bg-draft-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
         }`}
       >
         Todas pos.
@@ -228,7 +228,7 @@ function PosFilter({ value, onChange, players, countStatus }) {
           key={id}
           onClick={() => onChange(id)}
           className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            value === id ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
+            value === id ? 'bg-draft-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
           }`}
         >
           {POS_LABELS[id]}
@@ -247,7 +247,7 @@ function ClubSelect({ value, onChange, clubs }) {
     <select
       value={value}
       onChange={e => onChange(Number(e.target.value))}
-      className="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-cartola-green cursor-pointer"
+      className="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-draft-green cursor-pointer"
     >
       <option value={0}>Todos os times</option>
       {clubs.map(c => (
@@ -412,18 +412,18 @@ export default function Admin({ onBack }) {
     }
   };
 
-  const handleToggleEligible = async (cartolaId) => {
-    setTogglingId(cartolaId);
-    const isEligible = eligibleIds.has(cartolaId);
+  const handleToggleEligible = async (playerId) => {
+    setTogglingId(playerId);
+    const isEligible = eligibleIds.has(playerId);
     try {
-      const res = await fetch(`${API_URL}/api/admin/eligible/${cartolaId}`, {
+      const res = await fetch(`${API_URL}/api/admin/eligible/${playerId}`, {
         method: isEligible ? 'DELETE' : 'POST',
         headers,
       });
       if (res.ok) {
         setEligibleIds(prev => {
           const next = new Set(prev);
-          isEligible ? next.delete(cartolaId) : next.add(cartolaId);
+          isEligible ? next.delete(playerId) : next.add(playerId);
           return next;
         });
       }
@@ -434,16 +434,16 @@ export default function Admin({ onBack }) {
     }
   };
 
-  const handleRemoveFromPool = (cartolaId) => {
-    if (eligibleIds.has(cartolaId)) {
-      handleToggleEligible(cartolaId); // remove from eligible list (persisted)
+  const handleRemoveFromPool = (playerId) => {
+    if (eligibleIds.has(playerId)) {
+      handleToggleEligible(playerId); // remove from eligible list (persisted)
     } else {
-      setExcludedIds(prev => new Set([...prev, cartolaId])); // exclude probable locally
+      setExcludedIds(prev => new Set([...prev, playerId])); // exclude probable locally
     }
   };
 
-  const handleRestoreToPool = (cartolaId) => {
-    setExcludedIds(prev => { const next = new Set(prev); next.delete(cartolaId); return next; });
+  const handleRestoreToPool = (playerId) => {
+    setExcludedIds(prev => { const next = new Set(prev); next.delete(playerId); return next; });
   };
 
   // Top 3 most recent round numbers across all players
@@ -467,7 +467,7 @@ export default function Admin({ onBack }) {
   // Table 1: pool do draft = prováveis (status_id=7) + adicionados manualmente, exceto excluídos
   const poolDraft = useMemo(() => {
     const list = players
-      .filter(p => (p.status_id === 7 || eligibleIds.has(p.cartola_id)) && !excludedIds.has(p.cartola_id))
+      .filter(p => (p.status_id === 7 || eligibleIds.has(p.player_id)) && !excludedIds.has(p.player_id))
       .filter(p => tPos === 0  || p.position_id === tPos)
       .filter(p => tClub === 0 || p.club_id === tClub);
     return applySort(list, tSort);
@@ -488,7 +488,7 @@ export default function Admin({ onBack }) {
   // Table 2: não cotados que ainda NÃO foram adicionados ao pool (+ prováveis excluídos manualmente)
   const outros = useMemo(() => {
     const list = players
-      .filter(p => (p.status_id !== 7 || excludedIds.has(p.cartola_id)) && !eligibleIds.has(p.cartola_id))
+      .filter(p => (p.status_id !== 7 || excludedIds.has(p.player_id)) && !eligibleIds.has(p.player_id))
       .filter(p => oPos === 0    || p.position_id === oPos)
       .filter(p => oStatus === 0 || p.status_id === oStatus)
       .filter(p => oClub === 0   || p.club_id === oClub);
@@ -566,7 +566,7 @@ export default function Admin({ onBack }) {
               className="btn-primary flex items-center gap-2"
             >
               <span className={syncing ? 'animate-spin inline-block' : ''}>🔄</span>
-              {syncing ? 'Sincronizando...' : 'Sincronizar Cartola'}
+              {syncing ? 'Sincronizando...' : 'Sincronizar Draft Football'}
             </button>
             <button
               onClick={handleSyncScores}
@@ -609,7 +609,7 @@ export default function Admin({ onBack }) {
                       <td className="py-2 pr-4">
                         <span className="text-white font-medium">{u.username}</span>
                         {u.is_admin && (
-                          <span className="ml-1.5 text-xs text-cartola-gold">admin</span>
+                          <span className="ml-1.5 text-xs text-draft-gold">admin</span>
                         )}
                       </td>
                       <td className="py-2 pr-4 text-gray-400">{u.nome_time}</td>
@@ -622,13 +622,13 @@ export default function Admin({ onBack }) {
                             type="number"
                             value={delta}
                             onChange={e => setCoinDelta(prev => ({ ...prev, [u.id]: parseInt(e.target.value) || 0 }))}
-                            className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-cartola-green font-mono text-center"
+                            className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
                             placeholder="0"
                           />
                           <button
                             onClick={() => handleAdjustCoins(u.id, delta)}
                             disabled={delta === 0 || adjustingUserId === u.id}
-                            className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40 border border-gray-700 hover:border-cartola-green text-gray-400 hover:text-white"
+                            className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40 border border-gray-700 hover:border-draft-green text-gray-400 hover:text-white"
                           >
                             {adjustingUserId === u.id ? '...' : delta >= 0 ? '+ Adicionar' : '− Remover'}
                           </button>
@@ -654,7 +654,7 @@ export default function Admin({ onBack }) {
             <select
               value={coinTxFilter}
               onChange={e => setCoinTxFilter(Number(e.target.value))}
-              className="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-cartola-green"
+              className="bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-draft-green"
             >
               <option value={0}>Todos os usuários</option>
               {users.map(u => (
@@ -732,7 +732,7 @@ export default function Admin({ onBack }) {
       ) : players.length === 0 ? (
         <div className="card text-center py-12">
           <p className="text-gray-500 mb-2">Nenhum jogador no banco.</p>
-          <p className="text-gray-600 text-sm">Clique em "Sincronizar Cartola" para importar.</p>
+          <p className="text-gray-600 text-sm">Clique em "Sincronizar Draft Football" para importar.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -760,7 +760,7 @@ export default function Admin({ onBack }) {
                 <PosFilter
                   value={tPos}
                   onChange={setTPos}
-                  players={players.filter(p => p.status_id === 7 || eligibleIds.has(p.cartola_id))}
+                  players={players.filter(p => p.status_id === 7 || eligibleIds.has(p.player_id))}
                   countStatus={null}
                 />
                 <div className="flex items-center gap-2">
@@ -783,11 +783,11 @@ export default function Admin({ onBack }) {
                   <div style={{ minWidth: '620px' }}>
                     <RoundsHeader recentRounds={recentRounds} sort={tSort} onSort={setTSort} />
                     {poolDraft.slice(tPage * PAGE_SIZE, (tPage + 1) * PAGE_SIZE).map(p => {
-                      const isManual = eligibleIds.has(p.cartola_id);
-                      const isToggling = togglingId === p.cartola_id;
+                      const isManual = eligibleIds.has(p.player_id);
+                      const isToggling = togglingId === p.player_id;
                       return (
                         <div
-                          key={p.cartola_id}
+                          key={p.player_id}
                           className={isManual ? 'border-l-2 border-blue-500 rounded-r-lg' : ''}
                         >
                           <PlayerRow
@@ -796,7 +796,7 @@ export default function Admin({ onBack }) {
                             recentRounds={recentRounds}
                             action={
                               <button
-                                onClick={() => handleRemoveFromPool(p.cartola_id)}
+                                onClick={() => handleRemoveFromPool(p.player_id)}
                                 disabled={isToggling}
                                 className="whitespace-nowrap text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 border bg-gray-800 text-gray-400 hover:bg-red-900/40 hover:text-red-300 border-gray-700 hover:border-red-700"
                               >
@@ -832,13 +832,13 @@ export default function Admin({ onBack }) {
                             <span className={`text-xs font-medium truncate mr-2 ${count === 0 ? 'text-gray-600' : 'text-gray-300'}`}>
                               {name}
                             </span>
-                            <span className={`text-xs font-bold flex-shrink-0 ${count === 0 ? 'text-gray-600' : 'text-cartola-gold'}`}>
+                            <span className={`text-xs font-bold flex-shrink-0 ${count === 0 ? 'text-gray-600' : 'text-draft-gold'}`}>
                               {count}
                             </span>
                           </div>
                           <div className="h-1.5 rounded-full bg-gray-800 overflow-hidden">
                             <div
-                              className="h-full rounded-full bg-cartola-green transition-all"
+                              className="h-full rounded-full bg-draft-green transition-all"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
@@ -910,12 +910,12 @@ export default function Admin({ onBack }) {
                 <div style={{ minWidth: '620px' }}>
                   <RoundsHeader recentRounds={recentRounds} sort={oSort} onSort={setOSort} />
                   {outros.slice(oPage * PAGE_SIZE, (oPage + 1) * PAGE_SIZE).map(p => {
-                    const isEligible = eligibleIds.has(p.cartola_id);
-                    const isExcluded = excludedIds.has(p.cartola_id);
-                    const isToggling = togglingId === p.cartola_id;
+                    const isEligible = eligibleIds.has(p.player_id);
+                    const isExcluded = excludedIds.has(p.player_id);
+                    const isToggling = togglingId === p.player_id;
                     return (
                       <div
-                        key={p.cartola_id}
+                        key={p.player_id}
                         className={isEligible ? 'border-l-2 border-blue-500 rounded-r-lg' : ''}
                       >
                         <PlayerRow
@@ -924,14 +924,14 @@ export default function Admin({ onBack }) {
                           recentRounds={recentRounds}
                           action={isExcluded ? (
                             <button
-                              onClick={() => handleRestoreToPool(p.cartola_id)}
+                              onClick={() => handleRestoreToPool(p.player_id)}
                               className="whitespace-nowrap text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors border bg-orange-900/30 text-orange-300 hover:bg-green-900/40 hover:text-green-300 border-orange-700/50 hover:border-green-700"
                             >
                               ↩ Restaurar
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleToggleEligible(p.cartola_id)}
+                              onClick={() => handleToggleEligible(p.player_id)}
                               disabled={isToggling}
                               className={`whitespace-nowrap text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 border ${
                                 isEligible

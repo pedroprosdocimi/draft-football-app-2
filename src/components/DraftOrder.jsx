@@ -23,12 +23,12 @@ export default function DraftOrder({ draftOrder, participants, currentPickerId, 
               key={`${i}-${pid}`}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
                 isCurrent
-                  ? 'bg-cartola-green/20 border border-cartola-green text-white font-semibold'
+                  ? 'bg-draft-green/20 border border-draft-green text-white font-semibold'
                   : 'text-gray-500 opacity-70'
               }`}
             >
               <span className="text-xs w-4 text-gray-600">{i + 1}</span>
-              <span className={isCurrent ? 'text-cartola-gold' : ''}>
+              <span className={isCurrent ? 'text-draft-gold' : ''}>
                 {isCurrent ? '▶' : '·'}
               </span>
               <span>{p?.name || 'Desconhecido'}</span>

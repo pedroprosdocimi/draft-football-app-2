@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        cartola: {
+        draft: {
           green: '#1a6b3c',
           dark: '#0d3d22',
           gold: '#f5a623'

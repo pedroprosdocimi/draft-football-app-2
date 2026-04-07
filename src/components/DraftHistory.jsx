@@ -77,7 +77,7 @@ function OptionsTooltip({ pick, accentColor, anchorRect }) {
     top = Math.max(8, window.innerHeight - tooltipH - 8);
   }
 
-  const chosen = pick.cartola_id;
+  const chosen = pick.player_id;
 
   return createPortal(
     <div
@@ -89,10 +89,10 @@ function OptionsTooltip({ pick, accentColor, anchorRect }) {
       </div>
       <div className="space-y-1.5">
         {pick.options.map(o => {
-          const isChosen = o.cartola_id === chosen;
+          const isChosen = o.player_id === chosen;
           return (
             <div
-              key={o.cartola_id}
+              key={o.player_id}
               className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${
                 isChosen
                   ? `${POS_BG[pick.position_id] || 'bg-gray-800 border-gray-700/50'} border`
@@ -110,7 +110,7 @@ function OptionsTooltip({ pick, accentColor, anchorRect }) {
               )}
               <div className="min-w-0 flex-1">
                 <div className={`text-xs font-semibold truncate leading-tight ${isChosen ? 'text-white' : 'text-gray-400'}`}>
-                  {o.nickname || `#${o.cartola_id}`}
+                  {o.nickname || `#${o.player_id}`}
                 </div>
                 {o.club_abbreviation && (
                   <div className="text-gray-600 text-xs truncate">{o.club_abbreviation}</div>
@@ -118,7 +118,7 @@ function OptionsTooltip({ pick, accentColor, anchorRect }) {
               </div>
               <div className="flex-shrink-0 text-right">
                 {o.average_score != null && (
-                  <div className={`text-xs font-bold ${isChosen ? 'text-cartola-gold' : 'text-gray-500'}`}>
+                  <div className={`text-xs font-bold ${isChosen ? 'text-draft-gold' : 'text-gray-500'}`}>
                     {o.average_score.toFixed(1)}
                   </div>
                 )}
@@ -168,7 +168,7 @@ function PickCell({ pick, pickNum, accentColor }) {
           </div>
           <div className="flex items-center gap-1">
             {pick.average_score != null && (
-              <span className="text-xs font-bold text-cartola-gold whitespace-nowrap">
+              <span className="text-xs font-bold text-draft-gold whitespace-nowrap">
                 {pick.average_score.toFixed(1)}
               </span>
             )}
@@ -193,7 +193,7 @@ function PickCell({ pick, pickNum, accentColor }) {
           )}
           <div className="min-w-0 flex-1">
             <div className="text-white text-xs font-semibold leading-tight truncate">
-              {pick.nickname || `#${pick.cartola_id}`}
+              {pick.nickname || `#${pick.player_id}`}
             </div>
             <div className="text-gray-500 text-xs truncate mt-0.5">
               {pick.club_abbreviation || '—'}
@@ -435,13 +435,13 @@ function DraftDetail({ draftId, onBack }) {
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setView('board')}
-          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'board' ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'board' ? 'bg-draft-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
         >
           Draft Board
         </button>
         <button
           onClick={() => setView('teams')}
-          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'teams' ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'teams' ? 'bg-draft-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
         >
           Times
         </button>
@@ -457,7 +457,7 @@ function DraftDetail({ draftId, onBack }) {
                 <button
                   key={p.id}
                   onClick={() => setActiveParticipant(p.id)}
-                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeParticipant === p.id ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400'}`}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeParticipant === p.id ? 'bg-draft-green text-white' : 'bg-gray-800 text-gray-400'}`}
                 >
                   {p.name}
                 </button>
@@ -469,7 +469,7 @@ function DraftDetail({ draftId, onBack }) {
               ) : boardPicks.map(pick => {
                 const isBench = BENCH_IDS.includes(pick.position_id);
                 return (
-                  <div key={pick.cartola_id} className={`flex items-center gap-2.5 p-2.5 rounded-lg ${isBench ? 'bg-gray-800/30 opacity-75' : 'bg-gray-800/50'}`}>
+                  <div key={pick.player_id} className={`flex items-center gap-2.5 p-2.5 rounded-lg ${isBench ? 'bg-gray-800/30 opacity-75' : 'bg-gray-800/50'}`}>
                     <span className="text-xs text-gray-600 w-5 text-right shrink-0">#{pick.overall_pick}</span>
                     <span className={`text-xs font-bold px-1.5 py-0.5 rounded shrink-0 ${POS_BADGE_BG[pick.position_id] || 'bg-gray-700 text-gray-400'}`}>
                       {POS_LABEL[pick.position_id]}
@@ -478,11 +478,11 @@ function DraftDetail({ draftId, onBack }) {
                       ? <img src={pick.photo_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
                       : <div className="w-7 h-7 rounded-full bg-gray-700 shrink-0" />}
                     <div className="flex-1 min-w-0">
-                      <div className="text-white text-sm font-medium truncate">{pick.nickname || `#${pick.cartola_id}`}</div>
+                      <div className="text-white text-sm font-medium truncate">{pick.nickname || `#${pick.player_id}`}</div>
                       <div className="text-gray-500 text-xs">{pick.club_abbreviation || '—'}</div>
                     </div>
                     {pick.average_score != null && (
-                      <span className={`text-sm font-bold shrink-0 ${isBench ? 'text-gray-400' : 'text-cartola-gold'}`}>
+                      <span className={`text-sm font-bold shrink-0 ${isBench ? 'text-gray-400' : 'text-draft-gold'}`}>
                         {pick.average_score.toFixed(1)}
                       </span>
                     )}
@@ -536,18 +536,18 @@ function DraftDetail({ draftId, onBack }) {
                         <button
                           key={p.id}
                           onClick={() => setActiveParticipant(p.id)}
-                          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-left ${isActive ? 'bg-cartola-green/20 ring-1 ring-cartola-green/50' : 'hover:bg-gray-800/40'}`}
+                          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-left ${isActive ? 'bg-draft-green/20 ring-1 ring-draft-green/50' : 'hover:bg-gray-800/40'}`}
                         >
                           <span className={`w-5 text-center text-xs font-bold shrink-0 ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-600' : 'text-gray-600'}`}>
                             {idx + 1}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <span className={`text-sm font-medium truncate block ${isActive ? 'text-white' : isMe ? 'text-cartola-gold' : 'text-gray-300'}`}>
+                            <span className={`text-sm font-medium truncate block ${isActive ? 'text-white' : isMe ? 'text-draft-gold' : 'text-gray-300'}`}>
                               {p.name}{isMe && <span className="ml-1.5 text-xs opacity-60">(você)</span>}
                             </span>
                             <span className="text-xs text-gray-600">{p.formation}</span>
                           </div>
-                          <span className={`w-12 text-right text-sm font-bold shrink-0 ${isActive ? 'text-cartola-gold' : 'text-gray-400'}`}>
+                          <span className={`w-12 text-right text-sm font-bold shrink-0 ${isActive ? 'text-draft-gold' : 'text-gray-400'}`}>
                             {p.total.toFixed(2)}
                           </span>
                         </button>
@@ -562,7 +562,7 @@ function DraftDetail({ draftId, onBack }) {
                   <select
                     value={activeParticipant || ''}
                     onChange={e => setActiveParticipant(Number(e.target.value))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-cartola-green"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-draft-green"
                   >
                     {dropdownOptions.map(p => (
                       <option key={p.id} value={p.id}>
@@ -585,7 +585,7 @@ function DraftDetail({ draftId, onBack }) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-cartola-gold">{totalScore(activeTeam).toFixed(2)}</div>
+                  <div className="text-xl font-bold text-draft-gold">{totalScore(activeTeam).toFixed(2)}</div>
                   <div className="text-xs text-gray-500">média total</div>
                 </div>
               </div>
@@ -602,7 +602,7 @@ function DraftDetail({ draftId, onBack }) {
                     <span className="hidden sm:block w-16 text-right">Preço</span>
                   </div>
                   {mainPicks.map(p => (
-                    <div key={p.cartola_id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-gray-800/40 transition-colors">
+                    <div key={p.player_id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-gray-800/40 transition-colors">
                       <span className={`w-10 shrink-0 text-xs font-bold ${POS_COLORS[p.position_id]}`}>
                         {POS_LABEL[p.position_id]}
                       </span>
@@ -611,12 +611,12 @@ function DraftDetail({ draftId, onBack }) {
                           ? <img src={p.photo_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
                           : <div className="w-7 h-7 rounded-full bg-gray-700 shrink-0" />}
                         <div className="min-w-0">
-                          <div className="text-white font-medium text-sm truncate">{p.nickname || `#${p.cartola_id}`}</div>
+                          <div className="text-white font-medium text-sm truncate">{p.nickname || `#${p.player_id}`}</div>
                           <div className="text-gray-500 text-xs sm:hidden">{p.club_abbreviation || '—'}</div>
                         </div>
                         <span className="hidden sm:inline text-gray-500 text-xs ml-1">{p.club_abbreviation || '—'}</span>
                       </div>
-                      <span className="w-10 text-right font-semibold text-cartola-gold text-sm shrink-0">
+                      <span className="w-10 text-right font-semibold text-draft-gold text-sm shrink-0">
                         {p.average_score != null ? p.average_score.toFixed(1) : '—'}
                       </span>
                       <span className="hidden sm:block w-16 text-right text-gray-500 text-xs shrink-0">
@@ -630,14 +630,14 @@ function DraftDetail({ draftId, onBack }) {
                         Reservas
                       </div>
                       {benchPicks.map(p => (
-                        <div key={`b-${p.cartola_id}`} className="flex items-center gap-2 px-3 py-2.5 rounded-lg opacity-60">
+                        <div key={`b-${p.player_id}`} className="flex items-center gap-2 px-3 py-2.5 rounded-lg opacity-60">
                           <span className="w-10 shrink-0 text-xs font-bold text-gray-500">RES</span>
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             {p.photo_url
                               ? <img src={p.photo_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
                               : <div className="w-7 h-7 rounded-full bg-gray-700 shrink-0" />}
                             <div className="min-w-0">
-                              <div className="text-gray-300 font-medium text-sm truncate">{p.nickname || `#${p.cartola_id}`}</div>
+                              <div className="text-gray-300 font-medium text-sm truncate">{p.nickname || `#${p.player_id}`}</div>
                               <div className="text-gray-500 text-xs sm:hidden">{p.club_abbreviation || '—'}</div>
                             </div>
                             <span className="hidden sm:inline text-gray-500 text-xs ml-1">{p.club_abbreviation || '—'}</span>
@@ -714,7 +714,7 @@ function EditDraftModal({ draft, onClose, onSaved }) {
             <select
               value={status}
               onChange={e => setStatus(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cartola-green"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-draft-green"
             >
               {STATUS_OPTIONS.map(s => (
                 <option key={s} value={s}>{STATUS_LABEL[s] || s}</option>
@@ -729,7 +729,7 @@ function EditDraftModal({ draft, onClose, onSaved }) {
               min="0"
               value={entryFee}
               onChange={e => setEntryFee(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cartola-green"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-draft-green"
             />
           </div>
         </div>
@@ -746,7 +746,7 @@ function EditDraftModal({ draft, onClose, onSaved }) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 px-4 py-2 rounded-lg bg-cartola-green text-white text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex-1 px-4 py-2 rounded-lg bg-draft-green text-white text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50"
           >
             {saving ? 'Salvando...' : 'Salvar'}
           </button>

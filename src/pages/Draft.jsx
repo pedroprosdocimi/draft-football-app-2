@@ -74,7 +74,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
   const [pickedIds, setPickedIds] = useState(() => {
     const ids = new Set();
     for (const p of initialData.participants || []) {
-      for (const pick of p.picks || []) ids.add(pick.cartola_id);
+      for (const pick of p.picks || []) ids.add(pick.player_id);
     }
     return ids;
   });
@@ -243,7 +243,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
     const onPlayerPicked = ({ participantId: pid, player, nextParticipantId, pickNumber }) => {
       setOfferedPlayers(null);
       setCurrentPickerPositionId(null);
-      setPickedIds(prev => new Set([...prev, player.cartola_id]));
+      setPickedIds(prev => new Set([...prev, player.player_id]));
       setCurrentPickerId(nextParticipantId);
       setPickNumber(pickNumber);
       setTimeLeft(60);
@@ -325,7 +325,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
       setParticipants(updated);
       setPickedIds(() => {
         const ids = new Set();
-        for (const p of updated) for (const pick of p.picks || []) ids.add(pick.cartola_id);
+        for (const p of updated) for (const pick of p.picks || []) ids.add(pick.player_id);
         return ids;
       });
     };
@@ -380,7 +380,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
       });
       setPickedIds(prev => {
         const s = new Set(prev);
-        for (const pk of picks) s.add(pk.player.cartola_id);
+        for (const pk of picks) s.add(pk.player.player_id);
         return s;
       });
       showNotification(`Rodada ${round} concluída!`, 'info');
@@ -465,12 +465,12 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
     socket.emit('pick_bench_slot', { roomCode, participantId, benchSlotId });
   }, [roomCode, participantId]);
 
-  const handlePickPlayer = useCallback((cartolaId) => {
-    socket.emit('pick_player', { roomCode, participantId, cartolaId });
+  const handlePickPlayer = useCallback((playerId) => {
+    socket.emit('pick_player', { roomCode, participantId, playerId });
   }, [roomCode, participantId]);
 
-  const handlePickCaptain = useCallback((cartolaId) => {
-    socket.emit('pick_captain', { roomCode, participantId, cartolaId });
+  const handlePickCaptain = useCallback((playerId) => {
+    socket.emit('pick_captain', { roomCode, participantId, playerId });
   }, [roomCode, participantId]);
 
   const handleReroll = useCallback(() => {
@@ -482,23 +482,23 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
     socket.emit('submit_position', { roomCode, participantId, positionId });
   }, [roomCode, participantId]);
 
-  const handleSubmitPlayer = useCallback((cartolaId) => {
-    const chosen = simPlayerOptions.find(p => p.cartola_id === cartolaId);
+  const handleSubmitPlayer = useCallback((playerId) => {
+    const chosen = simPlayerOptions.find(p => p.player_id === playerId);
     if (chosen) setSimChosenPlayer(chosen);
-    socket.emit('submit_player', { roomCode, participantId, cartolaId });
+    socket.emit('submit_player', { roomCode, participantId, playerId });
   }, [roomCode, participantId, simPlayerOptions]);
 
   // ── Admin helpers ──────────────────────────────────────────────────────────
   const handleAdminForcePick = () => socket.emit('admin_force_pick', { roomCode, participantId });
   const handleAdminSimAll = () => socket.emit('admin_sim_all', { roomCode, participantId });
   const handleAdminEndParallel = () => socket.emit('admin_end_parallel', { roomCode, participantId });
-  const handleAdminRemovePick = (targetId, cartolaId) =>
-    socket.emit('admin_remove_pick', { roomCode, participantId, targetParticipantId: targetId, cartolaId });
-  const handleAdminAddPick = (cartolaId) => {
+  const handleAdminRemovePick = (targetId, playerId) =>
+    socket.emit('admin_remove_pick', { roomCode, participantId, targetParticipantId: targetId, playerId });
+  const handleAdminAddPick = (playerId) => {
     socket.emit('admin_add_pick', {
       roomCode, participantId,
       targetParticipantId: addPick.participantId,
-      cartolaId, positionId: parseInt(addPick.positionId),
+      playerId, positionId: parseInt(addPick.positionId),
     });
     setAddPick(prev => ({ ...prev, search: '', positionId: '' }));
   };
@@ -529,7 +529,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
     const q = search.toLowerCase();
     return (initialData.players || [])
       .filter(pl =>
-        !pickedIds.has(pl.cartola_id) &&
+        !pickedIds.has(pl.player_id) &&
         allowed.includes(pl.position_id) &&
         (!q || pl.nickname?.toLowerCase().includes(q) || pl.name?.toLowerCase().includes(q))
       )
@@ -587,7 +587,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
         <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-sm font-medium transition-all ${
           notification.type === 'error' ? 'bg-red-900 text-red-100 border border-red-600' :
           notification.type === 'auto' ? 'bg-orange-900 text-orange-100 border border-orange-600' :
-          notification.type === 'pick' ? 'bg-cartola-dark text-green-100 border border-cartola-green' :
+          notification.type === 'pick' ? 'bg-draft-dark text-green-100 border border-draft-green' :
           'bg-gray-800 text-gray-100 border border-gray-600'
         }`}>
           {notification.msg}
@@ -659,12 +659,12 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
                       {(p.picks || []).length === 0
                         ? <p className="text-gray-600 text-xs">Nenhum pick ainda</p>
                         : (p.picks || []).map(pick => (
-                          <div key={pick.cartola_id} className="flex items-center justify-between py-1 border-b border-gray-700/50 last:border-0">
+                          <div key={pick.player_id} className="flex items-center justify-between py-1 border-b border-gray-700/50 last:border-0">
                             <span className="text-xs text-gray-300">
                               <span className="text-gray-500 mr-1">[{POSITION_LABELS[pick.position_id]}]</span>
                               {pick.nickname}
                             </span>
-                            <button onClick={() => handleAdminRemovePick(p.id, pick.cartola_id)}
+                            <button onClick={() => handleAdminRemovePick(p.id, pick.player_id)}
                               className="text-red-500 hover:text-red-400 text-xs ml-2 px-1">✕</button>
                           </div>
                         ))
@@ -712,13 +712,13 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
                       </div>
                       <div className="space-y-1 max-h-48 overflow-y-auto">
                         {getFilteredPlayers(addPick.positionId, addPick.search).map(pl => (
-                          <div key={pl.cartola_id} className="flex items-center justify-between bg-gray-800 px-3 py-2 rounded text-sm">
+                          <div key={pl.player_id} className="flex items-center justify-between bg-gray-800 px-3 py-2 rounded text-sm">
                             <span className="text-gray-200">
                               {pl.nickname}
                               <span className="text-gray-500 text-xs ml-1">({POSITION_LABELS[pl.position_id]} · {pl.average_score?.toFixed(1) || '-'}pts)</span>
                             </span>
-                            <button onClick={() => handleAdminAddPick(pl.cartola_id)}
-                              className="text-cartola-green hover:text-green-400 text-xs font-semibold ml-2">
+                            <button onClick={() => handleAdminAddPick(pl.player_id)}
+                              className="text-draft-green hover:text-green-400 text-xs font-semibold ml-2">
                               + Add
                             </button>
                           </div>
@@ -768,7 +768,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
         </div>
         <div className="text-sm font-semibold">
           {isMyTurn
-            ? <span className="text-cartola-gold animate-pulse">▶ SUA VEZ</span>
+            ? <span className="text-draft-gold animate-pulse">▶ SUA VEZ</span>
             : <span className="text-gray-400 text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">Vez de {currentPickerName}</span>}
         </div>
         <div className="flex items-center gap-2">
@@ -850,14 +850,14 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
                   <div key={p.id}>
                     <div className="flex items-center justify-between text-sm mb-0.5">
                       <span className={`flex items-center gap-1 ${p.id === participantId ? 'text-white font-semibold' : 'text-gray-400'}`}>
-                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-cartola-gold animate-pulse inline-block" />}
+                        {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-draft-gold animate-pulse inline-block" />}
                         {p.name}
                       </span>
                       <span className="text-gray-500 text-xs">{pDone}/{pTotal}</span>
                     </div>
                     <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${p.id === participantId ? 'bg-cartola-green' : 'bg-gray-600'}`}
+                        className={`h-full rounded-full transition-all duration-300 ${p.id === participantId ? 'bg-draft-green' : 'bg-gray-600'}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -898,9 +898,9 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
             <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 p-4 sm:p-8 flex-1">
               <Timer timeLeft={timeLeft} isMyTurn={isMyTurn} />
               {isMyTurn ? (
-                <div className="w-full max-w-md text-center px-6 py-8 rounded-2xl bg-cartola-green/10 border-2 border-cartola-green shadow-lg shadow-cartola-green/20 flex flex-col items-center gap-3">
+                <div className="w-full max-w-md text-center px-6 py-8 rounded-2xl bg-draft-green/10 border-2 border-draft-green shadow-lg shadow-draft-green/20 flex flex-col items-center gap-3">
                   <span className="text-5xl">{phaseIcon}</span>
-                  <p className="text-2xl sm:text-3xl font-black text-cartola-gold tracking-tight">{phaseLabel}</p>
+                  <p className="text-2xl sm:text-3xl font-black text-draft-gold tracking-tight">{phaseLabel}</p>
                   {mode === 'parallel' && phase !== 'captain' && (
                     <p className="text-sm text-gray-400">Seus picks: {drafterDonePicks}/{drafterTotalPicks}</p>
                   )}
@@ -951,7 +951,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
             key={tab.id}
             onClick={() => setMobileTab(tab.id)}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors relative ${
-              mobileTab === tab.id ? 'text-cartola-green' : 'text-gray-500'
+              mobileTab === tab.id ? 'text-draft-green' : 'text-gray-500'
             }`}
           >
             <div className="flex flex-col items-center gap-0.5">
@@ -959,7 +959,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
               <span>{tab.label}</span>
             </div>
             {tab.id === 'status' && isMyTurn && mobileTab !== 'status' && (
-              <span className="absolute top-1.5 right-1/4 w-2 h-2 bg-cartola-gold rounded-full animate-pulse" />
+              <span className="absolute top-1.5 right-1/4 w-2 h-2 bg-draft-gold rounded-full animate-pulse" />
             )}
           </button>
         ))}

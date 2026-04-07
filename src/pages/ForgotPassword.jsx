@@ -61,7 +61,7 @@ export default function ForgotPassword({ onGoLogin }) {
 
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔑</div>
-          <h1 className="text-3xl font-bold text-white mb-1">Draft Cartola</h1>
+          <h1 className="text-3xl font-bold text-white mb-1">Draft Draft Football</h1>
           <p className="text-gray-400 text-sm">Redefinir senha</p>
         </div>
 
@@ -177,7 +177,7 @@ export default function ForgotPassword({ onGoLogin }) {
             <div className="mt-6 pt-5 border-t border-gray-800 text-center">
               <button
                 onClick={onGoLogin}
-                className="text-cartola-green hover:text-green-400 text-sm font-medium transition-colors"
+                className="text-draft-green hover:text-green-400 text-sm font-medium transition-colors"
               >
                 ← Voltar ao login
               </button>

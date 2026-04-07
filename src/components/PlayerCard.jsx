@@ -93,7 +93,7 @@ function AvgScore({ score, posAvg }) {
     color = s >= posAvg ? 'text-green-400' : 'text-red-400';
   } else {
     // fallback thresholds when position average isn't available
-    color = s >= 6 ? 'text-green-400' : s >= 3 ? 'text-cartola-gold' : 'text-red-400';
+    color = s >= 6 ? 'text-green-400' : s >= 3 ? 'text-draft-gold' : 'text-red-400';
   }
   return <span className={`${color} text-xs font-semibold`}>{s.toFixed(1)}</span>;
 }
@@ -195,7 +195,7 @@ export default function PlayerCard({
         disabled={!isMyTurn}
         className={`w-40 flex-shrink-0 flex flex-col bg-gray-800 border rounded-xl overflow-hidden transition-all text-left
           ${isMyTurn
-            ? `border-gray-600 hover:border-cartola-green hover:scale-105 hover:shadow-lg ${POSITION_GLOW[player.position_id]} cursor-pointer active:scale-100`
+            ? `border-gray-600 hover:border-draft-green hover:scale-105 hover:shadow-lg ${POSITION_GLOW[player.position_id]} cursor-pointer active:scale-100`
             : 'border-gray-700 opacity-80 cursor-default'
           }`}
       >
@@ -242,7 +242,7 @@ export default function PlayerCard({
                 <div className="text-gray-400 text-xs leading-none mb-0.5">Última</div>
                 {(() => {
                   const s = player.recentScores?.[0]?.score ?? 0;
-                  const color = s >= 6 ? 'text-green-400' : s >= 3 ? 'text-cartola-gold' : 'text-red-400';
+                  const color = s >= 6 ? 'text-green-400' : s >= 3 ? 'text-draft-gold' : 'text-red-400';
                   return <span className={`text-xs font-semibold ${color}`}>{s.toFixed(1)}</span>;
                 })()}
               </div>
@@ -285,7 +285,7 @@ export default function PlayerCard({
       onClick={onClick}
       disabled={!isMyTurn}
       className={`card text-left w-full transition-all ${
-        isMyTurn ? 'hover:border-cartola-green hover:bg-gray-800 cursor-pointer active:scale-95' : 'opacity-50 cursor-default'
+        isMyTurn ? 'hover:border-draft-green hover:bg-gray-800 cursor-pointer active:scale-95' : 'opacity-50 cursor-default'
       }`}
     >
       <div className="flex items-center gap-3">

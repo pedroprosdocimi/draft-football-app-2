@@ -103,7 +103,7 @@ function FormationPicker({ myFormation, myPicks, neededPositions, onPickPosition
       <div className="flex gap-2 justify-center">
         {slots.map((slot, i) =>
           slot.type === 'filled'
-            ? <FilledSlot key={slot.player.cartola_id} player={slot.player} posId={slot.posId} />
+            ? <FilledSlot key={slot.player.player_id} player={slot.player} posId={slot.posId} />
             : <AvailableSlot key={slot.key || `avail-${i}`} posId={slot.posId} onPickPosition={onPickPosition} />
         )}
       </div>
@@ -178,14 +178,14 @@ export default function PickPanel({
             <p className="text-gray-300 text-sm">
               {phase === 'captain'
                 ? isMyTurn
-                  ? <span className="text-cartola-gold font-semibold">Escolha seu Capitão!</span>
+                  ? <span className="text-draft-gold font-semibold">Escolha seu Capitão!</span>
                   : <><strong className="text-white">{currentPickerName}</strong> está escolhendo o capitão...</>
                 : phase === 'bench'
                   ? isMyTurn
-                    ? <span className="text-cartola-gold font-semibold">Escolha de jogador reserva {myPicks.filter(p => BENCH_SLOT_IDS.includes(p.position_id)).length + 1}/5</span>
+                    ? <span className="text-draft-gold font-semibold">Escolha de jogador reserva {myPicks.filter(p => BENCH_SLOT_IDS.includes(p.position_id)).length + 1}/5</span>
                     : <><strong className="text-white">{currentPickerName}</strong> escolhendo reserva {/* no count for others */}...</>
                   : isMyTurn
-                    ? <span className="text-cartola-gold font-semibold">Escolha um jogador</span>
+                    ? <span className="text-draft-gold font-semibold">Escolha um jogador</span>
                     : <><strong className="text-white">{currentPickerName}</strong> está escolhendo...</>}
             </p>
           </div>
@@ -193,12 +193,12 @@ export default function PickPanel({
           <div className="flex flex-nowrap gap-3 overflow-x-auto w-full pb-2 sm:flex-wrap sm:justify-center sm:overflow-x-visible">
             {offeredPlayers.map(player => (
               <PlayerCard
-                key={player.cartola_id}
+                key={player.player_id}
                 player={player}
                 card={true}
                 isMyTurn={isMyTurn}
                 match={clubMatches[player.club_id] || clubMatches[String(player.club_id)] || null}
-                onClick={() => onPickPlayer(player.cartola_id)}
+                onClick={() => onPickPlayer(player.player_id)}
                 positionAverages={positionAverages}
                 scoutPositionAverages={scoutPositionAverages}
               />
@@ -233,7 +233,7 @@ export default function PickPanel({
       <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-5 p-4 overflow-y-auto">
         <Timer timeLeft={timeLeft} isMyTurn={isMyTurn} />
         <div className="text-center">
-          <p className="text-cartola-gold font-bold text-xl sm:text-2xl tracking-wide">Escolha um Reserva</p>
+          <p className="text-draft-gold font-bold text-xl sm:text-2xl tracking-wide">Escolha um Reserva</p>
           <p className="text-gray-400 text-sm mt-1">Selecione o slot que deseja preencher</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4">
@@ -267,7 +267,7 @@ export default function PickPanel({
     return (
       <div className="fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4 sm:gap-6 p-4 overflow-y-auto">
         <Timer timeLeft={timeLeft} isMyTurn={isMyTurn} />
-        <p className="text-cartola-gold font-bold text-xl sm:text-2xl tracking-wide">Escolha uma posição</p>
+        <p className="text-draft-gold font-bold text-xl sm:text-2xl tracking-wide">Escolha uma posição</p>
         <FormationPicker
           myFormation={myFormation}
           myPicks={myPicks}

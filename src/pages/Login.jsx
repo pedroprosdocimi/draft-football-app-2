@@ -42,7 +42,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
 
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-3xl font-bold text-white mb-1">Draft Cartola</h1>
+          <h1 className="text-3xl font-bold text-white mb-1">Draft Draft Football</h1>
           <p className="text-gray-400 text-sm">Entre na sua conta para continuar</p>
         </div>
 
@@ -94,7 +94,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
               Não tem conta?{' '}
               <button
                 onClick={onGoRegister}
-                className="text-cartola-green hover:text-green-400 font-medium transition-colors"
+                className="text-draft-green hover:text-green-400 font-medium transition-colors"
               >
                 Criar conta
               </button>

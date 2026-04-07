@@ -141,7 +141,7 @@ function SimultaneousFormationPicker({ formation, myPicks, positionSlots, confir
       <div className="flex gap-1.5 justify-center">
         {slots.map((slot, i) => {
           if (slot.type === 'filled') {
-            return <FilledSlot key={slot.player.cartola_id} player={slot.player} posId={slot.posId} />;
+            return <FilledSlot key={slot.player.player_id} player={slot.player} posId={slot.posId} />;
           }
           const slotData = positionSlots?.[slot.posId] || { vagas: 0, total: 0 };
           return (
@@ -214,7 +214,7 @@ function PositionPhase({ round, totalRounds, timerSeconds, positionSlots, confir
             const pos = confirmedPositions?.[p.id];
             return (
               <div key={p.id} className="flex items-center justify-between text-sm">
-                <span className={p.id === participantId ? 'text-cartola-green font-semibold' : 'text-gray-300'}>
+                <span className={p.id === participantId ? 'text-draft-green font-semibold' : 'text-gray-300'}>
                   {p.name}
                 </span>
                 {pos !== undefined && pos !== null ? (
@@ -268,12 +268,12 @@ function PlayerPhase({ timerSeconds, options, chosenPlayer, onSubmitPlayer, club
       <div className="flex flex-nowrap gap-3 overflow-x-auto w-full pb-2 sm:flex-wrap sm:justify-center sm:overflow-x-visible">
         {options.map(player => (
           <PlayerCard
-            key={player.cartola_id}
+            key={player.player_id}
             player={player}
             card={true}
             isMyTurn={!hasChosen}
             match={clubMatches?.[player.club_id] || clubMatches?.[String(player.club_id)] || null}
-            onClick={() => onSubmitPlayer(player.cartola_id)}
+            onClick={() => onSubmitPlayer(player.player_id)}
             positionAverages={positionAverages || {}}
             scoutPositionAverages={scoutPositionAverages || {}}
           />

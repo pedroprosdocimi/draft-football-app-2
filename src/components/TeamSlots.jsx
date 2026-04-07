@@ -49,7 +49,7 @@ export default function TeamSlots({ formation, picks, captainId }) {
   const totalMain = Object.values(counts).reduce((a, b) => a + b, 0);
 
   function PickRow({ p, posId, empty }) {
-    const isCaptain = !empty && captainId && p?.cartola_id === captainId;
+    const isCaptain = !empty && captainId && p?.player_id === captainId;
     return (
       <div className={`flex items-center gap-2 px-2 py-1 rounded border mb-1 ${
         empty ? 'border-dashed border-gray-700 opacity-40' : POSITION_COLORS[posId]
@@ -96,7 +96,7 @@ export default function TeamSlots({ formation, picks, captainId }) {
         const empty = required - filled.length;
         return (
           <div key={posId}>
-            {filled.map(p => <PickRow key={p.cartola_id} p={p} posId={posId} empty={false} />)}
+            {filled.map(p => <PickRow key={p.player_id} p={p} posId={posId} empty={false} />)}
             {Array.from({ length: empty }).map((_, i) => (
               <PickRow key={`empty-${posId}-${i}`} posId={posId} empty={true} />
             ))}

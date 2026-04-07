@@ -36,15 +36,15 @@ function buildPlayedClubs(allTeams) {
 }
 
 // Returns substitution maps:
-// subMap: starterCartolaId -> benchPlayer (bench came in for this starter)
-// usedBenchIds: Set of bench cartolaIds that were subbed in
+// subMap: starterDraft FootballId -> benchPlayer (bench came in for this starter)
+// usedBenchIds: Set of bench playerIds that were subbed in
 // playedClubs: Set of club_ids whose game has already happened this round
 function buildSubstitutions(picks, playedClubs) {
   const mainPicks = picks.filter(p => !BENCH_SLOT_IDS.includes(p.position_id));
   const benchPicks = picks.filter(p => BENCH_SLOT_IDS.includes(p.position_id))
     .sort((a, b) => (POS_ORDER[a.position_id] ?? 9) - (POS_ORDER[b.position_id] ?? 9));
 
-  const subMap = new Map();   // starterCartolaId -> benchPlayer
+  const subMap = new Map();   // starterDraft FootballId -> benchPlayer
   const usedBenchIds = new Set();
 
   for (const bench of benchPicks) {
@@ -54,11 +54,11 @@ function buildSubstitutions(picks, playedClubs) {
       allowed.includes(p.position_id) &&
       p.round_score == null &&
       playedClubs.has(p.club_id) &&  // só substitui se o time do titular já jogou
-      !subMap.has(p.cartola_id)
+      !subMap.has(p.player_id)
     );
     if (target) {
-      subMap.set(target.cartola_id, bench);
-      usedBenchIds.add(bench.cartola_id);
+      subMap.set(target.player_id, bench);
+      usedBenchIds.add(bench.player_id);
     }
   }
 
@@ -70,9 +70,9 @@ function teamRoundScore(picks, captainId, playedClubs) {
   const { subMap } = buildSubstitutions(picks, playedClubs);
 
   return mainPicks.reduce((sum, p) => {
-    const effective = subMap.has(p.cartola_id) ? subMap.get(p.cartola_id) : p;
+    const effective = subMap.has(p.player_id) ? subMap.get(p.player_id) : p;
     const score = effective.round_score ?? 0;
-    const multiplier = p.cartola_id === captainId ? 2 : 1;
+    const multiplier = p.player_id === captainId ? 2 : 1;
     return sum + score * multiplier;
   }, 0);
 }
@@ -110,7 +110,7 @@ function UnpickedTable({ players, hasRoundScores }) {
         </thead>
         <tbody>
           {visible.map(p => (
-            <tr key={p.cartola_id} className="border-b border-gray-800/40 last:border-0 hover:bg-gray-800/20">
+            <tr key={p.player_id} className="border-b border-gray-800/40 last:border-0 hover:bg-gray-800/20">
               <td className="py-2 pl-4 pr-2">
                 <div className="flex items-center gap-2">
                   {p.photo && <img src={p.photo} className="w-6 h-6 rounded-full object-cover flex-shrink-0" alt="" />}
@@ -256,7 +256,7 @@ export default function DraftDetail({ roomCode, onClose }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-bold text-white text-lg">{roomCode}</span>
               {data.roundNumber && (
-                <span className="bg-cartola-green/20 text-green-400 border border-cartola-green/40 text-xs font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-draft-green/20 text-green-400 border border-draft-green/40 text-xs font-bold px-2 py-0.5 rounded-full">
                   Rodada {data.roundNumber}
                 </span>
               )}
@@ -315,7 +315,7 @@ export default function DraftDetail({ roomCode, onClose }) {
                     key={team.id}
                     onClick={() => setActiveTab(team.id)}
                     className={`border-b border-gray-800/60 last:border-0 cursor-pointer transition-colors ${
-                      isActive ? 'bg-cartola-green/10' : 'hover:bg-gray-800/40'
+                      isActive ? 'bg-draft-green/10' : 'hover:bg-gray-800/40'
                     }`}
                   >
                     <td className="py-3 pl-4 pr-2 text-lg leading-none">{posIcon}</td>
@@ -358,7 +358,7 @@ export default function DraftDetail({ roomCode, onClose }) {
                   const found = dropdownTeams.find(t => String(t.id) === e.target.value);
                   if (found) setActiveTab(found.id);
                 }}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-cartola-green"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-draft-green"
               >
                 {dropdownTeams.map(team => (
                   <option key={team.id} value={String(team.id)}>
@@ -396,8 +396,8 @@ export default function DraftDetail({ roomCode, onClose }) {
 
             <div className="space-y-px">
                 {mainPicks.map(p => {
-                  const isCaptain = p.cartola_id === activeTeam.captainId;
-                  const subIn = subMap.get(p.cartola_id);
+                  const isCaptain = p.player_id === activeTeam.captainId;
+                  const subIn = subMap.get(p.player_id);
                   const wasSubbedOut = !!subIn;
 
                   const slotScore = wasSubbedOut ? (subIn.round_score || 0) : (p.round_score ?? 0);
@@ -406,7 +406,7 @@ export default function DraftDetail({ roomCode, onClose }) {
                     : null;
 
                   return (
-                    <React.Fragment key={p.cartola_id}>
+                    <React.Fragment key={p.player_id}>
                       {/* Starter row */}
                       <div className={`flex items-center gap-2 py-2 px-1 rounded-lg border-b border-gray-800/40 ${wasSubbedOut ? 'opacity-40' : 'hover:bg-gray-800/30'}`}>
                         {/* Pos + sub indicator */}
@@ -483,9 +483,9 @@ export default function DraftDetail({ roomCode, onClose }) {
                       Reservas
                     </div>
                     {benchPicks.map(p => {
-                      const subbed = usedBenchIds.has(p.cartola_id);
+                      const subbed = usedBenchIds.has(p.player_id);
                       return (
-                        <div key={p.cartola_id} className={`flex items-center gap-2 py-2 px-1 rounded-lg border-b border-gray-800/30 ${subbed ? 'opacity-40' : 'opacity-60'}`}>
+                        <div key={p.player_id} className={`flex items-center gap-2 py-2 px-1 rounded-lg border-b border-gray-800/30 ${subbed ? 'opacity-40' : 'opacity-60'}`}>
                           <div className="w-10 shrink-0">
                             <span className={`font-bold text-xs ${POS_COLORS[p.position_id]}`}>
                               {POS_LABEL[p.position_id]}

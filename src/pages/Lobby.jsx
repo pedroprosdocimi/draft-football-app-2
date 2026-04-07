@@ -235,7 +235,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
     const meCanStart = !meCompleted && meHasFormation && isParallelWaiting;
 
     const bannerClass = meCompleted
-      ? 'bg-cartola-green/10 border-cartola-green'
+      ? 'bg-draft-green/10 border-draft-green'
       : isSomeoneActive
         ? 'bg-orange-900/20 border-orange-700'
         : meCanStart
@@ -260,7 +260,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
             <div className={`mt-2 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
               beforeStart
                 ? 'bg-blue-900/30 border border-blue-700/50 text-blue-300'
-                : 'bg-cartola-green/20 border border-cartola-green/40 text-green-300'
+                : 'bg-draft-green/20 border border-draft-green/40 text-green-300'
             }`}>
               {beforeStart ? `🕐 Abre em ${formatCountdown(roomStartTime)}` : `✅ Aberto desde ${roomStartTime.toLocaleString('pt-BR')}`}
             </div>
@@ -275,7 +275,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
         {/* Banner: my state */}
         <div className={`mb-6 rounded-xl p-4 border ${bannerClass} text-center`}>
           {meCompleted ? (
-            <p className="text-cartola-green font-semibold text-lg">✅ Seu draft está completo!</p>
+            <p className="text-draft-green font-semibold text-lg">✅ Seu draft está completo!</p>
           ) : isSomeoneActive ? (
             <div>
               <p className="text-orange-300 font-semibold">
@@ -324,7 +324,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                 <div key={p.id}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className={`flex items-center gap-1.5 ${p.id === participantId ? 'text-white font-semibold' : 'text-gray-300'}`}>
-                      {isCurrent && <span className="w-2 h-2 rounded-full bg-cartola-gold animate-pulse inline-block" />}
+                      {isCurrent && <span className="w-2 h-2 rounded-full bg-draft-gold animate-pulse inline-block" />}
                       {p.id === roomState?.adminId ? '👑' : ''}
                       {p.name}
                       {p.id === participantId && <span className="text-xs text-gray-500">(você)</span>}
@@ -336,7 +336,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                   <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ${
-                        hasCaptain ? 'bg-cartola-green' : isCurrent ? 'bg-cartola-gold' : 'bg-gray-600'
+                        hasCaptain ? 'bg-draft-green' : isCurrent ? 'bg-draft-gold' : 'bg-gray-600'
                       }`}
                       style={{ width: hasCaptain ? '100%' : `${pct}%` }}
                     />
@@ -373,12 +373,12 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
           >
             ← Sair
           </button>
-          <h1 className="text-3xl font-bold mb-2">⚽ Draft Cartola</h1>
+          <h1 className="text-3xl font-bold mb-2">⚽ Draft Draft Football</h1>
           <div className="flex items-center justify-center gap-3">
             <span className="text-gray-400">Código da sala:</span>
             <button
               onClick={copyCode}
-              className="font-mono text-2xl font-bold text-cartola-gold bg-gray-800 px-4 py-1 rounded-lg hover:bg-gray-700 transition-colors"
+              className="font-mono text-2xl font-bold text-draft-gold bg-gray-800 px-4 py-1 rounded-lg hover:bg-gray-700 transition-colors"
             >
               {roomCode}
             </button>
@@ -408,7 +408,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                     </span>
                   </div>
                   <div className="flex items-center">
-                    <span className={`text-sm px-2 py-0.5 rounded flex items-center gap-1 ${roomState?.readyStatus?.[p.id] ? 'bg-cartola-green/30 text-green-400' : 'bg-gray-700 text-gray-500'}`}>
+                    <span className={`text-sm px-2 py-0.5 rounded flex items-center gap-1 ${roomState?.readyStatus?.[p.id] ? 'bg-draft-green/30 text-green-400' : 'bg-gray-700 text-gray-500'}`}>
                       {roomState?.readyStatus?.[p.id] ? '✓ Pronto' : 'Aguardando'}
                     </span>
                     {p.id === participantId && !isSpectatorAdmin && (
@@ -416,7 +416,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                         onClick={handleToggleReady}
                         className={`ml-2 text-xs px-2 py-0.5 rounded border transition-all ${
                           roomState?.readyStatus?.[p.id]
-                            ? 'border-cartola-green bg-cartola-green/20 text-green-400'
+                            ? 'border-draft-green bg-draft-green/20 text-green-400'
                             : 'border-gray-600 text-gray-400 hover:border-gray-500'
                         }`}
                       >
@@ -468,7 +468,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                     onClick={() => setDraftMode('realtime')}
                     className={`px-5 py-2.5 rounded-md text-sm font-medium transition-all ${
                       draftMode === 'realtime'
-                        ? 'bg-cartola-green text-white shadow'
+                        ? 'bg-draft-green text-white shadow'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
@@ -532,7 +532,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                     <button
                       onClick={() => setAllowRepeatPlayers(false)}
                       className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        !allowRepeatPlayers ? 'bg-cartola-green text-white shadow' : 'text-gray-400 hover:text-white'
+                        !allowRepeatPlayers ? 'bg-draft-green text-white shadow' : 'text-gray-400 hover:text-white'
                       }`}
                     >
                       Únicos
@@ -557,7 +557,7 @@ export default function Lobby({ roomCode, participantId, isAdmin, initialState, 
                     <button
                       onClick={() => setRestrictClubPerTeam(false)}
                       className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                        !restrictClubPerTeam ? 'bg-cartola-green text-white shadow' : 'text-gray-400 hover:text-white'
+                        !restrictClubPerTeam ? 'bg-draft-green text-white shadow' : 'text-gray-400 hover:text-white'
                       }`}
                     >
                       Livre

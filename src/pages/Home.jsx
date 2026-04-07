@@ -93,15 +93,15 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
         {/* Header */}
         <div className="text-center mb-10">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-4xl font-bold text-white mb-2">Draft Cartola</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Draft Draft Football</h1>
           <p className="text-gray-400">Monte seu time com jogadores reais do Brasileirão</p>
           <div className="flex items-center justify-center gap-3 mt-4">
             <span className="text-gray-400 text-sm">
               Olá, <span className="text-white font-medium">{user.nome.split(' ')[0]}</span>
               {' '}·{' '}
-              <span className="text-cartola-green font-medium">{user.nomeTime}</span>
+              <span className="text-draft-green font-medium">{user.nomeTime}</span>
               {user.isAdmin && (
-                <span className="ml-2 text-xs bg-cartola-gold/20 text-cartola-gold border border-cartola-gold/30 px-2 py-0.5 rounded-full">
+                <span className="ml-2 text-xs bg-draft-gold/20 text-draft-gold border border-draft-gold/30 px-2 py-0.5 rounded-full">
                   admin
                 </span>
               )}
@@ -127,7 +127,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-white text-sm">{draft.room_code}</span>
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-cartola-green/20 text-green-400 border border-cartola-green/30">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-draft-green/20 text-green-400 border border-draft-green/30">
                         {STATUS_LABELS[draft.status] || draft.status}
                       </span>
                     </div>
@@ -153,10 +153,10 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
 
         {/* Active draft banner */}
         {activeSession?.roomCode && (
-          <div className="mb-4 rounded-xl border border-cartola-green/50 bg-cartola-green/10 p-4 flex items-center gap-4">
+          <div className="mb-4 rounded-xl border border-draft-green/50 bg-draft-green/10 p-4 flex items-center gap-4">
             <div className="relative flex-shrink-0">
-              <div className="w-3 h-3 rounded-full bg-cartola-green" />
-              <div className="absolute inset-0 w-3 h-3 rounded-full bg-cartola-green animate-ping" />
+              <div className="w-3 h-3 rounded-full bg-draft-green" />
+              <div className="absolute inset-0 w-3 h-3 rounded-full bg-draft-green animate-ping" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm">Draft em andamento</p>
@@ -180,7 +180,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
               <button
                 onClick={() => setTab('create')}
                 className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  tab === 'create' ? 'bg-cartola-green text-white' : 'text-gray-400 hover:text-white'
+                  tab === 'create' ? 'bg-draft-green text-white' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 Criar Sala
@@ -188,7 +188,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
               <button
                 onClick={() => setTab('join')}
                 className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  tab === 'join' ? 'bg-cartola-green text-white' : 'text-gray-400 hover:text-white'
+                  tab === 'join' ? 'bg-draft-green text-white' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 Entrar com Código
@@ -211,7 +211,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
                   <button
                     onClick={() => setWantToPlay(true)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                      wantToPlay ? 'bg-cartola-green text-white shadow' : 'text-gray-400 hover:text-white'
+                      wantToPlay ? 'bg-draft-green text-white shadow' : 'text-gray-400 hover:text-white'
                     }`}
                   >
                     ⚽ Quero jogar
@@ -310,7 +310,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
                               <td className="px-3 py-1.5 font-semibold">{p.label}</td>
                               <td className="px-2 py-1.5 text-center font-mono">{p.count}</td>
                               <td className="px-2 py-1.5 text-center text-gray-500">{p.worst}</td>
-                              <td className={`px-2 py-1.5 text-center font-bold ${p.max === bottleneck ? 'text-red-400' : 'text-cartola-green'}`}>{p.max}</td>
+                              <td className={`px-2 py-1.5 text-center font-bold ${p.max === bottleneck ? 'text-red-400' : 'text-draft-green'}`}>{p.max}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -320,7 +320,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
                         <span className="text-sm font-bold">
                           {bottleneck <= 0
                             ? <span className="text-red-400">Pool insuficiente</span>
-                            : <span className={bottleneck <= 4 ? 'text-yellow-400' : 'text-cartola-green'}>
+                            : <span className={bottleneck <= 4 ? 'text-yellow-400' : 'text-draft-green'}>
                                 Máx. <span className="text-xl">{bottleneck}</span> jogadores
                               </span>
                           }
@@ -380,7 +380,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
           <div className="mt-4 text-center">
             <button
               onClick={onGoAdmin}
-              className="text-xs text-gray-600 hover:text-cartola-gold transition-colors border border-gray-800 hover:border-gray-600 px-4 py-2 rounded-lg"
+              className="text-xs text-gray-600 hover:text-draft-gold transition-colors border border-gray-800 hover:border-gray-600 px-4 py-2 rounded-lg"
             >
               ⚙️ Painel Admin
             </button>
@@ -399,7 +399,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
                 <button
                   key={draft.room_code}
                   onClick={() => setDetailRoomCode(draft.room_code)}
-                  className="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-left hover:border-cartola-green/50 hover:bg-gray-800 transition-all"
+                  className="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-left hover:border-draft-green/50 hover:bg-gray-800 transition-all"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -413,7 +413,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1 truncate">{draft.participants_names}</p>
-                  <p className="text-xs text-cartola-green/70 mt-1">Ver classificação →</p>
+                  <p className="text-xs text-draft-green/70 mt-1">Ver classificação →</p>
                 </button>
               ))}
             </div>
@@ -421,7 +421,7 @@ export default function Home({ user, onLogout, onGoAdmin, onRejoin }) {
         )}
 
         <p className="text-center text-gray-600 text-xs mt-4">
-          Dados dos jogadores via API não-oficial do Cartola FC
+          Dados dos jogadores via API não-oficial do Draft Football
         </p>
       </div>
     </div>

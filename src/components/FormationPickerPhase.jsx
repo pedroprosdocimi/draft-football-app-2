@@ -50,7 +50,7 @@ export default function FormationPickerPhase({
               disabled={disabled}
               className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
                 isChosen
-                  ? 'border-cartola-green bg-cartola-green/20 text-white'
+                  ? 'border-draft-green bg-draft-green/20 text-white'
                   : disabled
                     ? 'border-gray-700 text-gray-600 cursor-not-allowed'
                     : 'border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white'
@@ -79,7 +79,7 @@ export default function FormationPickerPhase({
               <div key={p.id} className="flex items-center justify-between text-sm">
                 <span className="text-gray-300">{p.name}</span>
                 {chosen
-                  ? <span className="text-cartola-green font-mono text-xs">{chosen}</span>
+                  ? <span className="text-draft-green font-mono text-xs">{chosen}</span>
                   : <span className="text-gray-600 text-xs">aguardando...</span>}
               </div>
             );

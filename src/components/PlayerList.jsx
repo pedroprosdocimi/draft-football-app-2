@@ -9,7 +9,7 @@ export default function PlayerList({ players, pickedIds, isMyTurn, onPick }) {
 
   const available = useMemo(() => {
     return players
-      .filter(p => !pickedIds.has(p.cartola_id))
+      .filter(p => !pickedIds.has(p.player_id))
       .filter(p => posFilter === 0 || p.position_id === posFilter)
       .filter(p => {
         if (!search.trim()) return true;
@@ -42,7 +42,7 @@ export default function PlayerList({ players, pickedIds, isMyTurn, onPick }) {
             onClick={() => setPosFilter(parseInt(posId))}
             className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
               posFilter === parseInt(posId)
-                ? 'bg-cartola-green text-white'
+                ? 'bg-draft-green text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
@@ -63,11 +63,11 @@ export default function PlayerList({ players, pickedIds, isMyTurn, onPick }) {
         ) : (
           available.map(player => (
             <PlayerCard
-              key={player.cartola_id}
+              key={player.player_id}
               player={player}
               isMyTurn={isMyTurn}
               compact={true}
-              onClick={() => isMyTurn && onPick(player.cartola_id)}
+              onClick={() => isMyTurn && onPick(player.player_id)}
             />
           ))
         )}

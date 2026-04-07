@@ -60,7 +60,7 @@ export default function Register({ onLogin, onGoLogin }) {
 
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-3xl font-bold text-white mb-1">Draft Cartola</h1>
+          <h1 className="text-3xl font-bold text-white mb-1">Draft Draft Football</h1>
           <p className="text-gray-400 text-sm">Crie sua conta para começar</p>
           <div className="mt-3 inline-flex items-center gap-1.5 bg-yellow-900/30 border border-yellow-700/50 text-yellow-300 text-xs font-semibold px-3 py-1.5 rounded-full">
             🪙 Você recebe 100 moedas ao criar sua conta!
@@ -160,7 +160,7 @@ export default function Register({ onLogin, onGoLogin }) {
               Já tem conta?{' '}
               <button
                 onClick={onGoLogin}
-                className="text-cartola-green hover:text-green-400 font-medium transition-colors"
+                className="text-draft-green hover:text-green-400 font-medium transition-colors"
               >
                 Fazer login
               </button>

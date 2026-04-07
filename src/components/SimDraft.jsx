@@ -55,7 +55,7 @@ function getNeededPositions(team) {
 
 function getBestPlayer(players, pickedIds, posId) {
   return players
-    .filter(p => p.position_id === posId && !pickedIds.has(p.cartola_id))
+    .filter(p => p.position_id === posId && !pickedIds.has(p.player_id))
     .sort((a, b) => (b.average_score || 0) - (a.average_score || 0))[0] || null;
 }
 
@@ -92,14 +92,14 @@ function TimerRing({ timeLeft }) {
 function AvailableRow({ player, clubMatches, highlight }) {
   const match = clubMatches[player.club_id] || clubMatches[String(player.club_id)] || '';
   return (
-    <div className={`flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${highlight ? 'bg-cartola-gold/10' : 'hover:bg-gray-800/40'}`}>
+    <div className={`flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${highlight ? 'bg-draft-gold/10' : 'hover:bg-gray-800/40'}`}>
       <span className={`font-bold w-7 flex-shrink-0 ${POS_COLORS[player.position_id]}`}>
         {POS_LABELS[player.position_id]}
       </span>
       <span className="text-white font-medium truncate flex-1">{player.nickname}</span>
       <span className="text-gray-500 flex-shrink-0 hidden sm:inline">{player.club?.abbreviation || ''}</span>
       <span className="text-gray-600 flex-shrink-0 hidden md:inline">{match}</span>
-      <span className="text-cartola-gold font-semibold flex-shrink-0">{(player.average_score || 0).toFixed(1)}</span>
+      <span className="text-draft-gold font-semibold flex-shrink-0">{(player.average_score || 0).toFixed(1)}</span>
     </div>
   );
 }
@@ -115,7 +115,7 @@ function PickRow({ pick, clubMatches }) {
       <span className="text-gray-100 truncate flex-1">{pick.nickname}</span>
       <span className="text-gray-500 flex-shrink-0">{pick.club?.abbreviation || ''}</span>
       <span className="text-gray-600 flex-shrink-0 hidden lg:inline">{match}</span>
-      <span className="text-cartola-gold flex-shrink-0 font-semibold">{(pick.average_score || 0).toFixed(1)}</span>
+      <span className="text-draft-gold flex-shrink-0 font-semibold">{(pick.average_score || 0).toFixed(1)}</span>
     </div>
   );
 }
@@ -125,21 +125,21 @@ function TeamCard({ team, isActive, clubMatches }) {
   const score  = totalScore(sorted);
   return (
     <div className={`flex-shrink-0 w-64 rounded-xl border p-3 transition-all ${
-      isActive ? 'border-cartola-gold bg-cartola-gold/5 shadow-lg shadow-cartola-gold/10' : 'border-gray-700 bg-gray-900'
+      isActive ? 'border-draft-gold bg-draft-gold/5 shadow-lg shadow-draft-gold/10' : 'border-gray-700 bg-gray-900'
     }`}>
       <div className="flex items-center justify-between mb-2">
         <div>
-          <div className={`font-bold text-sm ${isActive ? 'text-cartola-gold' : 'text-white'}`}>
+          <div className={`font-bold text-sm ${isActive ? 'text-draft-gold' : 'text-white'}`}>
             {isActive && '▶ '}{team.name}
           </div>
           <div className="text-xs text-gray-500 font-mono">{team.formation}</div>
         </div>
-        <div className="text-xs font-bold text-cartola-gold">★ {score.toFixed(1)}</div>
+        <div className="text-xs font-bold text-draft-gold">★ {score.toFixed(1)}</div>
       </div>
       <div className="divide-y divide-gray-800/50 min-h-[110px]">
         {sorted.length === 0
           ? <div className="text-xs text-gray-700 italic py-2">Aguardando picks...</div>
-          : sorted.map(p => <PickRow key={p.cartola_id} pick={p} clubMatches={clubMatches} />)
+          : sorted.map(p => <PickRow key={p.player_id} pick={p} clubMatches={clubMatches} />)
         }
       </div>
     </div>
@@ -166,7 +166,7 @@ function FinalRanking({ teams }) {
                   {best && <> · Melhor: <span className="text-gray-300">{best.nickname} ({(best.average_score || 0).toFixed(1)})</span></>}
                 </div>
               </div>
-              <div className="text-cartola-gold font-bold flex-shrink-0">★ {score.toFixed(1)}</div>
+              <div className="text-draft-gold font-bold flex-shrink-0">★ {score.toFixed(1)}</div>
             </div>
           );
         })}
@@ -193,7 +193,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
       });
     }
     return [...players]
-      .filter(p => !sim.pickedIds.has(p.cartola_id))
+      .filter(p => !sim.pickedIds.has(p.player_id))
       .sort((a, b) => {
         const pd = (POS_SORT[a.position_id] ?? 9) - (POS_SORT[b.position_id] ?? 9);
         return pd !== 0 ? pd : (b.average_score || 0) - (a.average_score || 0);
@@ -249,7 +249,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
           i === teamIdx ? { ...t, picks: [...t.picks, { ...player, position_id: posId }] } : t
         );
         const newPickedIds = new Set(prev.pickedIds);
-        newPickedIds.add(player.cartola_id);
+        newPickedIds.add(player.player_id);
 
         return {
           ...prev,
@@ -305,7 +305,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
             </div>
             <div className="overflow-y-auto max-h-72">
               {available.map(p => (
-                <AvailableRow key={p.cartola_id} player={p} clubMatches={clubMatches} highlight={false} />
+                <AvailableRow key={p.player_id} player={p} clubMatches={clubMatches} highlight={false} />
               ))}
             </div>
           </>
@@ -320,7 +320,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
   const totalPicks     = sim.pickOrder.length;
   const donePicks      = sim.currentPickIndex;
   const progress       = Math.round((donePicks / totalPicks) * 100);
-  const lastPickedId   = sim.lastPick?.player?.cartola_id;
+  const lastPickedId   = sim.lastPick?.player?.player_id;
 
   return (
     <div className="card">
@@ -343,7 +343,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
         <div className="flex items-center gap-3 mb-4 p-3 bg-gray-800/60 rounded-xl border border-gray-700">
           <TimerRing timeLeft={sim.timeLeft} />
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-cartola-gold truncate">
+            <div className="font-bold text-draft-gold truncate">
               {currentTeam?.name} está escolhendo
             </div>
             <div className="text-xs text-gray-500">
@@ -355,7 +355,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
                 <span className={POS_COLORS[sim.lastPick.posId]}>{POS_LABELS[sim.lastPick.posId]}</span>{' '}
                 <span className="text-white font-medium">{sim.lastPick.player.nickname}</span>{' '}
                 <span className="text-gray-500">({sim.lastPick.player.club?.abbreviation})</span>{' '}
-                <span className="text-cartola-gold">{(sim.lastPick.player.average_score || 0).toFixed(1)} pts</span>
+                <span className="text-draft-gold">{(sim.lastPick.player.average_score || 0).toFixed(1)} pts</span>
                 {' '}→ <span className="text-gray-300">{sim.lastPick.teamName}</span>
               </div>
             )}
@@ -363,7 +363,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
           <div className="flex-shrink-0 text-right hidden sm:block">
             <div className="text-xs text-gray-500 mb-1">{progress}%</div>
             <div className="w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-cartola-green rounded-full transition-all" style={{ width: `${progress}%` }} />
+              <div className="h-full bg-draft-green rounded-full transition-all" style={{ width: `${progress}%` }} />
             </div>
           </div>
         </div>
@@ -397,7 +397,7 @@ export default function SimDraft({ players, clubMatches = {} }) {
               ? <div className="text-xs text-gray-600 py-4 text-center">Todos os jogadores foram draftados</div>
               : available.map(p => (
                   <AvailableRow
-                    key={p.cartola_id}
+                    key={p.player_id}
                     player={p}
                     clubMatches={clubMatches}
                     highlight={false}
