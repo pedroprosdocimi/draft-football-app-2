@@ -297,6 +297,13 @@ export default function Admin({ onBack }) {
   const [coinTxLoading, setCoinTxLoading] = useState(false);
   const [coinTxFilter, setCoinTxFilter] = useState(0); // 0 = todos, userId = filtro
 
+  // Active round control
+  const [rounds, setRounds] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+  const [activeRoundId, setActiveRoundId] = useState('');
+  const [roundMsg, setRoundMsg] = useState(null);
+  const [loadingRound, setLoadingRound] = useState(false);
+
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -494,9 +501,43 @@ export default function Admin({ onBack }) {
     return applySort(list, oSort);
   }, [players, eligibleIds, excludedIds, oPos, oStatus, oClub, oSort]);
 
+  useEffect(() => {
+    const token = localStorage.getItem('draft_token');
+    fetch(`${API_URL}/admin/seasons`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => setSeasons(data.data || []));
+  }, []);
+
   // Reset pages when filters or sort change
   useEffect(() => { setTPage(0); }, [tPos, tClub, tSort, eligibleIds, excludedIds]);
   useEffect(() => { setOPage(0); }, [oPos, oStatus, oClub, oSort, eligibleIds, excludedIds]);
+
+  const loadRounds = (seasonId) => {
+    const token = localStorage.getItem('draft_token');
+    fetch(`${API_URL}/admin/rounds?season_id=${seasonId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => setRounds(data.data || []));
+  };
+
+  const handleSetActiveRound = async () => {
+    if (!activeRoundId) return;
+    setLoadingRound(true);
+    setRoundMsg(null);
+    const token = localStorage.getItem('draft_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/config/active-round`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ round_id: activeRoundId }),
+      });
+      const data = await res.json();
+      setRoundMsg(res.ok ? '✅ Rodada ativa definida!' : `❌ ${data.error}`);
+    } catch {
+      setRoundMsg('❌ Erro de conexão');
+    } finally {
+      setLoadingRound(false);
+    }
+  };
 
   return (
     <div className="min-h-screen p-4 max-w-6xl mx-auto">
@@ -507,6 +548,38 @@ export default function Admin({ onBack }) {
           ← Voltar
         </button>
         <h1 className="text-xl font-bold text-white">Painel Admin</h1>
+      </div>
+
+      {/* Active round control */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4">🔵 Rodada Ativa do Draft</h2>
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Temporada</label>
+            <select className="input-field" onChange={e => loadRounds(e.target.value)}>
+              <option value="">Selecionar...</option>
+              {seasons.map(s => (
+                <option key={s.id} value={s.id}>{s.name} ({s.year})</option>
+              ))}
+            </select>
+          </div>
+          {rounds.length > 0 && (
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Rodada</label>
+              <select className="input-field" value={activeRoundId} onChange={e => setActiveRoundId(e.target.value)}>
+                <option value="">Selecionar...</option>
+                {rounds.map(r => (
+                  <option key={r.id} value={r.id}>{r.name} (#{r.number})</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <button onClick={handleSetActiveRound} disabled={!activeRoundId || loadingRound}
+            className="btn-primary w-full disabled:opacity-40">
+            {loadingRound ? 'Salvando...' : 'Definir Rodada Ativa'}
+          </button>
+          {roundMsg && <p className="text-sm mt-2">{roundMsg}</p>}
+        </div>
       </div>
 
       {/* Sync card */}
