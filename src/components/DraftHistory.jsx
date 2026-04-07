@@ -1,0 +1,973 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { API_URL } from '../config.js';
+
+const POS_LABEL = { 1: 'GOL', 2: 'LAT', 3: 'ZAG', 4: 'MEI', 5: 'ATA', 21: 'RES', 22: 'RES', 23: 'RES', 24: 'RES', 25: 'RES' };
+const POS_COLORS = {
+  1: 'text-blue-300', 2: 'text-green-300', 3: 'text-green-300',
+  4: 'text-yellow-300', 5: 'text-red-300',
+  21: 'text-green-400', 22: 'text-green-400', 23: 'text-yellow-400', 24: 'text-yellow-400', 25: 'text-yellow-400',
+};
+const POS_BG = {
+  1: 'bg-blue-900/50 border-blue-500/50',
+  2: 'bg-green-900/50 border-green-600/50',
+  3: 'bg-green-900/50 border-green-600/50',
+  4: 'bg-yellow-900/50 border-yellow-500/50',
+  5: 'bg-red-900/50 border-red-500/50',
+  21: 'bg-green-900/40 border-green-700/50',
+  22: 'bg-green-900/40 border-green-700/50',
+  23: 'bg-yellow-900/40 border-yellow-700/50',
+  24: 'bg-yellow-900/40 border-yellow-700/50',
+  25: 'bg-yellow-900/40 border-yellow-700/50',
+};
+const POS_BADGE_BG = {
+  1: 'bg-blue-800/80 text-blue-300',
+  2: 'bg-green-800/80 text-green-300',
+  3: 'bg-green-800/80 text-green-300',
+  4: 'bg-yellow-800/80 text-yellow-300',
+  5: 'bg-red-800/80 text-red-300',
+  21: 'bg-green-800/60 text-green-400',
+  22: 'bg-green-800/60 text-green-400',
+  23: 'bg-yellow-800/60 text-yellow-400',
+  24: 'bg-yellow-800/60 text-yellow-400',
+  25: 'bg-yellow-800/60 text-yellow-400',
+};
+const POS_ORDER = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 21: 5, 22: 6, 23: 7, 24: 8, 25: 9 };
+const BENCH_IDS = [21, 22, 23, 24, 25];
+
+// Participant accent colors for column headers
+const PARTICIPANT_COLORS = [
+  { ring: 'ring-blue-500',   header: 'bg-blue-900/30 border-blue-700/50',   name: 'text-blue-300'   },
+  { ring: 'ring-green-500',  header: 'bg-green-900/30 border-green-700/50', name: 'text-green-300'  },
+  { ring: 'ring-yellow-500', header: 'bg-yellow-900/30 border-yellow-700/50',name: 'text-yellow-300' },
+  { ring: 'ring-red-500',    header: 'bg-red-900/30 border-red-700/50',     name: 'text-red-300'    },
+  { ring: 'ring-purple-500', header: 'bg-purple-900/30 border-purple-700/50',name: 'text-purple-300' },
+  { ring: 'ring-orange-500', header: 'bg-orange-900/30 border-orange-700/50',name: 'text-orange-300' },
+  { ring: 'ring-pink-500',   header: 'bg-pink-900/30 border-pink-700/50',   name: 'text-pink-300'   },
+  { ring: 'ring-teal-500',   header: 'bg-teal-900/30 border-teal-700/50',   name: 'text-teal-300'   },
+];
+
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function StatusBadge({ status }) {
+  if (status === 'complete') {
+    return <span className="text-xs px-2 py-0.5 rounded-full bg-green-900/50 text-green-400 font-medium">Finalizado</span>;
+  }
+  return <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-900/50 text-yellow-400 font-medium">Em andamento</span>;
+}
+
+// ── Options Tooltip (rendered via portal to avoid clipping) ───
+function OptionsTooltip({ pick, accentColor, anchorRect }) {
+  const TOOLTIP_W = 220;
+  const GAP = 8;
+
+  // Prefer right side; fall back to left if not enough room
+  let left = anchorRect.right + GAP;
+  if (left + TOOLTIP_W > window.innerWidth - 8) {
+    left = anchorRect.left - TOOLTIP_W - GAP;
+  }
+  // Clamp vertically
+  let top = anchorRect.top;
+  const tooltipH = 48 + pick.options.length * 36; // rough estimate
+  if (top + tooltipH > window.innerHeight - 8) {
+    top = Math.max(8, window.innerHeight - tooltipH - 8);
+  }
+
+  const chosen = pick.cartola_id;
+
+  return createPortal(
+    <div
+      style={{ position: 'fixed', top, left, width: TOOLTIP_W, zIndex: 9999 }}
+      className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl p-3 pointer-events-none"
+    >
+      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+        Opcoes oferecidas
+      </div>
+      <div className="space-y-1.5">
+        {pick.options.map(o => {
+          const isChosen = o.cartola_id === chosen;
+          return (
+            <div
+              key={o.cartola_id}
+              className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${
+                isChosen
+                  ? `${POS_BG[pick.position_id] || 'bg-gray-800 border-gray-700/50'} border`
+                  : 'bg-gray-800/60'
+              }`}
+            >
+              {o.photo_url ? (
+                <img
+                  src={o.photo_url}
+                  className={`w-7 h-7 rounded-full object-cover flex-shrink-0 ${isChosen ? `ring-2 ${accentColor?.ring || 'ring-gray-500'}` : 'ring-1 ring-gray-700'}`}
+                  alt=""
+                />
+              ) : (
+                <div className={`w-7 h-7 rounded-full bg-gray-700 flex-shrink-0 ${isChosen ? `ring-2 ${accentColor?.ring || 'ring-gray-500'}` : 'ring-1 ring-gray-700'}`} />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className={`text-xs font-semibold truncate leading-tight ${isChosen ? 'text-white' : 'text-gray-400'}`}>
+                  {o.nickname || `#${o.cartola_id}`}
+                </div>
+                {o.club_abbreviation && (
+                  <div className="text-gray-600 text-xs truncate">{o.club_abbreviation}</div>
+                )}
+              </div>
+              <div className="flex-shrink-0 text-right">
+                {o.average_score != null && (
+                  <div className={`text-xs font-bold ${isChosen ? 'text-cartola-gold' : 'text-gray-500'}`}>
+                    {o.average_score.toFixed(1)}
+                  </div>
+                )}
+                {isChosen && (
+                  <div className="text-xs text-green-400 leading-none">escolhido</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ── Pick Cell ─────────────────────────────────────────────────
+function PickCell({ pick, pickNum, accentColor }) {
+  const isBench = BENCH_IDS.includes(pick.position_id);
+  const posLabel = POS_LABEL[pick.position_id] || `P${pick.position_id}`;
+  const hasOptions = pick.options && pick.options.length > 0;
+
+  const cellRef = useRef(null);
+  const [anchorRect, setAnchorRect] = useState(null);
+
+  const handleMouseEnter = () => {
+    if (!hasOptions || !cellRef.current) return;
+    setAnchorRect(cellRef.current.getBoundingClientRect());
+  };
+  const handleMouseLeave = () => setAnchorRect(null);
+
+  return (
+    <>
+      <div
+        ref={cellRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`rounded-lg border p-2 transition-all ${POS_BG[pick.position_id] || 'bg-gray-800 border-gray-700/50'} ${isBench ? 'opacity-70' : ''} ${hasOptions ? 'cursor-default hover:brightness-125' : ''}`}
+      >
+        {/* Top row: pick number + position badge + score */}
+        <div className="flex items-center justify-between mb-2 gap-1">
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-600 font-mono text-xs leading-none">{pickNum}</span>
+            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${POS_BADGE_BG[pick.position_id] || 'bg-gray-700 text-gray-400'}`}>
+              {posLabel}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            {pick.average_score != null && (
+              <span className="text-xs font-bold text-cartola-gold whitespace-nowrap">
+                {pick.average_score.toFixed(1)}
+              </span>
+            )}
+            {hasOptions && (
+              <span className="text-gray-600 text-xs leading-none" title="Hover para ver opcoes">⋯</span>
+            )}
+          </div>
+        </div>
+
+        {/* Chosen player */}
+        <div className="flex items-center gap-2">
+          {pick.photo_url ? (
+            <img
+              src={pick.photo_url}
+              className={`w-9 h-9 rounded-full object-cover flex-shrink-0 ring-2 ${accentColor?.ring || 'ring-gray-600'}`}
+              alt=""
+            />
+          ) : (
+            <div className={`w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center bg-gray-700 ring-2 ${accentColor?.ring || 'ring-gray-600'} text-gray-500 text-xs`}>
+              ?
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="text-white text-xs font-semibold leading-tight truncate">
+              {pick.nickname || `#${pick.cartola_id}`}
+            </div>
+            <div className="text-gray-500 text-xs truncate mt-0.5">
+              {pick.club_abbreviation || '—'}
+              {pick.price != null && (
+                <span className="ml-1 text-gray-600">C${pick.price.toFixed(0)}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {anchorRect && hasOptions && (
+        <OptionsTooltip pick={pick} accentColor={accentColor} anchorRect={anchorRect} />
+      )}
+    </>
+  );
+}
+
+function EmptyCell() {
+  return (
+    <div className="rounded-lg border border-dashed border-gray-800 p-2 h-[82px] flex items-center justify-center">
+      <span className="text-gray-700 text-xs">—</span>
+    </div>
+  );
+}
+
+// ── Draft Board ───────────────────────────────────────────────
+function DraftBoard({ participants, picks }) {
+  const N = participants.length;
+  if (N === 0 || picks.length === 0) {
+    return <p className="text-gray-500 text-sm text-center py-6">Nenhuma pick registrada.</p>;
+  }
+
+  // Sort participants by pick_order for consistent column order
+  const sortedParticipants = [...participants].sort((a, b) => (a.pick_order || 0) - (b.pick_order || 0));
+
+  // Color map: participantId → accent
+  const colorMap = {};
+  sortedParticipants.forEach((p, i) => {
+    colorMap[p.id] = PARTICIPANT_COLORS[i % PARTICIPANT_COLORS.length];
+  });
+
+  // Group picks into rounds: round = Math.ceil(overall_pick / N)
+  const rounds = {};
+  for (const pick of picks) {
+    const roundNum = pick.overall_pick != null ? Math.ceil(pick.overall_pick / N) : null;
+    if (roundNum == null) continue;
+    if (!rounds[roundNum]) rounds[roundNum] = {};
+    rounds[roundNum][pick.participant_id] = pick;
+  }
+
+  const roundNumbers = Object.keys(rounds).map(Number).sort((a, b) => a - b);
+
+  // Detect where bench rounds start (position_id in BENCH_IDS)
+  const firstBenchRound = roundNumbers.find(r =>
+    Object.values(rounds[r]).some(p => BENCH_IDS.includes(p.position_id))
+  );
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="border-separate border-spacing-1" style={{ minWidth: `${120 + N * 172}px` }}>
+        <thead>
+          <tr>
+            {/* Round label column */}
+            <th className="w-12" />
+            {sortedParticipants.map((p, i) => {
+              const accent = colorMap[p.id];
+              return (
+                <th key={p.id} className="text-center px-1 py-1">
+                  <div className={`rounded-lg border px-2 py-2 ${accent.header}`}>
+                    <div className={`font-bold text-sm ${accent.name}`}>{p.name}</div>
+                    <div className="text-gray-500 text-xs mt-0.5 font-mono">{p.formation}</div>
+                    <div className="text-gray-600 text-xs mt-0.5">Pick #{i + 1}</div>
+                  </div>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {roundNumbers.map((roundNum, rowIdx) => {
+            const isSnakeReverse = roundNum % 2 === 0;
+            const isBenchStart = roundNum === firstBenchRound;
+            const isBenchRound = firstBenchRound != null && roundNum >= firstBenchRound;
+
+            return (
+              <React.Fragment key={roundNum}>
+                {/* Separator before bench rounds */}
+                {isBenchStart && (
+                  <tr>
+                    <td colSpan={N + 1} className="py-1 px-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-gray-700" />
+                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wide px-2">Reservas</span>
+                        <div className="h-px flex-1 bg-gray-700" />
+                      </div>
+                    </td>
+                  </tr>
+                )}
+
+                <tr className={isBenchRound ? 'opacity-80' : ''}>
+                  {/* Round indicator */}
+                  <td className="text-right pr-1 align-middle">
+                    <div className="flex flex-col items-center gap-0.5 py-1">
+                      <span className={`text-xs font-bold ${isBenchRound ? 'text-gray-600' : 'text-gray-400'}`}>
+                        R{roundNum}
+                      </span>
+                      <span className="text-gray-700 text-xs leading-none">
+                        {isSnakeReverse ? '←' : '→'}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Cells per participant */}
+                  {sortedParticipants.map(p => {
+                    const pick = rounds[roundNum]?.[p.id];
+                    const globalPickNum = pick?.overall_pick;
+                    return (
+                      <td key={p.id} className="align-top px-0.5 py-0.5" style={{ width: '172px', minWidth: '172px' }}>
+                        {pick
+                          ? <PickCell pick={pick} pickNum={globalPickNum} accentColor={colorMap[p.id]} />
+                          : <EmptyCell />
+                        }
+                      </td>
+                    );
+                  })}
+                </tr>
+              </React.Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Detail view ───────────────────────────────────────────────
+function DraftDetail({ draftId, onBack }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [view, setView] = useState('board'); // 'board' | 'teams'
+  const [activeParticipant, setActiveParticipant] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [currentUserNome, setCurrentUserNome] = useState(null);
+
+  const token = localStorage.getItem('draft_token');
+
+  // Busca o nome do usuário logado para destacá-lo no dropdown
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.user?.nome) setCurrentUserNome(d.user.nome); })
+      .catch(() => {});
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function loadData(keepActive = false) {
+    setLoading(l => keepActive ? false : true);
+    fetch(`${API_URL}/api/admin/drafts/${draftId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { setError(d.error); return; }
+        setData(d);
+        if (!keepActive && d.participants?.length) setActiveParticipant(d.participants[0].id);
+      })
+      .catch(() => setError('Erro ao carregar draft.'))
+      .finally(() => setLoading(false));
+  }
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      await fetch(`${API_URL}/api/sync/scores`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {}
+    loadData(true);
+    setRefreshing(false);
+  }
+
+  useEffect(() => {
+    loadData();
+  }, [draftId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (loading) return <div className="text-center py-12 text-gray-500">Carregando...</div>;
+  if (error) return <div className="text-red-400 text-sm py-4">{error}</div>;
+  if (!data) return null;
+
+  const { session, participants, picks } = data;
+
+  // Build team map
+  const teamMap = {};
+  for (const p of participants) teamMap[p.id] = [];
+  for (const pick of picks) {
+    if (teamMap[pick.participant_id]) teamMap[pick.participant_id].push(pick);
+  }
+
+  const sortedParticipants = [...participants].sort((a, b) => (a.pick_order || 0) - (b.pick_order || 0));
+  const activeTeam = activeParticipant ? (teamMap[activeParticipant] || []) : [];
+  const mainPicks = activeTeam.filter(p => !BENCH_IDS.includes(p.position_id)).sort((a, b) => (POS_ORDER[a.position_id] ?? 9) - (POS_ORDER[b.position_id] ?? 9));
+  const benchPicks = activeTeam.filter(p => BENCH_IDS.includes(p.position_id));
+  const totalScore = (arr) => arr.filter(p => !BENCH_IDS.includes(p.position_id)).reduce((s, p) => s + (p.average_score || 0), 0);
+  // Picks do participante ativo ordenados por round (para view mobile do board)
+  const boardPicks = picks
+    .filter(p => p.participant_id === activeParticipant)
+    .sort((a, b) => (a.overall_pick || 0) - (b.overall_pick || 0));
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors text-sm shrink-0">
+          ← Voltar
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-white font-bold">{session.id}</span>
+            <StatusBadge status={session.status} />
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5 truncate">
+            {participants.length} participantes · {formatDate(session.created_at)}
+          </div>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 shrink-0 text-xs font-semibold bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white px-3 py-2 rounded-lg transition-colors"
+        >
+          <span className={refreshing ? 'animate-spin inline-block' : ''}>⚽</span>
+          {refreshing ? 'Atualizando...' : 'Atualizar'}
+        </button>
+      </div>
+
+      {/* Sub-tabs */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setView('board')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'board' ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
+        >
+          Draft Board
+        </button>
+        <button
+          onClick={() => setView('teams')}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'teams' ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
+        >
+          Times
+        </button>
+      </div>
+
+      {/* Draft Board */}
+      {view === 'board' && (
+        <>
+          {/* Mobile: seletor de participante + lista vertical de picks */}
+          <div className="sm:hidden">
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
+              {sortedParticipants.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => setActiveParticipant(p.id)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${activeParticipant === p.id ? 'bg-cartola-green text-white' : 'bg-gray-800 text-gray-400'}`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+            <div className="space-y-1.5">
+              {boardPicks.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-6">Nenhuma pick.</p>
+              ) : boardPicks.map(pick => {
+                const isBench = BENCH_IDS.includes(pick.position_id);
+                return (
+                  <div key={pick.cartola_id} className={`flex items-center gap-2.5 p-2.5 rounded-lg ${isBench ? 'bg-gray-800/30 opacity-75' : 'bg-gray-800/50'}`}>
+                    <span className="text-xs text-gray-600 w-5 text-right shrink-0">#{pick.overall_pick}</span>
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded shrink-0 ${POS_BADGE_BG[pick.position_id] || 'bg-gray-700 text-gray-400'}`}>
+                      {POS_LABEL[pick.position_id]}
+                    </span>
+                    {pick.photo_url
+                      ? <img src={pick.photo_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                      : <div className="w-7 h-7 rounded-full bg-gray-700 shrink-0" />}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white text-sm font-medium truncate">{pick.nickname || `#${pick.cartola_id}`}</div>
+                      <div className="text-gray-500 text-xs">{pick.club_abbreviation || '—'}</div>
+                    </div>
+                    {pick.average_score != null && (
+                      <span className={`text-sm font-bold shrink-0 ${isBench ? 'text-gray-400' : 'text-cartola-gold'}`}>
+                        {pick.average_score.toFixed(1)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Desktop: tabela completa */}
+          <div className="hidden sm:block card overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-300">Draft Board</h3>
+              <span className="text-xs text-gray-600">{picks.length} picks · {Math.ceil(picks.length / Math.max(participants.length, 1))} rodadas</span>
+            </div>
+            <DraftBoard participants={participants} picks={picks} />
+          </div>
+        </>
+      )}
+
+      {/* Times */}
+      {view === 'teams' && (
+        <div>
+          {/* Tabela de classificação */}
+          {(() => {
+            const ranked = [...participants]
+              .map(p => ({ ...p, total: totalScore(teamMap[p.id] || []) }))
+              .sort((a, b) => b.total - a.total);
+
+            // Dropdown options: logged-in user first, then rest
+            const myParticipant = ranked.find(p => p.name === currentUserNome);
+            const dropdownOptions = myParticipant
+              ? [myParticipant, ...ranked.filter(p => p.id !== myParticipant.id)]
+              : ranked;
+
+            return (
+              <>
+                {/* Ranking table */}
+                <div className="card mb-4">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Classificação</h3>
+                  <div className="space-y-px">
+                    <div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-gray-600">
+                      <span className="w-5 text-center">#</span>
+                      <span className="flex-1">Participante</span>
+                      <span className="w-12 text-right">Média</span>
+                    </div>
+                    {ranked.map((p, idx) => {
+                      const isMe = p.name === currentUserNome;
+                      const isActive = p.id === activeParticipant;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => setActiveParticipant(p.id)}
+                          className={`w-full flex items-center gap-2 px-2 py-2 rounded-lg transition-colors text-left ${isActive ? 'bg-cartola-green/20 ring-1 ring-cartola-green/50' : 'hover:bg-gray-800/40'}`}
+                        >
+                          <span className={`w-5 text-center text-xs font-bold shrink-0 ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-600' : 'text-gray-600'}`}>
+                            {idx + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <span className={`text-sm font-medium truncate block ${isActive ? 'text-white' : isMe ? 'text-cartola-gold' : 'text-gray-300'}`}>
+                              {p.name}{isMe && <span className="ml-1.5 text-xs opacity-60">(você)</span>}
+                            </span>
+                            <span className="text-xs text-gray-600">{p.formation}</span>
+                          </div>
+                          <span className={`w-12 text-right text-sm font-bold shrink-0 ${isActive ? 'text-cartola-gold' : 'text-gray-400'}`}>
+                            {p.total.toFixed(2)}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Dropdown de seleção de time */}
+                <div className="mb-4">
+                  <label className="block text-xs text-gray-500 font-medium mb-1.5">Ver time</label>
+                  <select
+                    value={activeParticipant || ''}
+                    onChange={e => setActiveParticipant(Number(e.target.value))}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-cartola-green"
+                  >
+                    {dropdownOptions.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name === currentUserNome ? `${p.name} (você)` : p.name} — {p.formation}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            );
+          })()}
+
+          {activeParticipant && (
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-bold text-white">{participants.find(p => p.id === activeParticipant)?.name}</h3>
+                  <p className="text-xs text-gray-500">
+                    {participants.find(p => p.id === activeParticipant)?.formation} · {activeTeam.length} jogadores
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-cartola-gold">{totalScore(activeTeam).toFixed(2)}</div>
+                  <div className="text-xs text-gray-500">média total</div>
+                </div>
+              </div>
+
+              {activeTeam.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-4">Nenhum jogador.</p>
+              ) : (
+                <div className="space-y-px">
+                  {/* Header row */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-gray-500">
+                    <span className="w-10 shrink-0">Pos</span>
+                    <span className="flex-1">Jogador</span>
+                    <span className="w-10 text-right">Média</span>
+                    <span className="hidden sm:block w-16 text-right">Preço</span>
+                  </div>
+                  {mainPicks.map(p => (
+                    <div key={p.cartola_id} className="flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-gray-800/40 transition-colors">
+                      <span className={`w-10 shrink-0 text-xs font-bold ${POS_COLORS[p.position_id]}`}>
+                        {POS_LABEL[p.position_id]}
+                      </span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {p.photo_url
+                          ? <img src={p.photo_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                          : <div className="w-7 h-7 rounded-full bg-gray-700 shrink-0" />}
+                        <div className="min-w-0">
+                          <div className="text-white font-medium text-sm truncate">{p.nickname || `#${p.cartola_id}`}</div>
+                          <div className="text-gray-500 text-xs sm:hidden">{p.club_abbreviation || '—'}</div>
+                        </div>
+                        <span className="hidden sm:inline text-gray-500 text-xs ml-1">{p.club_abbreviation || '—'}</span>
+                      </div>
+                      <span className="w-10 text-right font-semibold text-cartola-gold text-sm shrink-0">
+                        {p.average_score != null ? p.average_score.toFixed(1) : '—'}
+                      </span>
+                      <span className="hidden sm:block w-16 text-right text-gray-500 text-xs shrink-0">
+                        {p.price != null ? `C$${p.price.toFixed(1)}` : '—'}
+                      </span>
+                    </div>
+                  ))}
+                  {benchPicks.length > 0 && (
+                    <>
+                      <div className="px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide border-t border-gray-800 mt-1">
+                        Reservas
+                      </div>
+                      {benchPicks.map(p => (
+                        <div key={`b-${p.cartola_id}`} className="flex items-center gap-2 px-3 py-2.5 rounded-lg opacity-60">
+                          <span className="w-10 shrink-0 text-xs font-bold text-gray-500">RES</span>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            {p.photo_url
+                              ? <img src={p.photo_url} className="w-7 h-7 rounded-full object-cover shrink-0" alt="" />
+                              : <div className="w-7 h-7 rounded-full bg-gray-700 shrink-0" />}
+                            <div className="min-w-0">
+                              <div className="text-gray-300 font-medium text-sm truncate">{p.nickname || `#${p.cartola_id}`}</div>
+                              <div className="text-gray-500 text-xs sm:hidden">{p.club_abbreviation || '—'}</div>
+                            </div>
+                            <span className="hidden sm:inline text-gray-500 text-xs ml-1">{p.club_abbreviation || '—'}</span>
+                          </div>
+                          <span className="w-10 text-right font-semibold text-gray-400 text-sm shrink-0">
+                            {p.average_score != null ? p.average_score.toFixed(1) : '—'}
+                          </span>
+                          <span className="hidden sm:block w-16 text-right text-gray-600 text-xs shrink-0">
+                            {p.price != null ? `C$${p.price.toFixed(1)}` : '—'}
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const STATUS_OPTIONS = ['lobby', 'drafting', 'bench_drafting', 'captain_drafting', 'parallel_waiting', 'complete'];
+const STATUS_LABEL = {
+  lobby: 'Lobby',
+  drafting: 'Drafting',
+  bench_drafting: 'Reservas',
+  captain_drafting: 'Capitao',
+  parallel_waiting: 'Paralelo',
+  complete: 'Finalizado',
+};
+
+// ── Edit Modal ────────────────────────────────────────────────
+function EditDraftModal({ draft, onClose, onSaved }) {
+  const [status, setStatus] = useState(draft.status);
+  const [entryFee, setEntryFee] = useState(draft.entry_fee ?? 0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const token = localStorage.getItem('draft_token');
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/drafts/${draft.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status, entry_fee: parseInt(entryFee) || 0 }),
+      });
+      const d = await r.json();
+      if (!r.ok || d.error) { setError(d.error || 'Erro ao salvar.'); return; }
+      onSaved({ ...draft, status, entry_fee: parseInt(entryFee) || 0 });
+    } catch {
+      setError('Erro de conexão.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
+      <div
+        className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <h3 className="font-bold text-white text-lg mb-1">Editar Draft</h3>
+        <p className="text-xs text-gray-500 font-mono mb-4">{draft.id}</p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs text-gray-400 font-medium mb-1">Status</label>
+            <select
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cartola-green"
+            >
+              {STATUS_OPTIONS.map(s => (
+                <option key={s} value={s}>{STATUS_LABEL[s] || s}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs text-gray-400 font-medium mb-1">Entrada (moedas)</label>
+            <input
+              type="number"
+              min="0"
+              value={entryFee}
+              onChange={e => setEntryFee(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cartola-green"
+            />
+          </div>
+        </div>
+
+        {error && <p className="text-red-400 text-xs mt-3">{error}</p>}
+
+        <div className="flex gap-2 mt-5">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 px-4 py-2 rounded-lg bg-cartola-green text-white text-sm font-medium hover:brightness-110 transition-all disabled:opacity-50"
+          >
+            {saving ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ── Delete Confirm Modal ──────────────────────────────────────
+function DeleteDraftModal({ draft, onClose, onDeleted }) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState(null);
+  const token = localStorage.getItem('draft_token');
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError(null);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/drafts/${draft.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await r.json();
+      if (!r.ok || d.error) { setError(d.error || 'Erro ao excluir.'); return; }
+      onDeleted(draft.id);
+    } catch {
+      setError('Erro de conexão.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>
+      <div
+        className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <h3 className="font-bold text-white text-lg mb-1">Excluir Draft</h3>
+        <p className="text-xs text-gray-500 font-mono mb-3">{draft.id}</p>
+        <p className="text-sm text-gray-300 mb-2">
+          Isso vai apagar permanentemente o draft e todos os seus dados (participantes e picks).
+        </p>
+        <p className="text-xs text-red-400">Esta ação não pode ser desfeita.</p>
+
+        {error && <p className="text-red-400 text-xs mt-3">{error}</p>}
+
+        <div className="flex gap-2 mt-5">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium hover:bg-gray-700 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="flex-1 px-4 py-2 rounded-lg bg-red-700 text-white text-sm font-medium hover:bg-red-600 transition-all disabled:opacity-50"
+          >
+            {deleting ? 'Excluindo...' : 'Excluir'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ── List view ─────────────────────────────────────────────────
+export default function DraftHistory() {
+  const [drafts, setDrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [editingDraft, setEditingDraft] = useState(null);
+  const [deletingDraft, setDeletingDraft] = useState(null);
+
+  const token = localStorage.getItem('draft_token');
+
+  function loadDrafts() {
+    setLoading(true);
+    fetch(`${API_URL}/api/admin/drafts`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { setError(d.error); return; }
+        setDrafts(d.drafts || []);
+      })
+      .catch(() => setError('Erro ao carregar drafts.'))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    loadDrafts();
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSaved(updated) {
+    setDrafts(prev => prev.map(d => d.id === updated.id ? { ...d, ...updated } : d));
+    setEditingDraft(null);
+  }
+
+  function handleDeleted(id) {
+    setDrafts(prev => prev.filter(d => d.id !== id));
+    setDeletingDraft(null);
+  }
+
+  const inProgress = drafts.filter(d => d.status !== 'complete');
+  const completed = drafts.filter(d => d.status === 'complete');
+
+  if (selectedId) {
+    return (
+      <div className="card">
+        <DraftDetail draftId={selectedId} onBack={() => setSelectedId(null)} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between"
+      >
+        <h2 className="font-semibold text-gray-300">Historico de Drafts</h2>
+        <span className="text-gray-500 text-sm">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="mt-4">
+          <div className="flex justify-end mb-2">
+            <button
+              onClick={loadDrafts}
+              className="text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded bg-gray-800 hover:bg-gray-700"
+            >
+              ↻ Atualizar
+            </button>
+          </div>
+          {loading ? (
+            <p className="text-gray-500 text-sm text-center py-4">Carregando...</p>
+          ) : error ? (
+            <p className="text-red-400 text-sm">{error}</p>
+          ) : drafts.length === 0 ? (
+            <p className="text-gray-600 text-sm text-center py-4">Nenhum draft encontrado.</p>
+          ) : (
+            <div className="space-y-4">
+              {inProgress.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-yellow-400 uppercase tracking-wide mb-2">Em andamento ({inProgress.length})</h3>
+                  <DraftTable drafts={inProgress} onSelect={setSelectedId} onEdit={setEditingDraft} onDelete={setDeletingDraft} />
+                </div>
+              )}
+              {completed.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-2">Finalizados ({completed.length})</h3>
+                  <DraftTable drafts={completed} onSelect={setSelectedId} onEdit={setEditingDraft} onDelete={setDeletingDraft} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {editingDraft && (
+        <EditDraftModal draft={editingDraft} onClose={() => setEditingDraft(null)} onSaved={handleSaved} />
+      )}
+      {deletingDraft && (
+        <DeleteDraftModal draft={deletingDraft} onClose={() => setDeletingDraft(null)} onDeleted={handleDeleted} />
+      )}
+    </div>
+  );
+}
+
+function DraftTable({ drafts, onSelect, onEdit, onDelete }) {
+  return (
+    <div className="divide-y divide-gray-800">
+      {drafts.map(d => (
+        <div key={d.id} className="flex items-center gap-2 px-2 py-3 hover:bg-gray-800/30 rounded-lg transition-colors">
+          {/* Clickable info area */}
+          <button
+            onClick={() => onSelect(d.id)}
+            className="flex-1 min-w-0 flex items-center gap-4 text-left"
+          >
+            <div className="flex-1 min-w-0">
+              <div className="font-mono text-white text-sm font-semibold truncate">{d.id}</div>
+              <div className="text-xs text-gray-500 mt-0.5">
+                {formatDate(d.created_at)}
+                {d.entry_fee > 0 && <span className="ml-2 text-yellow-500">⬤ {d.entry_fee} 🪙</span>}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <span className="text-sm text-gray-300 hidden sm:block">
+                <span className="font-semibold text-white">{d.participant_count}</span> part.
+              </span>
+              <StatusBadge status={d.status} />
+            </div>
+          </button>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() => onEdit(d)}
+              title="Editar"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors text-sm"
+            >
+              ✏️
+            </button>
+            <button
+              onClick={() => onDelete(d)}
+              title="Excluir"
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-gray-700 transition-colors text-sm"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
