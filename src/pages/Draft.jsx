@@ -6,7 +6,6 @@ import PickPanel from '../components/PickPanel.jsx';
 import TeamSlots from '../components/TeamSlots.jsx';
 import DraftOrder from '../components/DraftOrder.jsx';
 import Timer from '../components/Timer.jsx';
-import SimultaneousView from '../components/SimultaneousView.jsx';
 import FormationPickerPhase from '../components/FormationPickerPhase.jsx';
 
 const FORMATIONS_CLIENT = {
@@ -871,31 +870,7 @@ export default function Draft({ roomCode, participantId, isAdmin, initialData, o
 
         {/* Center: simultaneous view OR timer + status */}
         <div className={`${mobileTab === 'status' ? 'flex flex-col flex-1' : 'hidden'} md:flex md:flex-1 flex-col overflow-y-auto`}>
-          {mode === 'simultaneous' && simPhase ? (
-            <SimultaneousView
-              phase={simPhase}
-              round={simRound}
-              totalRounds={simTotalRounds}
-              timerSeconds={simTimerSeconds}
-              positionSlots={simPositionSlots}
-              confirmedPositions={simConfirmedPositions}
-              playerOptions={simPlayerOptions}
-              participantId={participantId}
-              participants={participants}
-              chosenPlayer={simChosenPlayer}
-              onSubmitPosition={handleSubmitPosition}
-              onSubmitPlayer={handleSubmitPlayer}
-              clubMatches={clubMatches}
-              positionAverages={positionAverages}
-              scoutPositionAverages={scoutPositionAverages}
-              isBenchRound={simIsBenchRound}
-              benchSlotId={simBenchSlotId}
-              myPicks={myPicks}
-              formation={me?.formation}
-              clubs={clubs}
-              captainId={captainIds[participantId] || null}
-            />
-          ) : (
+          {(
             <div className="flex flex-col items-center justify-center gap-6 sm:gap-8 p-4 sm:p-8 flex-1">
               <Timer timeLeft={timeLeft} isMyTurn={isMyTurn} />
               {isMyTurn ? (

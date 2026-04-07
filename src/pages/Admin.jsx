@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { API_URL } from '../config.js';
-import SimDraft from '../components/SimDraft.jsx';
 import DraftHistory from '../components/DraftHistory.jsx';
 
 const POS_LABELS = { 1: 'GOL', 2: 'LAT', 3: 'ZAG', 4: 'MEI', 5: 'ATA' };
@@ -723,9 +722,6 @@ export default function Admin({ onBack }) {
       <div className="mb-6">
         <DraftHistory />
       </div>
-
-      {/* ── Simulador de Draft ── */}
-      <SimDraft players={players} clubMatches={clubMatches} />
 
       {loading && players.length === 0 ? (
         <div className="text-center py-16 text-gray-500">Carregando jogadores...</div>
