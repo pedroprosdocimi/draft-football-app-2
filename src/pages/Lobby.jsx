@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import socket from '../socket.js';
+// TODO(Task 9): socket.io removed — replace with REST/SSE
+const socket = { on: () => {}, off: () => {}, emit: () => {}, once: () => {}, connected: false };
 import FormationPickerPhase from '../components/FormationPickerPhase.jsx';
 
 const FORMATION_DETAILS = {

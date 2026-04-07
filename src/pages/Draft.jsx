@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import socket from '../socket.js';
+// TODO(Task 9): socket.io removed — replace with REST/SSE
+const socket = { on: () => {}, off: () => {}, emit: () => {}, once: () => {}, connected: false };
 import { API_URL } from '../config.js';
 import PickPanel from '../components/PickPanel.jsx';
 import TeamSlots from '../components/TeamSlots.jsx';

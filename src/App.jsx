@@ -8,7 +8,7 @@ import Lobby from './pages/Lobby.jsx';
 import Draft from './pages/Draft.jsx';
 import EndScreen from './pages/EndScreen.jsx';
 import Admin from './pages/Admin.jsx';
-import socket from './socket.js';
+
 
 function readSession() {
   try { return JSON.parse(localStorage.getItem('draft_session')); } catch { return null; }
@@ -79,7 +79,7 @@ export default function App() {
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
     if (!token) return;
-    fetch(`${API_URL}/api/auth/me`, {
+    fetch(`${API_URL}/users/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.json())
@@ -90,140 +90,7 @@ export default function App() {
       .catch(() => localStorage.removeItem('draft_token'));
   }, []);
 
-  // On socket connect (covers page refresh + network reconnect):
-  // if we have a stored session, re-emit reconnect_participant
-  useEffect(() => {
-    const tryReconnect = () => {
-      const session = readSession();
-      if (session?.roomCode && session?.participantId) {
-        socket.emit('reconnect_participant', {
-          roomCode: session.roomCode,
-          participantId: session.participantId
-        });
-      }
-    };
-
-    socket.on('connect', tryReconnect);
-    // If socket was already connected when this effect runs (page refresh), trigger now
-    if (socket.connected) tryReconnect();
-
-    return () => socket.off('connect', tryReconnect);
-  }, []);
-
-  // Socket events
-  useEffect(() => {
-    socket.on('room_joined', ({ roomCode: rc, participantId: pid, isAdmin: admin }) => {
-      setRoomCode(rc);
-      setParticipantId(pid);
-      setIsAdmin(admin);
-      setPage('lobby');
-      setLoading(false);
-      saveSession(rc, pid, admin);
-      window.history.pushState(null, '', `/${rc}`);
-    });
-
-    socket.on('loading', ({ message }) => setLoading(message));
-
-    socket.on('formation_phase_start', (data) => {
-      // data.players is present only for realtime/simultaneous mode (sent by startFormationPhase).
-      // Parallel mode emits formation_phase_start without players — handled in Lobby.jsx.
-      if (data.players !== undefined) {
-        setDraftData({ ...data, formationPhase: true });
-        setPage('draft');
-        setLoading(false);
-      }
-    });
-
-    socket.on('draft_started', (data) => {
-      setDraftData(data);
-      setPage('draft');
-      setLoading(false);
-    });
-
-    socket.on('draft_complete', ({ teams: t }) => {
-      setTeams(t);
-      setPage('end');
-      clearSession();
-      window.history.replaceState(null, '', '/');
-    });
-
-    socket.on('deadline_reached', () => {
-      setError('⏰ Prazo atingido! Finalizando draft automaticamente...');
-      setTimeout(() => setError(null), 5000);
-    });
-
-    socket.on('coins_updated', ({ coins }) => {
-      setUser(prev => prev ? { ...prev, coins } : prev);
-    });
-
-    socket.on('error', ({ message }) => {
-      setError(message);
-      setLoading(false);
-      setTimeout(() => setError(null), 4000);
-      // If room no longer exists (e.g. server restarted), clear stored session
-      if (message.includes('Sala não encontrada') || message.includes('Participante não encontrado')) {
-        clearSession();
-        setPage('home');
-        setRoomCode(null);
-        setParticipantId(null);
-      }
-    });
-
-    return () => {
-      socket.off('room_joined');
-      socket.off('loading');
-      socket.off('formation_phase_start');
-      socket.off('draft_started');
-      socket.off('draft_complete');
-      socket.off('deadline_reached');
-      socket.off('error');
-      socket.off('coins_updated');
-    };
-  }, []);
-
-  // Handle room_state for reconnect navigation
-  useEffect(() => {
-    const onRoomState = (state) => {
-      setLoading(false);
-      setRoomCode(state.roomCode);
-      const pid = readSession()?.participantId;
-      setIsAdmin(state.adminId === pid);
-
-      if (state.status === 'lobby' || state.status === 'parallel_waiting') {
-        setLobbyState(state);
-        setPage('lobby');
-      } else if (state.status === 'drafting' || state.status === 'bench_drafting' || state.status === 'captain_drafting') {
-        // In parallel mode, non-current-picker stays in lobby
-        if (state.mode === 'parallel' && state.currentPickerId !== pid) {
-          setLobbyState(state);
-          setPage('lobby');
-        } else {
-          setDraftData(state);
-          setPage('draft');
-        }
-      }
-    };
-    socket.on('room_state', onRoomState);
-    return () => socket.off('room_state', onRoomState);
-  }, []);
-
-  // Parallel mode: when drafter finishes their turn, go back to lobby
-  useEffect(() => {
-    const onParallelTurnDone = () => {
-      setDraftData(null);
-      setPage('lobby');
-      // Re-fetch room state so lobby shows correct waiting state
-      const session = readSession();
-      if (session?.roomCode && session?.participantId) {
-        socket.emit('reconnect_participant', {
-          roomCode: session.roomCode,
-          participantId: session.participantId,
-        });
-      }
-    };
-    socket.on('parallel_turn_done', onParallelTurnDone);
-    return () => socket.off('parallel_turn_done', onParallelTurnDone);
-  }, []);
+  // TODO(Task 9): socket.io removed — real-time reconnect logic will be replaced with REST polling
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -291,13 +158,7 @@ export default function App() {
           onLogout={handleLogout}
           onGoAdmin={() => setPage('admin')}
           onRejoin={() => {
-            const session = readSession();
-            if (session?.roomCode && session?.participantId) {
-              socket.emit('reconnect_participant', {
-                roomCode: session.roomCode,
-                participantId: session.participantId,
-              });
-            }
+            // TODO(Task 9): implement REST-based rejoin
           }}
         />
       )}

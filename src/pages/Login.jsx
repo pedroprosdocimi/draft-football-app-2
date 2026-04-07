@@ -2,31 +2,27 @@ import React, { useState } from 'react';
 import { API_URL } from '../config.js';
 
 export default function Login({ onLogin, onGoRegister, onGoForgot }) {
-  const [username, setUsername] = useState('');
-  const [senha, setSenha] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim() || !senha) return;
-
+    if (!email.trim() || !password) return;
     setError('');
     setLoading(true);
-
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), senha })
+        body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
-
       if (!res.ok) {
         setError(data.error || 'Erro ao fazer login.');
         return;
       }
-
       localStorage.setItem('draft_token', data.token);
       onLogin(data.user);
     } catch {
@@ -39,74 +35,38 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
-
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-3xl font-bold text-white mb-1">Draft Draft Football</h1>
+          <h1 className="text-3xl font-bold text-white mb-1">Draft Football</h1>
           <p className="text-gray-400 text-sm">Entre na sua conta para continuar</p>
         </div>
-
         <div className="card">
           <h2 className="text-lg font-semibold text-white mb-6">Login</h2>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Username</label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="seu_username"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                autoFocus
-                autoCapitalize="none"
-              />
+              <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+              <input type="email" className="input-field" placeholder="seu@email.com"
+                value={email} onChange={e => setEmail(e.target.value)} autoFocus />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Senha</label>
-              <input
-                type="password"
-                className="input-field"
-                placeholder="••••••"
-                value={senha}
-                onChange={e => setSenha(e.target.value)}
-              />
+              <input type="password" className="input-field" placeholder="••••••••"
+                value={password} onChange={e => setPassword(e.target.value)} />
             </div>
-
-            {error && (
-              <p className="text-red-400 text-sm bg-red-900/30 border border-red-800 rounded-lg px-3 py-2">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="btn-primary w-full"
-              disabled={loading || !username.trim() || !senha}
-            >
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-gray-800 text-center space-y-3">
-            <p className="text-gray-500 text-sm">
-              Não tem conta?{' '}
-              <button
-                onClick={onGoRegister}
-                className="text-draft-green hover:text-green-400 font-medium transition-colors"
-              >
+          <div className="mt-4 text-center space-y-2">
+            <button onClick={onGoForgot} className="text-xs text-gray-600 hover:text-gray-400">
+              Esqueci minha senha
+            </button>
+            <div>
+              <button onClick={onGoRegister} className="text-xs text-gray-600 hover:text-draft-green">
                 Criar conta
               </button>
-            </p>
-            <p className="text-gray-500 text-sm">
-              <button
-                onClick={onGoForgot}
-                className="text-gray-400 hover:text-gray-200 transition-colors"
-              >
-                Esqueci minha senha
-              </button>
-            </p>
+            </div>
           </div>
         </div>
       </div>
