@@ -822,7 +822,7 @@ export default function Admin({ onBack }) {
       </div>
 
       {/* Player stats viewer */}
-      <div className="card mb-6">
+      <div className="card mb-6 overflow-hidden">
         <h2 className="text-lg font-semibold text-white mb-4">📊 Estatísticas dos Jogadores</h2>
 
         {/* Filters */}
