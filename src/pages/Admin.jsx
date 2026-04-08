@@ -805,7 +805,6 @@ export default function Admin({ onBack }) {
                   <input
                     type="number"
                     step="0.1"
-                    min="0"
                     value={Number(w.weight).toFixed(1)}
                     onChange={e => setStatWeights(prev => prev.map((x, j) => j === i ? { ...x, weight: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 } : x))}
                     className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
