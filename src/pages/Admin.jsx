@@ -10,6 +10,72 @@ const POS_COLORS = {
   4: 'bg-yellow-600', 5: 'bg-red-600',
 };
 
+const STAT_LABELS = {
+  aerials:                  'Disputas aéreas',
+  aerials_lost:             'Disputas aéreas perdidas',
+  aerials_won:              'Disputas aéreas ganhas',
+  aerials_won_pct:          '% Disputas aéreas ganhas',
+  assists:                  'Assistências',
+  accurate_crosses:         'Cruzamentos certos',
+  accurate_crosses_pct:     '% Cruzamentos certos',
+  accurate_passes:          'Passes certos',
+  accurate_passes_pct:      '% Passes certos',
+  backward_passes:          'Passes para trás',
+  ball_recovery:            'Recuperações de bola',
+  big_chances_created:      'Grandes chances criadas',
+  big_chances_missed:       'Grandes chances perdidas',
+  blocked_shots:            'Chutes bloqueados (def.)',
+  clearances:               'Cortes',
+  dispossessed:             'Perdas de posse',
+  dribble_attempts:         'Tentativas de drible',
+  dribbled_past:            'Driblado',
+  duels_lost:               'Duelos perdidos',
+  duels_won:                'Duelos ganhos',
+  duels_won_pct:            '% Duelos ganhos',
+  expected_goals:           'Gols esperados (xG)',
+  expected_goals_on_target: 'xG no alvo',
+  fouls:                    'Faltas cometidas',
+  fouls_drawn:              'Faltas sofridas',
+  goalkeeper_goals_conceded:'Gols sofridos (goleiro)',
+  goals:                    'Gols',
+  goals_conceded:           'Gols sofridos',
+  interceptions:            'Interceptações',
+  is_captain:               'É capitão',
+  key_passes:               'Passes decisivos',
+  long_balls:               'Bolas longas',
+  long_balls_won:           'Bolas longas ganhas',
+  long_balls_won_pct:       '% Bolas longas ganhas',
+  minutes_played:           'Minutos jogados',
+  offsides:                 'Impedimentos',
+  passes:                   'Passes',
+  passes_in_final_third:    'Passes no terço final',
+  penalties_committed:      'Pênaltis cometidos',
+  penalties_missed:         'Pênaltis perdidos',
+  penalties_saved:          'Pênaltis defendidos',
+  penalties_scored:         'Pênaltis convertidos',
+  penalties_won:            'Pênaltis conquistados',
+  possession_lost:          'Posse perdida',
+  punches:                  'Socos (goleiro)',
+  rating:                   'Nota',
+  redcards:                 'Cartões vermelhos',
+  saves:                    'Defesas',
+  saves_insidebox:          'Defesas dentro da área',
+  shooting_performance:     'Desempenho no chute',
+  shots_blocked:            'Chutes bloqueados (ata.)',
+  shots_off_target:         'Chutes fora do alvo',
+  shots_on_target:          'Chutes no alvo',
+  shots_total:              'Chutes totais',
+  successful_dribbles:      'Dribles bem-sucedidos',
+  tackles:                  'Desarmes',
+  tackles_won:              'Desarmes certos',
+  tackles_won_pct:          '% Desarmes certos',
+  total_crosses:            'Cruzamentos totais',
+  total_duels:              'Duelos totais',
+  touches:                  'Toques na bola',
+  yellowcards:              'Cartões amarelos',
+  yellowred_cards:          'Cartão amarelo-vermelho',
+};
+
 const STATUS_INFO = {
   7: { label: 'Provável',   bg: 'bg-green-900/40',  text: 'text-green-300'  },
   2: { label: 'Dúvida',     bg: 'bg-yellow-900/40', text: 'text-yellow-300' },
@@ -304,6 +370,11 @@ export default function Admin({ onBack }) {
   const [roundMsg, setRoundMsg] = useState(null);
   const [loadingRound, setLoadingRound] = useState(false);
 
+  // Stat weights
+  const [statWeights, setStatWeights] = useState([]);
+  const [statWeightMsg, setStatWeightMsg] = useState(null);
+  const [savingWeights, setSavingWeights] = useState(false);
+
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -539,6 +610,33 @@ export default function Admin({ onBack }) {
     }
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem('draft_token');
+    fetch(`${API_URL}/admin/stat-weights`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => setStatWeights(data.data || []));
+  }, []);
+
+  const handleSaveWeights = async () => {
+    setSavingWeights(true);
+    setStatWeightMsg(null);
+    const token = localStorage.getItem('draft_token');
+    try {
+      const body = statWeights.map(w => ({ stat_name: w.stat_name, weight: w.weight, enabled: w.enabled }));
+      const res = await fetch(`${API_URL}/admin/stat-weights`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      setStatWeightMsg(res.ok ? '✅ Pesos salvos!' : `❌ ${data.error}`);
+    } catch {
+      setStatWeightMsg('❌ Erro de conexão');
+    } finally {
+      setSavingWeights(false);
+    }
+  };
+
   return (
     <div className="min-h-screen p-4 max-w-6xl mx-auto">
 
@@ -580,6 +678,43 @@ export default function Admin({ onBack }) {
           </button>
           {roundMsg && <p className="text-sm mt-2">{roundMsg}</p>}
         </div>
+      </div>
+
+      {/* Stat weights */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4">⚖️ Pesos das Estatísticas</h2>
+        {statWeights.length === 0 ? (
+          <p className="text-gray-600 text-sm">Carregando...</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mb-4">
+              {statWeights.map((w, i) => (
+                <div key={w.stat_name} className="flex items-center gap-3 py-1.5 border-b border-gray-800/50">
+                  <input
+                    type="checkbox"
+                    checked={w.enabled}
+                    onChange={e => setStatWeights(prev => prev.map((x, j) => j === i ? { ...x, enabled: e.target.checked } : x))}
+                    className="accent-draft-green w-4 h-4 flex-shrink-0 cursor-pointer"
+                  />
+                  <span className={`flex-1 text-sm truncate ${w.enabled ? 'text-white' : 'text-gray-500'}`}>
+                    {STAT_LABELS[w.stat_name] || w.stat_name}
+                  </span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={w.weight}
+                    onChange={e => setStatWeights(prev => prev.map((x, j) => j === i ? { ...x, weight: parseFloat(e.target.value) || 0 } : x))}
+                    className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
+                  />
+                </div>
+              ))}
+            </div>
+            <button onClick={handleSaveWeights} disabled={savingWeights} className="btn-primary w-full disabled:opacity-40">
+              {savingWeights ? 'Salvando...' : 'Salvar Pesos'}
+            </button>
+            {statWeightMsg && <p className="text-sm mt-2">{statWeightMsg}</p>}
+          </>
+        )}
       </div>
 
       {/* Sync card */}
