@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { API_URL } from '../config.js';
 import DraftHistory from '../components/DraftHistory.jsx';
 
@@ -433,6 +433,8 @@ export default function Admin({ onBack }) {
   const [playerStats, setPlayerStats] = useState([]);
   const [loadingStats, setLoadingStats] = useState(false);
   const [statsOnlyPlayed, setStatsOnlyPlayed] = useState(false);
+  const statsTopScrollRef = useRef(null);
+  const statsTableScrollRef = useRef(null);
 
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
@@ -864,45 +866,53 @@ export default function Admin({ onBack }) {
           {loadingStats ? 'Carregando...' : 'Buscar Estatísticas'}
         </button>
 
-        {playerStats.length > 0 && (
-          <div style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)', paddingLeft: '1rem', paddingRight: '1rem' }}>
-            <div className="overflow-x-auto rounded-lg border border-gray-800">
-              <table style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                <thead className="bg-gray-900">
-                  <tr>
-                    <th className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 align-bottom" style={{ width: 160, minWidth: 160 }}>Jogador</th>
-                    <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 align-bottom" style={{ width: 44, minWidth: 44 }}>Time</th>
-                    <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 align-bottom" style={{ width: 90, minWidth: 90 }}>Pos</th>
-                    {STAT_COLS.map(col => (
-                      <th key={col} className="border-r border-gray-800/50 align-bottom text-center" style={{ width: 26, minWidth: 26, padding: '4px 2px' }}>
-                        <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', display: 'inline-block', fontSize: 10, fontWeight: 600, color: '#9ca3af', whiteSpace: 'nowrap', lineHeight: 1.2 }}>
-                          {STAT_LABELS[col] || col}
-                        </span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800/50">
-                  {playerStats.filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0)).map(p => (
-                    <tr key={p.player_id} className="hover:bg-gray-800/40">
-                      <td className="sticky left-0 z-10 bg-gray-900 px-3 py-1.5 font-medium text-white border-r border-gray-700" style={{ fontSize: 11 }}>
-                        {p.display_name}
-                        <div style={{ fontSize: 10, color: '#6b7280' }}>{p.detailed_position_name}</div>
-                      </td>
-                      <td className="px-2 py-1.5 text-gray-300 border-r border-gray-800 text-center" style={{ fontSize: 11 }}>{p.team_short_code}</td>
-                      <td className="px-2 py-1.5 text-gray-400 border-r border-gray-800" style={{ fontSize: 10 }}>{p.position_name}</td>
+        {playerStats.length > 0 && (() => {
+          const visibleStats = playerStats.filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0));
+          const syncFromTop = () => { if (statsTableScrollRef.current) statsTableScrollRef.current.scrollLeft = statsTopScrollRef.current.scrollLeft; };
+          const syncFromTable = () => { if (statsTopScrollRef.current) statsTopScrollRef.current.scrollLeft = statsTableScrollRef.current.scrollLeft; };
+          return (
+            <>
+              {/* Top scrollbar */}
+              <div ref={statsTopScrollRef} onScroll={syncFromTop} className="overflow-x-auto rounded-t-lg border-x border-t border-gray-800" style={{ overflowY: 'hidden', height: 16 }}>
+                <div style={{ width: statsTableScrollRef.current?.scrollWidth || 9999, height: 1 }} />
+              </div>
+              {/* Table */}
+              <div ref={statsTableScrollRef} onScroll={syncFromTable} className="overflow-x-auto rounded-b-lg border border-gray-800">
+                <table className="text-xs whitespace-nowrap">
+                  <thead className="bg-gray-900 sticky top-0">
+                    <tr>
+                      <th className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px]">Jogador</th>
+                      <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800">Time</th>
+                      <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800">Pos</th>
                       {STAT_COLS.map(col => (
-                        <td key={col} className={`py-1.5 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`} style={{ fontSize: 11, padding: '6px 2px' }}>
-                          {fmtStat(col, p[col])}
-                        </td>
+                        <th key={col} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px]">
+                          {STAT_LABELS[col] || col}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                  </thead>
+                  <tbody className="divide-y divide-gray-800/50">
+                    {visibleStats.map(p => (
+                      <tr key={p.player_id} className="hover:bg-gray-800/40">
+                        <td className="sticky left-0 z-10 bg-gray-900 px-3 py-2 font-medium text-white border-r border-gray-700">
+                          {p.display_name}
+                          <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
+                        </td>
+                        <td className="px-2 py-2 text-gray-300 border-r border-gray-800">{p.team_short_code}</td>
+                        <td className="px-2 py-2 text-gray-400 border-r border-gray-800">{p.position_name}</td>
+                        {STAT_COLS.map(col => (
+                          <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
+                            {fmtStat(col, p[col])}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          );
+        })()}
 
         {!loadingStats && playerStats.length === 0 && statsRoundId && (
           <p className="text-gray-600 text-sm text-center py-4">Nenhum dado para os filtros selecionados.</p>
