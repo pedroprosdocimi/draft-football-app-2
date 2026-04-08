@@ -433,6 +433,7 @@ export default function Admin({ onBack }) {
   const [playerStats, setPlayerStats] = useState([]);
   const [loadingStats, setLoadingStats] = useState(false);
   const [statsOnlyPlayed, setStatsOnlyPlayed] = useState(false);
+  const [statsSort, setStatsSort] = useState({ col: null, dir: 1 });
   const statsTopScrollRef = useRef(null);
   const statsTableScrollRef = useRef(null);
 
@@ -866,7 +867,22 @@ export default function Admin({ onBack }) {
         </button>
 
         {playerStats.length > 0 && (() => {
-          const visibleStats = playerStats.filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0));
+          const TEXT_COLS = new Set(['display_name', 'team_short_code', 'position_name']);
+          const handleStatsSort = (col) => setStatsSort(prev => ({ col, dir: prev.col === col ? -prev.dir : 1 }));
+          const sortIndicator = (col) => statsSort.col === col ? (statsSort.dir === 1 ? ' ↑' : ' ↓') : '';
+
+          let visibleStats = playerStats.filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0));
+          if (statsSort.col) {
+            const col = statsSort.col;
+            const dir = statsSort.dir;
+            visibleStats = [...visibleStats].sort((a, b) => {
+              const va = a[col] ?? (TEXT_COLS.has(col) ? '' : -Infinity);
+              const vb = b[col] ?? (TEXT_COLS.has(col) ? '' : -Infinity);
+              if (TEXT_COLS.has(col)) return dir * String(va).localeCompare(String(vb));
+              return dir * (Number(va) - Number(vb));
+            });
+          }
+
           const syncFromTop = () => { if (statsTableScrollRef.current) statsTableScrollRef.current.scrollLeft = statsTopScrollRef.current.scrollLeft; };
           const syncFromTable = () => { if (statsTopScrollRef.current) statsTopScrollRef.current.scrollLeft = statsTableScrollRef.current.scrollLeft; };
           return (
@@ -880,12 +896,18 @@ export default function Admin({ onBack }) {
                 <table className="text-xs whitespace-nowrap">
                   <thead className="bg-gray-900 sticky top-0">
                     <tr>
-                      <th className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px]">Jogador</th>
-                      <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800">Time</th>
-                      <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800">Pos</th>
+                      <th onClick={() => handleStatsSort('display_name')} className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px] cursor-pointer hover:text-white select-none">
+                        Jogador{sortIndicator('display_name')}
+                      </th>
+                      <th onClick={() => handleStatsSort('team_short_code')} className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 cursor-pointer hover:text-white select-none whitespace-nowrap">
+                        Time{sortIndicator('team_short_code')}
+                      </th>
+                      <th onClick={() => handleStatsSort('position_name')} className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 cursor-pointer hover:text-white select-none whitespace-nowrap">
+                        Pos{sortIndicator('position_name')}
+                      </th>
                       {STAT_COLS.map(col => (
-                        <th key={col} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px]">
-                          {STAT_LABELS[col] || col}
+                        <th key={col} onClick={() => handleStatsSort(col)} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px] cursor-pointer hover:text-white select-none whitespace-nowrap">
+                          {STAT_LABELS[col] || col}{sortIndicator(col)}
                         </th>
                       ))}
                     </tr>
