@@ -443,6 +443,8 @@ export default function Admin({ onBack }) {
   const [statsSort, setStatsSort] = useState({ col: null, dir: 1 });
   const statsTopScrollRef = useRef(null);
   const statsTableScrollRef = useRef(null);
+  const [manageStatsOpen, setManageStatsOpen] = useState(false);
+  const [statWeightsOpen, setStatWeightsOpen] = useState(false);
 
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
@@ -854,9 +856,14 @@ export default function Admin({ onBack }) {
 
         return (
           <div className="card mb-6 overflow-hidden">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setManageStatsOpen(o => !o)}>
               <h2 className="text-lg font-semibold text-white">📋 Gerenciar Estatísticas</h2>
-              <button onClick={handleSaveWeights} disabled={savingWeights} className="btn-primary disabled:opacity-40 text-sm px-4 py-1.5">
+              <span className="text-gray-400 text-sm">{manageStatsOpen ? '▲' : '▼'}</span>
+            </div>
+            {manageStatsOpen && <>
+            <div className="flex items-center justify-between mt-3 mb-3">
+              <div />
+              <button onClick={e => { e.stopPropagation(); handleSaveWeights(); }} disabled={savingWeights} className="btn-primary disabled:opacity-40 text-sm px-4 py-1.5">
                 {savingWeights ? 'Salvando...' : 'Salvar'}
               </button>
             </div>
@@ -900,15 +907,19 @@ export default function Admin({ onBack }) {
                 </tbody>
               </table>
             </div>
+            </>}
           </div>
         );
       })()}
 
       {/* Stat weights */}
       <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-white mb-4">⚖️ Pesos das Estatísticas</h2>
-        {statWeights.length === 0 ? (
-          <p className="text-gray-600 text-sm">Carregando...</p>
+        <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setStatWeightsOpen(o => !o)}>
+          <h2 className="text-lg font-semibold text-white">⚖️ Pesos das Estatísticas</h2>
+          <span className="text-gray-400 text-sm">{statWeightsOpen ? '▲' : '▼'}</span>
+        </div>
+        {statWeightsOpen && (statWeights.length === 0 ? (
+          <p className="text-gray-600 text-sm mt-4">Carregando...</p>
         ) : (() => {
           const CATEGORY_LABELS = {
             ataque:       { label: '⚔️ Ataque',      color: 'text-red-400',    border: 'border-red-900/50'    },
@@ -961,7 +972,7 @@ export default function Admin({ onBack }) {
               {statWeightMsg && <p className="text-sm mt-2">{statWeightMsg}</p>}
             </>
           );
-        })()}
+        })())}
       </div>
 
       {/* Position stat weights */}
