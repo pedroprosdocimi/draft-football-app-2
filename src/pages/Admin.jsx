@@ -1090,7 +1090,7 @@ export default function Admin({ onBack }) {
           // Build stat weight lookup: { stat_name: { weight, enabled } }
           const swMap = {};
           for (const w of statWeights) swMap[w.stat_name] = w;
-          const activeStatCols = STAT_COLS.filter(s => swMap[s]?.active !== false);
+          const activeStatCols = STAT_COLS.filter(s => swMap[s]?.active === true);
 
           const calcScore = (p) => {
             const posWeights = allPosStatWeights[p.detailed_position_id] || {};
