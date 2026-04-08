@@ -1097,15 +1097,21 @@ export default function Admin({ onBack }) {
 
           const calcScore = (p) => {
             const posWeights = allPosStatWeights[p.detailed_position_id] || {};
-            return STAT_COLS.reduce((sum, stat) => {
+            let total = 0;
+            const breakdown = [];
+            for (const stat of STAT_COLS) {
               const val = p[stat];
-              if (val == null) return sum;
+              if (val == null) continue;
               const sw = swMap[stat];
-              if (!sw || !sw.enabled) return sum;
+              if (!sw || !sw.enabled) continue;
               const numVal = stat === 'is_captain' ? (val ? 1 : 0) : Number(val);
               const posW = (posWeights[stat] ?? 100) / 100;
-              return sum + numVal * sw.weight * posW;
-            }, 0);
+              const contribution = numVal * sw.weight * posW;
+              if (contribution !== 0) breakdown.push({ stat, numVal, weight: sw.weight, posW, contribution });
+              total += contribution;
+            }
+            breakdown.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+            return { total, breakdown };
           };
 
           const TEXT_COLS = new Set(['display_name', 'team_short_code', 'position_name']);
@@ -1114,7 +1120,7 @@ export default function Admin({ onBack }) {
 
           let visibleStats = playerStats
             .filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0))
-            .map(p => ({ ...p, _score: calcScore(p) }));
+            .map(p => { const { total, breakdown } = calcScore(p); return { ...p, _score: total, _breakdown: breakdown }; });
           if (statsSort.col) {
             const col = statsSort.col;
             const dir = statsSort.dir;
@@ -1163,7 +1169,20 @@ export default function Admin({ onBack }) {
                           <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
                         </td>
                         <td className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-gray-300 border-r border-gray-700" style={{ minWidth: 56 }}>{p.team_short_code}</td>
-                        <td className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-bold text-yellow-400 border-r border-gray-600" style={{ minWidth: 72 }}>{p._score.toFixed(2)}</td>
+                        <td className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-bold text-yellow-400 border-r border-gray-600 group relative" style={{ minWidth: 72 }}>
+                          {p._score.toFixed(2)}
+                          {p._breakdown.length > 0 && (
+                            <div className="absolute left-0 top-full mt-1 z-50 hidden group-hover:block bg-gray-950 border border-gray-700 rounded-lg shadow-xl p-3 min-w-[260px] max-h-72 overflow-y-auto text-left" style={{ fontSize: 11 }}>
+                              <div className="text-gray-400 font-semibold mb-2 text-xs">Extrato do Score</div>
+                              {p._breakdown.map(({ stat, numVal, weight, posW, contribution }) => (
+                                <div key={stat} className={`flex justify-between gap-4 py-0.5 border-b border-gray-800/40 ${contribution > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                  <span className="truncate max-w-[140px] text-gray-300">{STAT_LABELS[stat] || stat}</span>
+                                  <span className="font-mono whitespace-nowrap">{numVal} × {weight.toFixed(2)} × {(posW * 100).toFixed(0)}% = <span className="font-bold">{contribution.toFixed(2)}</span></span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </td>
                         {nonEmptyCols.map(col => (
                           <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
                             {fmtStat(col, p[col])}
