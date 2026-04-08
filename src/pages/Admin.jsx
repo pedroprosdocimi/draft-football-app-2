@@ -432,6 +432,7 @@ export default function Admin({ onBack }) {
   const [statsPosId, setStatsPosId] = useState('');
   const [playerStats, setPlayerStats] = useState([]);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [statsOnlyPlayed, setStatsOnlyPlayed] = useState(false);
 
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
@@ -854,6 +855,11 @@ export default function Admin({ onBack }) {
           </div>
         </div>
 
+        <label className="flex items-center gap-2 mb-4 cursor-pointer w-fit">
+          <input type="checkbox" checked={statsOnlyPlayed} onChange={e => setStatsOnlyPlayed(e.target.checked)} className="accent-draft-green w-4 h-4" />
+          <span className="text-sm text-gray-300">Apenas jogadores com minutos jogados</span>
+        </label>
+
         <button onClick={handleLoadPlayerStats} disabled={!statsRoundId || loadingStats} className="btn-primary mb-4 disabled:opacity-40">
           {loadingStats ? 'Carregando...' : 'Buscar Estatísticas'}
         </button>
@@ -877,7 +883,7 @@ export default function Admin({ onBack }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-800/50">
-                  {playerStats.map(p => (
+                  {playerStats.filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0)).map(p => (
                     <tr key={p.player_id} className="hover:bg-gray-800/40">
                       <td className="sticky left-0 z-10 bg-gray-900 px-3 py-1.5 font-medium text-white border-r border-gray-700" style={{ fontSize: 11 }}>
                         {p.display_name}
