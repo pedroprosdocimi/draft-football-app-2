@@ -980,20 +980,47 @@ export default function Admin({ onBack }) {
             <p className="text-gray-600 text-sm">Carregando...</p>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mb-4">
-                {STAT_COLS.map(stat => (
-                  <div key={stat} className="flex items-center gap-3 py-1.5 border-b border-gray-800/50">
-                    <span className="flex-1 text-sm text-white truncate">{STAT_LABELS[stat] || stat}</span>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={Number(posStatWeights[stat] ?? 100).toFixed(1)}
-                      onChange={e => setPosStatWeights(prev => ({ ...prev, [stat]: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 }))}
-                      className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
-                    />
-                  </div>
-                ))}
-              </div>
+              {(() => {
+                const CATEGORY_LABELS = {
+                  ataque:       { label: '⚔️ Ataque',       color: 'text-red-400',    border: 'border-red-900/50'    },
+                  criacao:      { label: '🎨 Criação',      color: 'text-blue-400',   border: 'border-blue-900/50'   },
+                  defesa:       { label: '🛡️ Defesa',       color: 'text-green-400',  border: 'border-green-900/50'  },
+                  fisico:       { label: '💪 Físico',       color: 'text-yellow-400', border: 'border-yellow-900/50' },
+                  goleiro:      { label: '🧤 Goleiro',      color: 'text-cyan-400',   border: 'border-cyan-900/50'   },
+                  comportamento:{ label: '🟨 Comportamento', color: 'text-orange-400', border: 'border-orange-900/50' },
+                  outro:        { label: '📋 Outro',        color: 'text-gray-400',   border: 'border-gray-700'      },
+                };
+                const ORDER = ['ataque','criacao','defesa','fisico','goleiro','comportamento','outro'];
+                const grouped = {};
+                statWeights.forEach(w => {
+                  if (!w.active) return;
+                  const cat = w.category || 'outro';
+                  if (!grouped[cat]) grouped[cat] = [];
+                  grouped[cat].push(w.stat_name);
+                });
+                return ORDER.filter(cat => grouped[cat]?.length).map(cat => {
+                  const info = CATEGORY_LABELS[cat];
+                  return (
+                    <div key={cat} className="mb-4">
+                      <h3 className={`text-sm font-bold ${info.color} mb-2 pb-1 border-b ${info.border}`}>{info.label}</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                        {grouped[cat].map(stat => (
+                          <div key={stat} className="flex items-center gap-3 py-1 border-b border-gray-800/30">
+                            <span className="flex-1 text-sm text-white truncate">{STAT_LABELS[stat] || stat}</span>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={Number(posStatWeights[stat] ?? 100).toFixed(1)}
+                              onChange={e => setPosStatWeights(prev => ({ ...prev, [stat]: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 }))}
+                              className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
               <button onClick={handleSavePosStatWeights} disabled={savingPosStats} className="btn-primary w-full disabled:opacity-40">
                 {savingPosStats ? 'Salvando...' : 'Salvar Pontuação da Posição'}
               </button>
