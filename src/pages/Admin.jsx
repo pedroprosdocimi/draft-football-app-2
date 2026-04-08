@@ -1079,6 +1079,7 @@ export default function Admin({ onBack }) {
           // Build stat weight lookup: { stat_name: { weight, enabled } }
           const swMap = {};
           for (const w of statWeights) swMap[w.stat_name] = w;
+          const activeStatCols = STAT_COLS.filter(s => swMap[s]?.active !== false);
 
           const calcScore = (p) => {
             const posWeights = allPosStatWeights[p.detailed_position_id] || {};
@@ -1133,7 +1134,7 @@ export default function Admin({ onBack }) {
                       <th onClick={() => handleStatsSort('_score')} className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-semibold text-yellow-400 border-r border-gray-600 cursor-pointer hover:text-yellow-200 select-none whitespace-nowrap" style={{ minWidth: 72 }}>
                         Score{sortIndicator('_score')}
                       </th>
-                      {STAT_COLS.map(col => (
+                      {activeStatCols.map(col => (
                         <th key={col} onClick={() => handleStatsSort(col)} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px] cursor-pointer hover:text-white select-none whitespace-nowrap">
                           {STAT_LABELS[col] || col}{sortIndicator(col)}
                         </th>
@@ -1149,7 +1150,7 @@ export default function Admin({ onBack }) {
                         </td>
                         <td className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-gray-300 border-r border-gray-700" style={{ minWidth: 56 }}>{p.team_short_code}</td>
                         <td className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-bold text-yellow-400 border-r border-gray-600" style={{ minWidth: 72 }}>{p._score.toFixed(2)}</td>
-                        {STAT_COLS.map(col => (
+                        {activeStatCols.map(col => (
                           <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
                             {fmtStat(col, p[col])}
                           </td>
