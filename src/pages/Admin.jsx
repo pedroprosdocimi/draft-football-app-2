@@ -922,6 +922,7 @@ export default function Admin({ onBack }) {
           const ORDER = ['ataque','criacao','defesa','fisico','goleiro','comportamento','outro'];
           const grouped = {};
           statWeights.forEach((w, i) => {
+            if (!w.active) return;
             const cat = w.category || 'outro';
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push({ ...w, _idx: i });
