@@ -1195,7 +1195,7 @@ export default function Admin({ onBack }) {
 
         {scoreTooltip && (
           <div
-            className="fixed z-[9999] bg-gray-950 border border-gray-700 rounded-lg shadow-xl p-3 min-w-[260px] max-h-72 overflow-y-auto pointer-events-none"
+            className="fixed z-[9999] bg-gray-950 border border-gray-700 rounded-lg shadow-xl p-3 min-w-[260px] pointer-events-none"
             style={{ top: scoreTooltip.y + 16, left: scoreTooltip.x + 60, fontSize: 11 }}
           >
             <div className="text-gray-400 font-semibold mb-2 text-xs">Extrato do Score</div>
