@@ -76,6 +76,45 @@ const STAT_LABELS = {
   yellowred_cards:          'Cartão amarelo-vermelho',
 };
 
+const STAT_COLS = [
+  'minutes_played','rating','is_captain',
+  'goals','assists',
+  'shots_total','shots_on_target','shots_off_target','shots_blocked',
+  'big_chances_created','big_chances_missed',
+  'expected_goals','expected_goals_on_target','shooting_performance',
+  'dribble_attempts','successful_dribbles','dribbled_past','dispossessed',
+  'total_crosses','accurate_crosses','accurate_crosses_pct',
+  'passes','accurate_passes','accurate_passes_pct','key_passes',
+  'long_balls','long_balls_won','long_balls_won_pct',
+  'passes_in_final_third','backward_passes',
+  'total_duels','duels_won','duels_lost','duels_won_pct',
+  'aerials','aerials_won','aerials_lost','aerials_won_pct',
+  'tackles','tackles_won','tackles_won_pct',
+  'interceptions','clearances','blocked_shots',
+  'fouls','fouls_drawn',
+  'touches','ball_recovery','possession_lost',
+  'saves','saves_insidebox','goals_conceded','goalkeeper_goals_conceded',
+  'penalties_saved','punches',
+  'penalties_scored','penalties_missed','penalties_committed','penalties_won',
+  'yellowcards','redcards','yellowred_cards','offsides',
+];
+
+const POSITIONS_FILTER = [
+  { id: 1, label: 'Goleiro' },
+  { id: 2, label: 'Defensor' },
+  { id: 3, label: 'Meio-campista' },
+  { id: 4, label: 'Atacante' },
+];
+
+function fmtStat(key, value) {
+  if (value === null || value === undefined) return '—';
+  if (key === 'is_captain') return value ? '✓' : '—';
+  if (key === 'rating') return Number(value).toFixed(2);
+  if (key.endsWith('_pct')) return `${Number(value).toFixed(1)}%`;
+  if (key.startsWith('expected_') || key === 'shooting_performance') return Number(value).toFixed(3);
+  return value;
+}
+
 const STATUS_INFO = {
   7: { label: 'Provável',   bg: 'bg-green-900/40',  text: 'text-green-300'  },
   2: { label: 'Dúvida',     bg: 'bg-yellow-900/40', text: 'text-yellow-300' },
@@ -375,6 +414,16 @@ export default function Admin({ onBack }) {
   const [statWeightMsg, setStatWeightMsg] = useState(null);
   const [savingWeights, setSavingWeights] = useState(false);
 
+  // Player stats viewer
+  const [statsSeasons, setStatsSeasons] = useState([]);
+  const [statsRounds, setStatsRounds] = useState([]);
+  const [statsRoundId, setStatsRoundId] = useState('');
+  const [statsTeams, setStatsTeams] = useState([]);
+  const [statsTeamId, setStatsTeamId] = useState('');
+  const [statsPosId, setStatsPosId] = useState('');
+  const [playerStats, setPlayerStats] = useState([]);
+  const [loadingStats, setLoadingStats] = useState(false);
+
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -612,6 +661,44 @@ export default function Admin({ onBack }) {
 
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
+    const authHeaders = { Authorization: `Bearer ${token}` };
+    Promise.all([
+      fetch(`${API_URL}/admin/seasons`, { headers: authHeaders }).then(r => r.json()),
+      fetch(`${API_URL}/admin/teams`, { headers: authHeaders }).then(r => r.json()),
+    ]).then(([seasonsData, teamsData]) => {
+      setStatsSeasons(seasonsData.data || []);
+      setStatsTeams(teamsData.data || []);
+    });
+  }, []);
+
+  const loadStatsRounds = (seasonId) => {
+    const token = localStorage.getItem('draft_token');
+    fetch(`${API_URL}/admin/rounds?season_id=${seasonId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => { setStatsRounds(data.data || []); setStatsRoundId(''); });
+  };
+
+  const handleLoadPlayerStats = async () => {
+    if (!statsRoundId) return;
+    setLoadingStats(true);
+    setPlayerStats([]);
+    const token = localStorage.getItem('draft_token');
+    const params = new URLSearchParams({ round_id: statsRoundId });
+    if (statsTeamId) params.set('team_id', statsTeamId);
+    if (statsPosId) params.set('position_id', statsPosId);
+    try {
+      const res = await fetch(`${API_URL}/admin/player-stats?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setPlayerStats(data.data || []);
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('draft_token');
     fetch(`${API_URL}/admin/stat-weights`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => setStatWeights(data.data || []));
@@ -715,6 +802,87 @@ export default function Admin({ onBack }) {
             </button>
             {statWeightMsg && <p className="text-sm mt-2">{statWeightMsg}</p>}
           </>
+        )}
+      </div>
+
+      {/* Player stats viewer */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4">📊 Estatísticas dos Jogadores</h2>
+
+        {/* Filters */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Temporada</label>
+            <select className="input-field text-sm" onChange={e => loadStatsRounds(e.target.value)}>
+              <option value="">Selecionar...</option>
+              {statsSeasons.map(s => <option key={s.id} value={s.id}>{s.name} ({s.year})</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Rodada</label>
+            <select className="input-field text-sm" value={statsRoundId} onChange={e => setStatsRoundId(e.target.value)} disabled={statsRounds.length === 0}>
+              <option value="">Selecionar...</option>
+              {statsRounds.map(r => <option key={r.id} value={r.id}>{r.name} (#{r.number})</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Time</label>
+            <select className="input-field text-sm" value={statsTeamId} onChange={e => setStatsTeamId(e.target.value)}>
+              <option value="">Todos</option>
+              {statsTeams.map(t => <option key={t.id} value={t.id}>{t.short_code} — {t.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Posição</label>
+            <select className="input-field text-sm" value={statsPosId} onChange={e => setStatsPosId(e.target.value)}>
+              <option value="">Todas</option>
+              {POSITIONS_FILTER.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <button onClick={handleLoadPlayerStats} disabled={!statsRoundId || loadingStats} className="btn-primary mb-4 disabled:opacity-40">
+          {loadingStats ? 'Carregando...' : 'Buscar Estatísticas'}
+        </button>
+
+        {playerStats.length > 0 && (
+          <div className="overflow-x-auto rounded-lg border border-gray-800">
+            <table className="text-xs whitespace-nowrap">
+              <thead className="bg-gray-900 sticky top-0">
+                <tr>
+                  <th className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px]">Jogador</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800">Time</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800">Pos</th>
+                  {STAT_COLS.map(col => (
+                    <th key={col} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px]">
+                      {STAT_LABELS[col] || col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/50">
+                {playerStats.map(p => (
+                  <tr key={p.player_id} className="hover:bg-gray-800/40">
+                    <td className="sticky left-0 z-10 bg-gray-900 px-3 py-2 font-medium text-white border-r border-gray-700">
+                      {p.display_name}
+                      <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
+                    </td>
+                    <td className="px-2 py-2 text-gray-300 border-r border-gray-800">{p.team_short_code}</td>
+                    <td className="px-2 py-2 text-gray-400 border-r border-gray-800">{p.position_name}</td>
+                    {STAT_COLS.map(col => (
+                      <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
+                        {fmtStat(col, p[col])}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {!loadingStats && playerStats.length === 0 && statsRoundId && (
+          <p className="text-gray-600 text-sm text-center py-4">Nenhum dado para os filtros selecionados.</p>
         )}
       </div>
 
