@@ -899,7 +899,7 @@ export default function Admin({ onBack }) {
                       <th onClick={() => handleStatsSort('display_name')} className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px] cursor-pointer hover:text-white select-none">
                         Jogador{sortIndicator('display_name')}
                       </th>
-                      <th onClick={() => handleStatsSort('team_short_code')} className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 cursor-pointer hover:text-white select-none whitespace-nowrap">
+                      <th onClick={() => handleStatsSort('team_short_code')} className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 cursor-pointer hover:text-white select-none whitespace-nowrap">
                         Time{sortIndicator('team_short_code')}
                       </th>
                       {STAT_COLS.map(col => (
@@ -916,7 +916,7 @@ export default function Admin({ onBack }) {
                           {p.display_name}
                           <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
                         </td>
-                        <td className="px-2 py-2 text-gray-300 border-r border-gray-800">{p.team_short_code}</td>
+                        <td className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-gray-300 border-r border-gray-700">{p.team_short_code}</td>
                         {STAT_COLS.map(col => (
                           <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
                             {fmtStat(col, p[col])}
