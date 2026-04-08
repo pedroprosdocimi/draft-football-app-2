@@ -679,15 +679,25 @@ export default function Admin({ onBack }) {
     }
   };
 
+  const [allPosStatWeights, setAllPosStatWeights] = useState({}); // { detailedPosId: { stat_name: weight } }
+
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
     const authHeaders = { Authorization: `Bearer ${token}` };
     Promise.all([
       fetch(`${API_URL}/admin/seasons`, { headers: authHeaders }).then(r => r.json()),
       fetch(`${API_URL}/admin/teams`, { headers: authHeaders }).then(r => r.json()),
-    ]).then(([seasonsData, teamsData]) => {
+      fetch(`${API_URL}/admin/position-stat-weights`, { headers: authHeaders }).then(r => r.json()),
+    ]).then(([seasonsData, teamsData, posWeightsData]) => {
       setStatsSeasons(seasonsData.data || []);
       setStatsTeams(teamsData.data || []);
+      // Build lookup: { detailedPosId: { stat_name: weight } }
+      const map = {};
+      for (const w of (posWeightsData.data || [])) {
+        if (!map[w.detailed_position_id]) map[w.detailed_position_id] = {};
+        map[w.detailed_position_id][w.stat_name] = w.weight;
+      }
+      setAllPosStatWeights(map);
     });
   }, []);
 
@@ -950,17 +960,36 @@ export default function Admin({ onBack }) {
         </button>
 
         {playerStats.length > 0 && (() => {
+          // Build stat weight lookup: { stat_name: { weight, enabled } }
+          const swMap = {};
+          for (const w of statWeights) swMap[w.stat_name] = w;
+
+          const calcScore = (p) => {
+            const posWeights = allPosStatWeights[p.detailed_position_id] || {};
+            return STAT_COLS.reduce((sum, stat) => {
+              const val = p[stat];
+              if (val == null) return sum;
+              const sw = swMap[stat];
+              if (!sw || !sw.enabled) return sum;
+              const numVal = stat === 'is_captain' ? (val ? 1 : 0) : Number(val);
+              const posW = (posWeights[stat] ?? 100) / 100;
+              return sum + numVal * sw.weight * posW;
+            }, 0);
+          };
+
           const TEXT_COLS = new Set(['display_name', 'team_short_code', 'position_name']);
           const handleStatsSort = (col) => setStatsSort(prev => ({ col, dir: prev.col === col ? -prev.dir : 1 }));
           const sortIndicator = (col) => statsSort.col === col ? (statsSort.dir === 1 ? ' ↑' : ' ↓') : '';
 
-          let visibleStats = playerStats.filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0));
+          let visibleStats = playerStats
+            .filter(p => !statsOnlyPlayed || (p.minutes_played != null && p.minutes_played > 0))
+            .map(p => ({ ...p, _score: calcScore(p) }));
           if (statsSort.col) {
             const col = statsSort.col;
             const dir = statsSort.dir;
             visibleStats = [...visibleStats].sort((a, b) => {
-              const va = a[col] ?? (TEXT_COLS.has(col) ? '' : -Infinity);
-              const vb = b[col] ?? (TEXT_COLS.has(col) ? '' : -Infinity);
+              const va = col === '_score' ? a._score : (a[col] ?? (TEXT_COLS.has(col) ? '' : -Infinity));
+              const vb = col === '_score' ? b._score : (b[col] ?? (TEXT_COLS.has(col) ? '' : -Infinity));
               if (TEXT_COLS.has(col)) return dir * String(va).localeCompare(String(vb));
               return dir * (Number(va) - Number(vb));
             });
@@ -982,8 +1011,11 @@ export default function Admin({ onBack }) {
                       <th onClick={() => handleStatsSort('display_name')} className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px] cursor-pointer hover:text-white select-none">
                         Jogador{sortIndicator('display_name')}
                       </th>
-                      <th onClick={() => handleStatsSort('team_short_code')} className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 cursor-pointer hover:text-white select-none whitespace-nowrap">
+                      <th onClick={() => handleStatsSort('team_short_code')} className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 cursor-pointer hover:text-white select-none whitespace-nowrap" style={{ minWidth: 56 }}>
                         Time{sortIndicator('team_short_code')}
+                      </th>
+                      <th onClick={() => handleStatsSort('_score')} className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-semibold text-yellow-400 border-r border-gray-600 cursor-pointer hover:text-yellow-200 select-none whitespace-nowrap" style={{ minWidth: 72 }}>
+                        Score{sortIndicator('_score')}
                       </th>
                       {STAT_COLS.map(col => (
                         <th key={col} onClick={() => handleStatsSort(col)} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px] cursor-pointer hover:text-white select-none whitespace-nowrap">
@@ -999,7 +1031,8 @@ export default function Admin({ onBack }) {
                           {p.display_name}
                           <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
                         </td>
-                        <td className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-gray-300 border-r border-gray-700">{p.team_short_code}</td>
+                        <td className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-gray-300 border-r border-gray-700" style={{ minWidth: 56 }}>{p.team_short_code}</td>
+                        <td className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-bold text-yellow-400 border-r border-gray-600" style={{ minWidth: 72 }}>{p._score.toFixed(2)}</td>
                         {STAT_COLS.map(col => (
                           <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
                             {fmtStat(col, p[col])}
