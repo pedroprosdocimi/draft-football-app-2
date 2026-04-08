@@ -780,7 +780,7 @@ export default function Admin({ onBack }) {
     setStatWeightMsg(null);
     const token = localStorage.getItem('draft_token');
     try {
-      const body = statWeights.map(w => ({ stat_name: w.stat_name, weight: w.weight, enabled: w.enabled }));
+      const body = statWeights.map(w => ({ stat_name: w.stat_name, weight: w.weight, enabled: w.enabled, active: w.active, category: w.category || 'outro' }));
       const res = await fetch(`${API_URL}/admin/stat-weights`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -837,6 +837,72 @@ export default function Admin({ onBack }) {
           {roundMsg && <p className="text-sm mt-2">{roundMsg}</p>}
         </div>
       </div>
+
+      {/* Stat management table */}
+      {statWeights.length > 0 && (() => {
+        const CATEGORY_OPTIONS = [
+          { value: 'ataque',        label: '⚔️ Ataque'        },
+          { value: 'criacao',       label: '🎨 Criação'       },
+          { value: 'defesa',        label: '🛡️ Defesa'        },
+          { value: 'fisico',        label: '💪 Físico'        },
+          { value: 'goleiro',       label: '🧤 Goleiro'       },
+          { value: 'comportamento', label: '🟨 Comportamento' },
+          { value: 'outro',         label: '📋 Outro'         },
+        ];
+        const handleStatField = (idx, field, value) =>
+          setStatWeights(prev => prev.map((x, i) => i === idx ? { ...x, [field]: value } : x));
+
+        return (
+          <div className="card mb-6 overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-white">📋 Gerenciar Estatísticas</h2>
+              <button onClick={handleSaveWeights} disabled={savingWeights} className="btn-primary disabled:opacity-40 text-sm px-4 py-1.5">
+                {savingWeights ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+            {statWeightMsg && <p className="text-sm mb-3">{statWeightMsg}</p>}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-gray-500 border-b border-gray-800">
+                    <th className="pb-2 pr-4 font-medium">Estatística</th>
+                    <th className="pb-2 pr-3 font-medium w-36">Tipo</th>
+                    <th className="pb-2 font-medium w-32">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-800/40">
+                  {statWeights.map((w, i) => (
+                    <tr key={w.stat_name} className="hover:bg-gray-800/30">
+                      <td className="py-1.5 pr-4 text-gray-300">{STAT_LABELS[w.stat_name] || w.stat_name}</td>
+                      <td className="py-1.5 pr-3">
+                        <select
+                          value={w.category || 'outro'}
+                          onChange={e => handleStatField(i, 'category', e.target.value)}
+                          className="w-full bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded px-2 py-1 focus:outline-none focus:border-draft-green cursor-pointer"
+                        >
+                          {CATEGORY_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="py-1.5">
+                        <select
+                          value={w.active ? 'ativo' : 'inativo'}
+                          onChange={e => handleStatField(i, 'active', e.target.value === 'ativo')}
+                          className={`w-full bg-gray-800 border text-xs rounded px-2 py-1 focus:outline-none cursor-pointer ${w.active ? 'border-green-700 text-green-400' : 'border-gray-700 text-gray-500'}`}
+                        >
+                          <option value="ativo">✅ Ativo</option>
+                          <option value="inativo">⛔ Inativo</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Stat weights */}
       <div className="card mb-6">
