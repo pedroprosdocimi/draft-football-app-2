@@ -418,6 +418,13 @@ export default function Admin({ onBack }) {
   const [roundMsg, setRoundMsg] = useState(null);
   const [loadingRound, setLoadingRound] = useState(false);
 
+  // Position stat weights
+  const [posStatPosId, setPosStatPosId] = useState('');
+  const [posStatWeights, setPosStatWeights] = useState({});   // { stat_name: weight }
+  const [posStatMsg, setPosStatMsg] = useState(null);
+  const [savingPosStats, setSavingPosStats] = useState(false);
+  const [loadingPosStats, setLoadingPosStats] = useState(false);
+
   // Stat weights
   const [statWeights, setStatWeights] = useState([]);
   const [statWeightMsg, setStatWeightMsg] = useState(null);
@@ -714,6 +721,43 @@ export default function Admin({ onBack }) {
     }
   };
 
+  const loadPosStatWeights = async (posId) => {
+    if (!posId) return;
+    setLoadingPosStats(true);
+    setPosStatMsg(null);
+    const token = localStorage.getItem('draft_token');
+    try {
+      const res = await fetch(`${API_URL}/admin/position-stat-weights?detailed_position_id=${posId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const map = {};
+      for (const w of (data.data || [])) map[w.stat_name] = w.weight;
+      setPosStatWeights(map);
+    } finally {
+      setLoadingPosStats(false);
+    }
+  };
+
+  const handleSavePosStatWeights = async () => {
+    if (!posStatPosId) return;
+    setSavingPosStats(true);
+    setPosStatMsg(null);
+    const token = localStorage.getItem('draft_token');
+    try {
+      const body = STAT_COLS.map(stat => ({ detailed_position_id: Number(posStatPosId), stat_name: stat, weight: posStatWeights[stat] ?? 100 }));
+      const res = await fetch(`${API_URL}/admin/position-stat-weights`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      setPosStatMsg(res.ok ? '✅ Pesos salvos!' : `❌ ${data.error}`);
+    } catch {
+      setPosStatMsg('❌ Erro de conexão');
+    } finally {
+      setSavingPosStats(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
     fetch(`${API_URL}/admin/stat-weights`, { headers: { Authorization: `Bearer ${token}` } })
@@ -818,6 +862,45 @@ export default function Admin({ onBack }) {
             </button>
             {statWeightMsg && <p className="text-sm mt-2">{statWeightMsg}</p>}
           </>
+        )}
+      </div>
+
+      {/* Position stat weights */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4">🎯 Pontuação por Posição</h2>
+        <div className="mb-4">
+          <label className="block text-sm text-gray-400 mb-1">Posição Detalhada</label>
+          <select className="input-field" value={posStatPosId} onChange={e => { setPosStatPosId(e.target.value); loadPosStatWeights(e.target.value); }}>
+            <option value="">Selecionar...</option>
+            {DETAILED_POSITIONS_FILTER.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+        </div>
+
+        {posStatPosId && (
+          loadingPosStats ? (
+            <p className="text-gray-600 text-sm">Carregando...</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 mb-4">
+                {STAT_COLS.map(stat => (
+                  <div key={stat} className="flex items-center gap-3 py-1.5 border-b border-gray-800/50">
+                    <span className="flex-1 text-sm text-white truncate">{STAT_LABELS[stat] || stat}</span>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={Number(posStatWeights[stat] ?? 100).toFixed(1)}
+                      onChange={e => setPosStatWeights(prev => ({ ...prev, [stat]: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 }))}
+                      className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
+                    />
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleSavePosStatWeights} disabled={savingPosStats} className="btn-primary w-full disabled:opacity-40">
+                {savingPosStats ? 'Salvando...' : 'Salvar Pontuação da Posição'}
+              </button>
+              {posStatMsg && <p className="text-sm mt-2">{posStatMsg}</p>}
+            </>
+          )
         )}
       </div>
 
