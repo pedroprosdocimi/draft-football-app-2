@@ -902,9 +902,6 @@ export default function Admin({ onBack }) {
                       <th onClick={() => handleStatsSort('team_short_code')} className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 cursor-pointer hover:text-white select-none whitespace-nowrap">
                         Time{sortIndicator('team_short_code')}
                       </th>
-                      <th onClick={() => handleStatsSort('position_name')} className="px-2 py-2 text-left font-semibold text-gray-300 border-r border-gray-800 cursor-pointer hover:text-white select-none whitespace-nowrap">
-                        Pos{sortIndicator('position_name')}
-                      </th>
                       {STAT_COLS.map(col => (
                         <th key={col} onClick={() => handleStatsSort(col)} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px] cursor-pointer hover:text-white select-none whitespace-nowrap">
                           {STAT_LABELS[col] || col}{sortIndicator(col)}
@@ -920,7 +917,6 @@ export default function Admin({ onBack }) {
                           <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
                         </td>
                         <td className="px-2 py-2 text-gray-300 border-r border-gray-800">{p.team_short_code}</td>
-                        <td className="px-2 py-2 text-gray-400 border-r border-gray-800">{p.position_name}</td>
                         {STAT_COLS.map(col => (
                           <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
                             {fmtStat(col, p[col])}
