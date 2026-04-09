@@ -1243,6 +1243,7 @@ export default function Admin({ onBack }) {
                       <th onClick={() => handleStatsSort('_score')} className="sticky left-[216px] z-10 bg-gray-900 px-2 py-2 text-center font-semibold text-yellow-400 border-r border-gray-600 cursor-pointer hover:text-yellow-200 select-none whitespace-nowrap" style={{ minWidth: 72 }}>
                         Score{sortIndicator('_score')}
                       </th>
+                      <th className="px-2 py-2 text-left font-semibold text-gray-400 border-r border-gray-800/50 whitespace-nowrap" style={{ minWidth: 160 }}>Pos. Alternativas</th>
                       {nonEmptyCols.map(col => (
                         <th key={col} onClick={() => handleStatsSort(col)} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px] cursor-pointer hover:text-white select-none whitespace-nowrap">
                           {STAT_LABELS[col] || col}{sortIndicator(col)}
@@ -1266,6 +1267,9 @@ export default function Admin({ onBack }) {
                           onMouseLeave={() => setScoreTooltip(null)}
                         >
                           {p._score.toFixed(2)}
+                        </td>
+                        <td className="px-2 py-2 text-xs text-gray-400 border-r border-gray-800/50" style={{ minWidth: 160 }}>
+                          {p.alt_positions || <span className="text-gray-700">—</span>}
                         </td>
                         {nonEmptyCols.map(col => (
                           <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
