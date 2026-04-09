@@ -778,7 +778,7 @@ export default function Admin({ onBack }) {
         const data = await res.json();
         for (const p of (data.data || [])) {
           if (!p.minutes_played || p.minutes_played === 0) continue;
-          const posName = p.detailed_position_name || 'Outros';
+          const posName = p.detailed_position_name || p.position_name || 'Desconhecido';
           if (!posMap[posName]) posMap[posName] = { total: 0, count: 0 };
           const posWeights = allPosStatWeights[p.detailed_position_id] || {};
           let score = 0;
@@ -1358,7 +1358,7 @@ export default function Admin({ onBack }) {
                     })}
                     className={`px-2 py-0.5 rounded text-xs font-mono transition-colors ${chartSelectedRounds.has(r.id) ? 'bg-draft-green text-black font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
                   >
-                    #{r.number}
+                    {r.name}
                   </button>
                 ))}
               </div>
