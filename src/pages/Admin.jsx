@@ -862,6 +862,7 @@ export default function Admin({ onBack }) {
         const CATEGORY_OPTIONS = [
           { value: 'ataque',        label: '⚔️ Ataque'        },
           { value: 'criacao',       label: '🎨 Criação'       },
+          { value: 'passes',        label: '🔄 Passes'        },
           { value: 'defesa',        label: '🛡️ Defesa'        },
           { value: 'fisico',        label: '💪 Físico'        },
           { value: 'goleiro',       label: '🧤 Goleiro'       },
@@ -941,13 +942,14 @@ export default function Admin({ onBack }) {
           const CATEGORY_LABELS = {
             ataque:       { label: '⚔️ Ataque',      color: 'text-red-400',    border: 'border-red-900/50'    },
             criacao:      { label: '🎨 Criação',     color: 'text-blue-400',   border: 'border-blue-900/50'   },
+            passes:       { label: '🔄 Passes',      color: 'text-purple-400', border: 'border-purple-900/50' },
             defesa:       { label: '🛡️ Defesa',      color: 'text-green-400',  border: 'border-green-900/50'  },
             fisico:       { label: '💪 Físico',      color: 'text-yellow-400', border: 'border-yellow-900/50' },
             goleiro:      { label: '🧤 Goleiro',     color: 'text-cyan-400',   border: 'border-cyan-900/50'   },
             comportamento:{ label: '🟨 Comportamento',color: 'text-orange-400', border: 'border-orange-900/50' },
             outro:        { label: '📋 Outro',       color: 'text-gray-400',   border: 'border-gray-700'      },
           };
-          const ORDER = ['ataque','criacao','defesa','fisico','goleiro','comportamento','outro'];
+          const ORDER = ['ataque','criacao','passes','defesa','fisico','goleiro','comportamento','outro'];
           const grouped = {};
           statWeights.forEach((w, i) => {
             if (!w.active) return;
@@ -1012,13 +1014,14 @@ export default function Admin({ onBack }) {
                 const CATEGORY_LABELS = {
                   ataque:       { label: '⚔️ Ataque',       color: 'text-red-400',    border: 'border-red-900/50'    },
                   criacao:      { label: '🎨 Criação',      color: 'text-blue-400',   border: 'border-blue-900/50'   },
+                  passes:       { label: '🔄 Passes',       color: 'text-purple-400', border: 'border-purple-900/50' },
                   defesa:       { label: '🛡️ Defesa',       color: 'text-green-400',  border: 'border-green-900/50'  },
                   fisico:       { label: '💪 Físico',       color: 'text-yellow-400', border: 'border-yellow-900/50' },
                   goleiro:      { label: '🧤 Goleiro',      color: 'text-cyan-400',   border: 'border-cyan-900/50'   },
                   comportamento:{ label: '🟨 Comportamento', color: 'text-orange-400', border: 'border-orange-900/50' },
                   outro:        { label: '📋 Outro',        color: 'text-gray-400',   border: 'border-gray-700'      },
                 };
-                const ORDER = ['ataque','criacao','defesa','fisico','goleiro','comportamento','outro'];
+                const ORDER = ['ataque','criacao','passes','defesa','fisico','goleiro','comportamento','outro'];
                 const grouped = {};
                 statWeights.forEach(w => {
                   if (!w.active) return;
@@ -1216,9 +1219,9 @@ export default function Admin({ onBack }) {
           >
             <div className="text-gray-400 font-semibold mb-2 text-xs">Extrato do Score</div>
             {(() => {
-              const CAT = { ataque: '⚔️ Ataque', criacao: '🎨 Criação', defesa: '🛡️ Defesa', fisico: '💪 Físico', goleiro: '🧤 Goleiro', comportamento: '🟨 Comportamento', outro: '📋 Outro' };
-              const CAT_COLOR = { ataque: 'text-red-400', criacao: 'text-blue-400', defesa: 'text-green-400', fisico: 'text-yellow-400', goleiro: 'text-cyan-400', comportamento: 'text-orange-400', outro: 'text-gray-400' };
-              const ORDER = ['ataque','criacao','defesa','fisico','goleiro','comportamento','outro'];
+              const CAT = { ataque: '⚔️ Ataque', criacao: '🎨 Criação', passes: '🔄 Passes', defesa: '🛡️ Defesa', fisico: '💪 Físico', goleiro: '🧤 Goleiro', comportamento: '🟨 Comportamento', outro: '📋 Outro' };
+              const CAT_COLOR = { ataque: 'text-red-400', criacao: 'text-blue-400', passes: 'text-purple-400', defesa: 'text-green-400', fisico: 'text-yellow-400', goleiro: 'text-cyan-400', comportamento: 'text-orange-400', outro: 'text-gray-400' };
+              const ORDER = ['ataque','criacao','passes','defesa','fisico','goleiro','comportamento','outro'];
               const grouped = {};
               for (const item of scoreTooltip.breakdown) {
                 const cat = item.category || 'outro';
