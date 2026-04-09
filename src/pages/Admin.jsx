@@ -428,6 +428,7 @@ export default function Admin({ onBack }) {
   const [posStatMsg, setPosStatMsg] = useState(null);
   const [savingPosStats, setSavingPosStats] = useState(false);
   const [loadingPosStats, setLoadingPosStats] = useState(false);
+  const [posPresets, setPosPresets] = useState([95, 100, 105, 110]);
 
   // Stat weights
   const [statWeights, setStatWeights] = useState([]);
@@ -1098,28 +1099,62 @@ export default function Admin({ onBack }) {
                   if (!grouped[cat]) grouped[cat] = [];
                   grouped[cat].push(w.stat_name);
                 });
-                return ORDER.filter(cat => grouped[cat]?.length).map(cat => {
-                  const info = CATEGORY_LABELS[cat];
-                  return (
-                    <div key={cat} className="mb-4">
-                      <h3 className={`text-sm font-bold ${info.color} mb-2 pb-1 border-b ${info.border}`}>{info.label}</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
-                        {grouped[cat].map(stat => (
-                          <div key={stat} className="flex items-center gap-3 py-1 border-b border-gray-800/30">
-                            <span className="flex-1 text-sm text-white truncate">{STAT_LABELS[stat] || stat}</span>
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={Number(posStatWeights[stat] ?? 100).toFixed(1)}
-                              onChange={e => setPosStatWeights(prev => ({ ...prev, [stat]: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 }))}
-                              className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                const PRESET_ICONS = ['↓', '−', '↑', '↑↑'];
+                const PRESET_COLORS = [
+                  'bg-red-900/40 hover:bg-red-800/60 text-red-300',
+                  'bg-gray-700/60 hover:bg-gray-600/60 text-gray-300',
+                  'bg-green-900/40 hover:bg-green-800/60 text-green-300',
+                  'bg-emerald-900/60 hover:bg-emerald-800/60 text-emerald-300',
+                ];
+                return (
+                  <>
+                    {/* Preset header */}
+                    <div className="flex items-center gap-2 mb-4 p-3 bg-gray-800/40 rounded-lg border border-gray-700/50">
+                      <span className="text-xs text-gray-400 mr-1">Presets&nbsp;(%)</span>
+                      {posPresets.map((val, i) => (
+                        <div key={i} className="flex flex-col items-center gap-1">
+                          <span className={`text-xs font-bold px-1 ${PRESET_COLORS[i].split(' ')[2]}`}>{PRESET_ICONS[i]}</span>
+                          <input
+                            type="number"
+                            value={val}
+                            onChange={e => setPosPresets(prev => { const n=[...prev]; n[i]=Number(e.target.value)||0; return n; })}
+                            className="w-14 bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded px-1 py-0.5 font-mono text-center focus:outline-none focus:border-draft-green"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  );
-                });
+                    {ORDER.filter(cat => grouped[cat]?.length).map(cat => {
+                      const info = CATEGORY_LABELS[cat];
+                      return (
+                        <div key={cat} className="mb-4">
+                          <h3 className={`text-sm font-bold ${info.color} mb-2 pb-1 border-b ${info.border}`}>{info.label}</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                            {grouped[cat].map(stat => (
+                              <div key={stat} className="flex items-center gap-2 py-1 border-b border-gray-800/30">
+                                <span className="flex-1 text-sm text-white truncate">{STAT_LABELS[stat] || stat}</span>
+                                {posPresets.map((preset, i) => (
+                                  <button
+                                    key={i}
+                                    onClick={() => setPosStatWeights(prev => ({ ...prev, [stat]: preset }))}
+                                    className={`text-xs px-1.5 py-0.5 rounded font-bold transition-colors ${PRESET_COLORS[i]}`}
+                                    title={`${preset}%`}
+                                  >{PRESET_ICONS[i]}</button>
+                                ))}
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  value={Number(posStatWeights[stat] ?? 100).toFixed(1)}
+                                  onChange={e => setPosStatWeights(prev => ({ ...prev, [stat]: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 }))}
+                                  className="w-16 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                );
               })()}
               <button onClick={handleSavePosStatWeights} disabled={savingPosStats} className="btn-primary w-full disabled:opacity-40">
                 {savingPosStats ? 'Salvando...' : 'Salvar Pontuação da Posição'}
