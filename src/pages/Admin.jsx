@@ -978,9 +978,9 @@ export default function Admin({ onBack }) {
                           <span className={`flex-1 text-sm truncate ${w.enabled ? 'text-white' : 'text-gray-500'}`}>
                             {STAT_LABELS[w.stat_name] || w.stat_name}
                           </span>
-                          <input type="number" step="0.1"
-                            value={Number(w.weight).toFixed(1)}
-                            onChange={e => setStatWeights(prev => prev.map((x, j) => j === w._idx ? { ...x, weight: Math.round(parseFloat(e.target.value) * 10) / 10 || 0 } : x))}
+                          <input type="number" step="0.01"
+                            value={Number(w.weight).toFixed(2)}
+                            onChange={e => setStatWeights(prev => prev.map((x, j) => j === w._idx ? { ...x, weight: Math.round(parseFloat(e.target.value) * 100) / 100 || 0 } : x))}
                             className="w-20 bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded px-2 py-1 focus:outline-none focus:border-draft-green font-mono text-center"
                           />
                         </div>
