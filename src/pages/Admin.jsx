@@ -757,7 +757,7 @@ export default function Admin({ onBack }) {
       .then(r => r.json())
       .then(data => {
         const sorted = (data.data || []).slice().sort((a, b) => Number(a.number) - Number(b.number));
-        setChartRoundsList(sorted);
+      setChartRoundsList(sorted);
         setChartSelectedRounds(new Set(sorted.map(r => r.id)));
       });
   };
@@ -1356,7 +1356,7 @@ export default function Admin({ onBack }) {
                       next.has(r.id) ? next.delete(r.id) : next.add(r.id);
                       return next;
                     })}
-                    className={`px-2 py-0.5 rounded text-xs font-mono transition-colors ${chartSelectedRounds.has(r.id) ? 'bg-draft-green text-black font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                    className={`px-2 py-0.5 rounded text-xs font-mono whitespace-nowrap transition-colors ${chartSelectedRounds.has(r.id) ? 'bg-draft-green text-black font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
                   >
                     {r.name}
                   </button>
