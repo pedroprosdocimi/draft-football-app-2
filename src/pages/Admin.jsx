@@ -709,7 +709,7 @@ export default function Admin({ onBack }) {
     fetch(`${API_URL}/admin/rounds?season_id=${seasonId}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => {
-        const sorted = (data.data || []).slice().sort((a, b) => a.number - b.number);
+        const sorted = (data.data || []).slice().sort((a, b) => Number(a.number) - Number(b.number));
         setStatsRounds(sorted);
         setStatsRoundId('');
       });
