@@ -763,7 +763,23 @@ export default function Admin({ onBack }) {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      setPosStatMsg(res.ok ? '✅ Pesos salvos!' : `❌ ${data.error}`);
+      if (res.ok) {
+        setPosStatMsg('✅ Pesos salvos!');
+        // Reload allPosStatWeights so score calculation uses updated values
+        const authHeaders = { Authorization: `Bearer ${token}` };
+        fetch(`${API_URL}/admin/position-stat-weights`, { headers: authHeaders })
+          .then(r => r.json())
+          .then(posWeightsData => {
+            const map = {};
+            for (const w of (posWeightsData.data || [])) {
+              if (!map[w.detailed_position_id]) map[w.detailed_position_id] = {};
+              map[w.detailed_position_id][w.stat_name] = w.weight;
+            }
+            setAllPosStatWeights(map);
+          });
+      } else {
+        setPosStatMsg(`❌ ${data.error}`);
+      }
     } catch {
       setPosStatMsg('❌ Erro de conexão');
     } finally {
@@ -1104,7 +1120,7 @@ export default function Admin({ onBack }) {
               const val = p[stat];
               if (val == null) continue;
               const sw = swMap[stat];
-              if (!sw || !sw.enabled) continue;
+              if (!sw || !sw.enabled || !sw.active) continue;
               const numVal = stat === 'is_captain' ? (val ? 1 : 0) : Number(val);
               const posW = (posWeights[stat] ?? 100) / 100;
               const contribution = numVal * sw.weight * posW;
