@@ -1108,7 +1108,7 @@ export default function Admin({ onBack }) {
               const numVal = stat === 'is_captain' ? (val ? 1 : 0) : Number(val);
               const posW = (posWeights[stat] ?? 100) / 100;
               const contribution = numVal * sw.weight * posW;
-              if (contribution !== 0) breakdown.push({ stat, numVal, weight: sw.weight, posW, contribution });
+              if (contribution !== 0) breakdown.push({ stat, numVal, weight: sw.weight, posW, contribution, category: sw.category || 'outro' });
               total += contribution;
             }
             breakdown.sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
@@ -1199,12 +1199,28 @@ export default function Admin({ onBack }) {
             style={{ top: scoreTooltip.y + 16, left: scoreTooltip.x + 60, fontSize: 11 }}
           >
             <div className="text-gray-400 font-semibold mb-2 text-xs">Extrato do Score</div>
-            {scoreTooltip.breakdown.map(({ stat, numVal, weight, posW, contribution }) => (
-              <div key={stat} className={`flex justify-between gap-4 py-0.5 border-b border-gray-800/40 ${contribution > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                <span className="truncate max-w-[140px] text-gray-300">{STAT_LABELS[stat] || stat}</span>
-                <span className="font-mono whitespace-nowrap">{numVal} × {weight.toFixed(2)} × {(posW * 100).toFixed(0)}% = <span className="font-bold">{contribution.toFixed(2)}</span></span>
-              </div>
-            ))}
+            {(() => {
+              const CAT = { ataque: '⚔️ Ataque', criacao: '🎨 Criação', defesa: '🛡️ Defesa', fisico: '💪 Físico', goleiro: '🧤 Goleiro', comportamento: '🟨 Comportamento', outro: '📋 Outro' };
+              const CAT_COLOR = { ataque: 'text-red-400', criacao: 'text-blue-400', defesa: 'text-green-400', fisico: 'text-yellow-400', goleiro: 'text-cyan-400', comportamento: 'text-orange-400', outro: 'text-gray-400' };
+              const ORDER = ['ataque','criacao','defesa','fisico','goleiro','comportamento','outro'];
+              const grouped = {};
+              for (const item of scoreTooltip.breakdown) {
+                const cat = item.category || 'outro';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(item);
+              }
+              return ORDER.filter(cat => grouped[cat]).map(cat => (
+                <div key={cat} className="mb-2">
+                  <div className={`text-[10px] font-bold ${CAT_COLOR[cat]} mb-1 pb-0.5 border-b border-gray-800`}>{CAT[cat]}</div>
+                  {grouped[cat].map(({ stat, numVal, weight, posW, contribution }) => (
+                    <div key={stat} className={`flex justify-between gap-4 py-0.5 border-b border-gray-800/30 ${contribution > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <span className="truncate max-w-[140px] text-gray-300">{STAT_LABELS[stat] || stat}</span>
+                      <span className="font-mono whitespace-nowrap">{numVal} × {weight.toFixed(2)} × {(posW * 100).toFixed(0)}% = <span className="font-bold">{contribution.toFixed(2)}</span></span>
+                    </div>
+                  ))}
+                </div>
+              ));
+            })()}
           </div>
         )}
 
