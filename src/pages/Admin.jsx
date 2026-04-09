@@ -451,6 +451,14 @@ export default function Admin({ onBack }) {
   const [statWeightsOpen, setStatWeightsOpen] = useState(false);
   const [scoreTooltip, setScoreTooltip] = useState(null);
 
+  // Score by position chart
+  const [chartSeasonId, setChartSeasonId] = useState('');
+  const [chartRoundsList, setChartRoundsList] = useState([]);
+  const [chartSelectedRounds, setChartSelectedRounds] = useState(new Set());
+  const [chartData, setChartData] = useState([]);
+  const [loadingChart, setLoadingChart] = useState(false);
+  const [chartBarTooltip, setChartBarTooltip] = useState(null);
+
   const token = localStorage.getItem('draft_token');
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -736,6 +744,63 @@ export default function Admin({ onBack }) {
     } finally {
       setLoadingStats(false);
     }
+  };
+
+  const loadChartRounds = (seasonId) => {
+    setChartSeasonId(seasonId);
+    setChartRoundsList([]);
+    setChartSelectedRounds(new Set());
+    setChartData([]);
+    if (!seasonId) return;
+    const token = localStorage.getItem('draft_token');
+    fetch(`${API_URL}/admin/rounds?season_id=${seasonId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => {
+        const sorted = (data.data || []).slice().sort((a, b) => Number(a.number) - Number(b.number));
+        setChartRoundsList(sorted);
+        setChartSelectedRounds(new Set(sorted.map(r => r.id)));
+      });
+  };
+
+  const handleLoadChart = async () => {
+    if (chartSelectedRounds.size === 0) return;
+    setLoadingChart(true);
+    setChartData([]);
+    const token = localStorage.getItem('draft_token');
+    const authHeaders = { Authorization: `Bearer ${token}` };
+    const swMap = {};
+    for (const w of statWeights) swMap[w.stat_name] = w;
+    const posMap = {};
+    for (const roundId of chartSelectedRounds) {
+      try {
+        const res = await fetch(`${API_URL}/admin/player-stats?round_id=${roundId}`, { headers: authHeaders });
+        if (!res.ok) continue;
+        const data = await res.json();
+        for (const p of (data.data || [])) {
+          if (!p.minutes_played || p.minutes_played === 0) continue;
+          const posName = p.detailed_position_name || 'Outros';
+          if (!posMap[posName]) posMap[posName] = { total: 0, count: 0 };
+          const posWeights = allPosStatWeights[p.detailed_position_id] || {};
+          let score = 0;
+          for (const stat of STAT_COLS) {
+            const val = p[stat];
+            if (val == null) continue;
+            const sw = swMap[stat];
+            if (!sw || !sw.enabled || !sw.active) continue;
+            const numVal = stat === 'is_captain' ? (val ? 1 : 0) : Number(val);
+            const posW = (posWeights[stat] ?? 100) / 100;
+            score += numVal * sw.weight * posW;
+          }
+          posMap[posName].total += score;
+          posMap[posName].count += 1;
+        }
+      } catch { /* skip failed rounds */ }
+    }
+    const result = Object.entries(posMap)
+      .map(([position, { total, count }]) => ({ position, avg: count > 0 ? total / count : 0, count }))
+      .sort((a, b) => b.avg - a.avg);
+    setChartData(result);
+    setLoadingChart(false);
   };
 
   const loadPosStatWeights = async (posId) => {
@@ -1249,6 +1314,137 @@ export default function Admin({ onBack }) {
 
         {!loadingStats && playerStats.length === 0 && statsRoundId && (
           <p className="text-gray-600 text-sm text-center py-4">Nenhum dado para os filtros selecionados.</p>
+        )}
+
+        {chartBarTooltip && (
+          <div className="fixed z-[9999] bg-gray-950 border border-gray-700 rounded-lg shadow-xl p-3 pointer-events-none" style={{ top: chartBarTooltip.y + 16, left: chartBarTooltip.x + 16, fontSize: 12 }}>
+            <div className="font-semibold text-white mb-1">{chartBarTooltip.d.position}</div>
+            <div className="text-gray-400">Score médio: <span className="text-yellow-400 font-bold">{chartBarTooltip.d.avg.toFixed(2)}</span></div>
+            <div className="text-gray-400">Jogadores: <span className="text-white">{chartBarTooltip.d.count}</span></div>
+          </div>
+        )}
+      </div>
+
+      {/* Score by position chart */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4">📈 Score Médio por Posição</h2>
+
+        <div className="flex flex-wrap gap-4 mb-4 items-end">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Temporada</label>
+            <select className="input-field text-sm" onChange={e => loadChartRounds(e.target.value)}>
+              <option value="">Selecionar...</option>
+              {statsSeasons.map(s => <option key={s.id} value={s.id}>{s.name} ({s.year})</option>)}
+            </select>
+          </div>
+
+          {chartRoundsList.length > 0 && (
+            <div className="flex-1 min-w-[200px]">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-gray-400">Rodadas ({chartSelectedRounds.size}/{chartRoundsList.length})</label>
+                <div className="flex gap-3">
+                  <button className="text-xs text-blue-400 hover:text-blue-300" onClick={() => setChartSelectedRounds(new Set(chartRoundsList.map(r => r.id)))}>Todas</button>
+                  <button className="text-xs text-gray-500 hover:text-gray-300" onClick={() => setChartSelectedRounds(new Set())}>Nenhuma</button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {chartRoundsList.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => setChartSelectedRounds(prev => {
+                      const next = new Set(prev);
+                      next.has(r.id) ? next.delete(r.id) : next.add(r.id);
+                      return next;
+                    })}
+                    className={`px-2 py-0.5 rounded text-xs font-mono transition-colors ${chartSelectedRounds.has(r.id) ? 'bg-draft-green text-black font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                  >
+                    #{r.number}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleLoadChart}
+            disabled={chartSelectedRounds.size === 0 || loadingChart}
+            className="btn-primary disabled:opacity-40"
+          >
+            {loadingChart ? 'Carregando...' : 'Gerar Gráfico'}
+          </button>
+        </div>
+
+        {loadingChart && <p className="text-gray-500 text-sm text-center py-12">Carregando dados de {chartSelectedRounds.size} rodada(s)...</p>}
+
+        {!loadingChart && chartData.length > 0 && (() => {
+          const COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#3b82f6','#84cc16','#a855f7'];
+          const margin = { top: 30, right: 20, bottom: 90, left: 60 };
+          const W = 800, H = 400;
+          const chartW = W - margin.left - margin.right;
+          const chartH = H - margin.top - margin.bottom;
+          const maxVal = Math.max(...chartData.map(d => d.avg)) * 1.15 || 1;
+          const barGap = chartW / chartData.length;
+          const barW = Math.min(56, barGap * 0.65);
+          const yTicks = 5;
+          return (
+            <div className="overflow-x-auto">
+              <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 480 }}>
+                {/* Y grid + labels */}
+                {Array.from({ length: yTicks + 1 }, (_, i) => {
+                  const val = (maxVal / yTicks) * i;
+                  const y = margin.top + chartH - (val / maxVal) * chartH;
+                  return (
+                    <g key={i}>
+                      <line x1={margin.left} x2={margin.left + chartW} y1={y} y2={y} stroke="#374151" strokeWidth="1" strokeDasharray={i === 0 ? '' : '4,3'} />
+                      <text x={margin.left - 8} y={y + 4} textAnchor="end" fill="#9ca3af" fontSize="11">{val.toFixed(1)}</text>
+                    </g>
+                  );
+                })}
+                {/* Bars */}
+                {chartData.map((d, i) => {
+                  const barH = Math.max(2, (d.avg / maxVal) * chartH);
+                  const x = margin.left + i * barGap + (barGap - barW) / 2;
+                  const y = margin.top + chartH - barH;
+                  const color = COLORS[i % COLORS.length];
+                  return (
+                    <g key={d.position}
+                      onMouseEnter={e => setChartBarTooltip({ x: e.clientX, y: e.clientY, d })}
+                      onMouseMove={e => setChartBarTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)}
+                      onMouseLeave={() => setChartBarTooltip(null)}
+                      style={{ cursor: 'default' }}
+                    >
+                      <rect x={x} y={y} width={barW} height={barH} fill={color} rx="3" opacity="0.85" />
+                      <text x={x + barW / 2} y={y - 6} textAnchor="middle" fill={color} fontSize="11" fontWeight="700">
+                        {d.avg.toFixed(2)}
+                      </text>
+                      <text
+                        x={x + barW / 2}
+                        y={margin.top + chartH + 12}
+                        textAnchor="end"
+                        fill="#d1d5db"
+                        fontSize="11"
+                        transform={`rotate(-40, ${x + barW / 2}, ${margin.top + chartH + 12})`}
+                      >
+                        {d.position}
+                      </text>
+                    </g>
+                  );
+                })}
+                {/* Axes */}
+                <line x1={margin.left} x2={margin.left} y1={margin.top} y2={margin.top + chartH} stroke="#6b7280" strokeWidth="1.5" />
+                <line x1={margin.left} x2={margin.left + chartW} y1={margin.top + chartH} y2={margin.top + chartH} stroke="#6b7280" strokeWidth="1.5" />
+                {/* Y label */}
+                <text x={16} y={margin.top + chartH / 2} textAnchor="middle" fill="#9ca3af" fontSize="12" transform={`rotate(-90, 16, ${margin.top + chartH / 2})`}>Score Médio</text>
+              </svg>
+            </div>
+          );
+        })()}
+
+        {!loadingChart && chartData.length === 0 && chartSeasonId && (
+          <p className="text-gray-600 text-sm text-center py-12">Selecione as rodadas e clique em "Gerar Gráfico".</p>
+        )}
+        {!chartSeasonId && (
+          <p className="text-gray-600 text-sm text-center py-12">Selecione uma temporada para começar.</p>
         )}
       </div>
 
