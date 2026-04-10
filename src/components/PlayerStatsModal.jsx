@@ -1,5 +1,6 @@
 import React from 'react';
 import { API_URL } from '../config.js';
+import DraftPlayerCard from './DraftPlayerCard.jsx';
 
 const CATEGORY_META = {
   ataque:        { label: 'Ataque',         color: '#f87171' },
@@ -55,7 +56,6 @@ const STAT_LABELS = {
   offsides: 'Impedimentos', is_captain: 'Capitão',
 };
 
-// Stats where contribution is penalizing (raw value is positive but pts negative)
 const NEGATIVE_STATS = new Set([
   'big_chances_missed','penalties_missed','tackles_missed','goals_conceded',
   'dribbled_past','duels_lost','aerials_lost','goalkeeper_goals_conceded',
@@ -71,8 +71,8 @@ function fmtRaw(v) {
 
 function fmtPts(v) {
   if (v == null) return '—';
-  const s = v.toFixed(2);
-  return v > 0 ? `+${s}` : s;
+  const s = Math.abs(v).toFixed(2);
+  return v >= 0 ? `+${s}` : `−${s}`;
 }
 
 function groupByRound(data) {
@@ -107,69 +107,75 @@ function CategoryBlock({ catKey, stats, roundData }) {
   const scoreKey = CATEGORY_SCORE_KEY[catKey];
   const catScore = roundData[scoreKey];
   const catTotal = stats.reduce((s, r) => s + (r.contribution || 0), 0);
+  const displayScore = catScore != null ? catScore : catTotal;
 
   return (
-    <div style={{ marginBottom: 12 }}>
+    <div style={{ marginBottom: 10 }}>
       {/* Category header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '6px 12px',
-        background: `${meta.color}18`,
+        padding: '7px 12px',
+        background: `${meta.color}1a`,
         borderLeft: `3px solid ${meta.color}`,
-        borderRadius: '0 6px 6px 0',
-        marginBottom: 2,
+        borderRadius: '0 6px 0 0',
       }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
           {meta.label}
         </span>
-        <span style={{ fontSize: 13, fontWeight: 800, color: meta.color }}>
-          {catScore != null ? (catScore >= 0 ? `+${catScore.toFixed(2)}` : catScore.toFixed(2)) : catTotal.toFixed(2)}
+        <span style={{ fontSize: 14, fontWeight: 800, color: meta.color }}>
+          {displayScore >= 0 ? `+${displayScore.toFixed(2)}` : displayScore.toFixed(2)}
         </span>
+      </div>
+
+      {/* Column headers */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 48px 40px 42px 58px',
+        padding: '4px 12px',
+        background: '#0c1322',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+      }}>
+        {['Estatística','Valor','SW','Pos','Pts'].map((h, i) => (
+          <span key={h} style={{
+            fontSize: 9, fontWeight: 700, color: '#374151', textTransform: 'uppercase',
+            textAlign: i === 0 ? 'left' : 'right',
+          }}>{h}</span>
+        ))}
       </div>
 
       {/* Stat rows */}
-      <div style={{ background: '#0f172a', borderRadius: '0 0 6px 6px', overflow: 'hidden' }}>
-        {/* Column headers */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: '1fr 52px 44px 44px 60px',
-          padding: '4px 10px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          {['Stat','Valor','SW','Pos','Pts'].map(h => (
-            <span key={h} style={{ fontSize: 9, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', textAlign: h === 'Stat' ? 'left' : 'right' }}>{h}</span>
-          ))}
-        </div>
-
-        {stats.map((row, i) => {
-          const isNeg = NEGATIVE_STATS.has(row.stat_name);
-          const pts = row.contribution || 0;
-          const ptsColor = pts > 0.001 ? '#4ade80' : pts < -0.001 ? '#f87171' : '#6b7280';
-          return (
-            <div key={row.stat_name} style={{
-              display: 'grid', gridTemplateColumns: '1fr 52px 44px 44px 60px',
-              padding: '5px 10px',
-              background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)',
-              alignItems: 'center',
-            }}>
-              <span style={{ fontSize: 11, color: '#d1d5db', display: 'flex', alignItems: 'center', gap: 4 }}>
-                {isNeg && <span style={{ color: '#f87171', fontSize: 9 }}>▼</span>}
+      {stats.map((row, i) => {
+        const isNeg = NEGATIVE_STATS.has(row.stat_name);
+        const pts = row.contribution || 0;
+        const ptsColor = pts > 0.001 ? '#4ade80' : pts < -0.001 ? '#f87171' : '#4b5563';
+        return (
+          <div key={row.stat_name} style={{
+            display: 'grid', gridTemplateColumns: '1fr 48px 40px 42px 58px',
+            padding: '5px 12px',
+            background: i % 2 === 0 ? '#0f172a' : '#0c1322',
+            alignItems: 'center',
+            borderBottom: i === stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+          }}>
+            <span style={{ fontSize: 11, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+              {isNeg && <span style={{ color: '#f87171', fontSize: 8, flexShrink: 0 }}>▼</span>}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {STAT_LABELS[row.stat_name] || row.stat_name}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#f9fafb', textAlign: 'right' }}>
-                {fmtRaw(row.raw_value)}
-              </span>
-              <span style={{ fontSize: 11, color: '#6b7280', textAlign: 'right' }}>
-                {row.stat_weight.toFixed(1)}
-              </span>
-              <span style={{ fontSize: 11, color: '#6b7280', textAlign: 'right' }}>
-                {row.position_weight.toFixed(2)}
-              </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: ptsColor, textAlign: 'right' }}>
-                {fmtPts(pts)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#f9fafb', textAlign: 'right' }}>
+              {fmtRaw(row.raw_value)}
+            </span>
+            <span style={{ fontSize: 11, color: '#4b5563', textAlign: 'right' }}>
+              {row.stat_weight.toFixed(1)}
+            </span>
+            <span style={{ fontSize: 11, color: '#4b5563', textAlign: 'right' }}>
+              {row.position_weight.toFixed(2)}
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: ptsColor, textAlign: 'right' }}>
+              {fmtPts(pts)}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -189,7 +195,6 @@ export default function PlayerStatsModal({ player, onClose }) {
         const rows = d.data || [];
         setData(rows);
         if (rows.length > 0) {
-          // default to last round
           const maxRound = Math.max(...rows.map(r => r.round_number));
           setSelectedRound(maxRound);
         }
@@ -208,100 +213,103 @@ export default function PlayerStatsModal({ player, onClose }) {
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         background: 'rgba(0,0,0,0.88)',
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         overflowY: 'auto',
-        padding: '16px 8px 32px',
+        display: 'flex', justifyContent: 'center',
+        padding: '24px 12px 40px',
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
-      <div style={{
-        width: '100%', maxWidth: 480,
-        background: '#111827',
-        borderRadius: 16,
-        boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
-        overflow: 'hidden',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        {/* Header */}
-        <div style={{
-          padding: '14px 16px 10px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-          gap: 12,
-        }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: '#f9fafb', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {player.display_name || player.name}
-            </div>
-            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
-              {player.team_short_code}
-            </div>
-          </div>
+      <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          {/* Round dropdown */}
+        {/* ── Player card + close button ── */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <DraftPlayerCard player={player} isMyTurn={false} />
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'rgba(255,255,255,0.08)', border: 'none',
+              color: '#9ca3af', fontSize: 18, cursor: 'pointer',
+              borderRadius: 8, width: 36, height: 36,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >✕</button>
+        </div>
+
+        {/* ── Round selector ── */}
+        <div style={{
+          background: '#111827', borderRadius: 12,
+          padding: '12px 14px',
+          border: '1px solid rgba(255,255,255,0.07)',
+        }}>
+          <label style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
+            Rodada
+          </label>
           <select
             value={selectedRound ?? ''}
             onChange={e => setSelectedRound(Number(e.target.value))}
             style={{
-              background: '#1f2937', color: '#f9fafb', border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 8, padding: '6px 10px', fontSize: 13, fontWeight: 600,
-              cursor: 'pointer', flexShrink: 0,
+              width: '100%',
+              background: '#1f2937', color: '#f9fafb',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 8, padding: '10px 12px',
+              fontSize: 15, fontWeight: 600, cursor: 'pointer',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 12px center',
+              paddingRight: 36,
             }}
           >
             {roundNumbers.map(rn => (
               <option key={rn} value={rn}>Rodada {rn}</option>
             ))}
           </select>
-
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 20, cursor: 'pointer', padding: '2px 4px', flexShrink: 0, lineHeight: 1 }}
-          >✕</button>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '12px 12px 16px', overflowY: 'auto' }}>
-          {loading ? (
-            <div style={{ color: '#6b7280', padding: 32, textAlign: 'center' }}>Carregando...</div>
-          ) : data.length === 0 ? (
-            <div style={{ color: '#6b7280', padding: 32, textAlign: 'center' }}>Nenhum dado encontrado.</div>
-          ) : currentRound ? (
-            <>
-              {/* Round summary */}
-              <div style={{
-                display: 'flex', gap: 8, marginBottom: 14,
-                background: '#1f2937', borderRadius: 10, padding: '10px 14px',
-                alignItems: 'center',
-              }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>Minutos</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: '#f9fafb' }}>
-                    {currentRound.minutes_played ?? '—'}
-                  </div>
-                </div>
-                <div style={{ width: 1, background: 'rgba(255,255,255,0.08)', alignSelf: 'stretch' }} />
-                <div style={{ flex: 1, textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>Score total</div>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: '#fbbf24', lineHeight: 1.1 }}>
-                    {currentRound.score_total != null ? currentRound.score_total.toFixed(2) : '—'}
-                  </div>
+        {/* ── Round breakdown ── */}
+        {loading ? (
+          <div style={{ color: '#4b5563', textAlign: 'center', padding: 32 }}>Carregando...</div>
+        ) : data.length === 0 ? (
+          <div style={{ color: '#4b5563', textAlign: 'center', padding: 32 }}>Nenhum dado encontrado.</div>
+        ) : currentRound ? (
+          <div style={{ background: '#111827', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {/* Round header: minutes + total */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '12px 14px',
+              borderBottom: '1px solid rgba(255,255,255,0.07)',
+              background: '#1a2234',
+            }}>
+              <div>
+                <div style={{ fontSize: 10, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Minutos</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#f9fafb' }}>{currentRound.minutes_played ?? '—'}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 10, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Score total</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: '#fbbf24', lineHeight: 1.1 }}>
+                  {currentRound.score_total != null ? currentRound.score_total.toFixed(2) : '—'}
                 </div>
               </div>
+            </div>
 
-              {/* Category legend */}
-              <div style={{ fontSize: 10, color: '#4b5563', marginBottom: 8, paddingLeft: 2 }}>
-                SW = peso do stat &nbsp;·&nbsp; Pos = peso da posição &nbsp;·&nbsp; Pts = contribuição
-              </div>
+            {/* Hint */}
+            <div style={{ fontSize: 9, color: '#374151', padding: '5px 12px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }}>
+              SW = peso do stat · Pos = peso da posição · Pts = pontos
+            </div>
 
-              {/* Categories */}
+            {/* Categories */}
+            <div style={{ padding: '10px 0 4px' }}>
               {CATEGORY_ORDER.map(cat => {
                 const stats = currentRound.byCategory[cat];
                 if (!stats || stats.length === 0) return null;
                 return <CategoryBlock key={cat} catKey={cat} stats={stats} roundData={currentRound} />;
               })}
-            </>
-          ) : null}
-        </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
