@@ -141,11 +141,15 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
     // 3. After 300ms, unmount overlay and trigger pop
     const t1 = setTimeout(() => {
+      animTimeoutsRef.current = animTimeoutsRef.current.filter(id => id !== t1);
       setOptions(null);
       setActiveSlot(null);
       setIsAnimatingOut(false);
       setPendingPick(null);
-      const t2 = setTimeout(() => setPoppingSlot(null), 500);
+      const t2 = setTimeout(() => {
+        setPoppingSlot(null);
+        animTimeoutsRef.current = animTimeoutsRef.current.filter(id => id !== t2);
+      }, 500);
       animTimeoutsRef.current.push(t2);
     }, 300);
     animTimeoutsRef.current.push(t1);
