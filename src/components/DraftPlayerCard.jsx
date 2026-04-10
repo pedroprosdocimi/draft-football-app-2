@@ -131,6 +131,10 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
               {avgMinutes}'
             </div>
             <div style={{ fontSize:8, color:'#6b7280' }}>méd. min.</div>
+            <div style={{ fontSize:14, fontWeight:700, color:'#d1d5db', lineHeight:1, marginTop:4 }}>
+              {player.matches_played ?? 0}
+            </div>
+            <div style={{ fontSize:8, color:'#6b7280' }}>partidas</div>
           </div>
           {iso2 && (
             <span
