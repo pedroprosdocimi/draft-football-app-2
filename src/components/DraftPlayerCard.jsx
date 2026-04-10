@@ -58,7 +58,14 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
   const altPositions = [...new Set((player.alt_positions || []))].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
-  const primaryColor = (player.primary_color && player.primary_color !== '#000000')
+  function isUsableColor(hex) {
+    if (!hex || typeof hex !== 'string') return false;
+    const m = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+    if (!m) return false;
+    const brightness = (parseInt(m[1], 16) * 299 + parseInt(m[2], 16) * 587 + parseInt(m[3], 16) * 114) / 1000;
+    return brightness > 30;
+  }
+  const primaryColor = isUsableColor(player.primary_color)
     ? player.primary_color
     : (BORDER_COLORS[player.position_id] || '#3b82f6');
   // secondary_color stripe pattern deferred from MVP — only solid fill for now
