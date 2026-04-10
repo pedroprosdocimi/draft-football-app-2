@@ -49,6 +49,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   // { [slotPosition]: PlayerObject } — persists cards for rendering after API confirms
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [poppingSlot, setPoppingSlot] = useState(null);
+  const animTimeoutsRef = React.useRef([]);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -91,6 +92,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     loadFormations();
   }, [loadDraft, loadFormations]);
 
+  useEffect(() => () => animTimeoutsRef.current.forEach(clearTimeout), []);
+
   const handleSetFormation = async (formationName) => {
     setLoading(true);
     try {
@@ -109,7 +112,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   };
 
   const handleSlotClick = async (slotPosition) => {
-    if (picksBySlot[slotPosition]) return;
+    if (picksBySlot[slotPosition] || pickedPlayers[slotPosition]) return;
     setActiveSlot(slotPosition);
     setLoading(true);
     try {
@@ -137,13 +140,15 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     setIsAnimatingOut(true);
 
     // 3. After 300ms, unmount overlay and trigger pop
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setOptions(null);
       setActiveSlot(null);
       setIsAnimatingOut(false);
       setPendingPick(null);
-      setTimeout(() => setPoppingSlot(null), 500);
+      const t2 = setTimeout(() => setPoppingSlot(null), 500);
+      animTimeoutsRef.current.push(t2);
     }, 300);
+    animTimeoutsRef.current.push(t1);
 
     // 4. Call API in parallel
     setLoading(true);
@@ -276,8 +281,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   <div key={basicPos} className="flex gap-2 justify-center overflow-x-auto pb-1">
                     {rowSlots.map(s => {
                       const posLabel = DETAILED_LABELS[s.detailed_position_id] || '?';
-                      const playerObj = pickedPlayers[s.position]
-                        ?? (pendingPick?.slotPosition === s.position ? pendingPick.player : null);
+                      const playerObj = pickedPlayers[s.position] ?? null;
+                      const confirmedPick = picksBySlot[s.position];
 
                       if (playerObj) {
                         return (
@@ -289,6 +294,15 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                             }
                           >
                             <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
+                          </div>
+                        );
+                      }
+
+                      if (confirmedPick) {
+                        return (
+                          <div key={s.position} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1.5px solid #22c55e', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'Inter', system-ui, sans-serif" }}>
+                            <span style={{ fontSize: 16, fontWeight: 900, color: '#f9fafb' }}>{posLabel}</span>
+                            <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>✓ Confirmado</span>
                           </div>
                         );
                       }
