@@ -206,14 +206,15 @@ export default function PlayerStatsModal({ player, onClose }) {
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         background: 'rgba(0,0,0,0.88)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 16,
+        overflowY: 'auto',
+        display: 'flex', justifyContent: 'center',
+        alignItems: 'flex-start',
+        padding: '24px 16px 40px',
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
       <div style={{
         width: '100%', maxWidth: 520,
-        maxHeight: '90vh',
         background: '#111827',
         borderRadius: 16,
         boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
@@ -233,8 +234,8 @@ export default function PlayerStatsModal({ player, onClose }) {
           >✕</button>
         </div>
 
-        {/* Scrollable body */}
-        <div style={{ overflowY: 'auto', padding: '8px 16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Body */}
+        <div style={{ padding: '8px 16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
           {/* Card */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
