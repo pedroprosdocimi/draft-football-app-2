@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { API_URL } from '../config.js';
 import DraftHistory from '../components/DraftHistory.jsx';
 import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
+import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 
 const POS_LABELS = { 1: 'GOL', 2: 'LAT', 3: 'ZAG', 4: 'MEI', 5: 'ATA' };
 const POS_ORDER = [1, 2, 3, 4, 5];
@@ -459,6 +460,7 @@ export default function Admin({ onBack }) {
   const [cardsPosId, setCardsPosId] = useState('');
   const [cards, setCards] = useState([]);
   const [loadingCards, setLoadingCards] = useState(false);
+  const [selectedCard, setSelectedCard] = React.useState(null);
 
   // Score by position chart
   const [chartSeasonId, setChartSeasonId] = useState('');
@@ -2005,12 +2007,15 @@ export default function Admin({ onBack }) {
         {cards.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
             {cards.map(p => (
-              <DraftPlayerCard key={p.id} player={p} isMyTurn={false} />
+              <DraftPlayerCard key={p.id} player={p} isMyTurn={true} onClick={() => setSelectedCard(p)} />
             ))}
           </div>
         )}
         {!loadingCards && cards.length === 0 && (
           <p className="text-gray-500 text-sm">Nenhum resultado. Selecione filtros e clique em Buscar.</p>
+        )}
+        {selectedCard && (
+          <PlayerStatsModal player={selectedCard} onClose={() => setSelectedCard(null)} />
         )}
       </div>
     </div>
