@@ -43,13 +43,7 @@ function AttrRow({ label, color, value, maxValue }) {
         fontSize:13, fontWeight:800, textTransform:'uppercase',
         width:34, flexShrink:0, color
       }}>{label}</span>
-      <div style={{
-        flex:1, height:4, background:'rgba(255,255,255,0.08)',
-        borderRadius:2, overflow:'hidden'
-      }}>
-        <div style={{ height:'100%', width:`${pct}%`, background:color, borderRadius:2 }} />
-      </div>
-      <span style={{ fontSize:13, fontWeight:900, width:32, textAlign:'right', color }}>
+<span style={{ fontSize:13, fontWeight:900, width:32, textAlign:'right', color }}>
         {Number.isFinite(value) ? value.toFixed(1) : '0.0'}
       </span>
     </div>
