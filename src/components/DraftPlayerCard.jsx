@@ -1,6 +1,30 @@
 import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
 
+// Jersey colors by team short_code
+const TEAM_COLORS = {
+  FLA: '#CC0000',  // Flamengo
+  PAL: '#006437',  // Palmeiras
+  FLU: '#831524',  // Fluminense
+  BOT: '#808080',  // Botafogo
+  VAS: '#FFFFFF',  // Vasco
+  CAM: '#C0C0C0',  // Atlético MG
+  CRU: '#0041A0',  // Cruzeiro
+  INT: '#CC0000',  // Internacional
+  GRE: '#0041A0',  // Grêmio
+  SAO: '#CC0000',  // São Paulo
+  COR: '#E0E0E0',  // Corinthians
+  SAN: '#F0F0F0',  // Santos
+  BAH: '#003087',  // Bahia
+  CAP: '#CC0000',  // Athletico PR
+  BRA: '#CC0000',  // Bragantino
+  CFC: '#00612C',  // Coritiba
+  VIT: '#CC0000',  // Vitória
+  REM: '#003082',  // Remo
+  MIR: '#F5C400',  // Mirassol
+  CHA: '#1A5C2A',  // Chapecoense
+};
+
 // Maps detailed_position_id → abbreviated label (Portuguese)
 const DETAILED_LABELS = {
   1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
@@ -58,16 +82,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
   const altPositions = [...new Set((player.alt_positions || []))].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
-  function isUsableColor(hex) {
-    if (!hex || typeof hex !== 'string') return false;
-    const m = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-    if (!m) return false;
-    const brightness = (parseInt(m[1], 16) * 299 + parseInt(m[2], 16) * 587 + parseInt(m[3], 16) * 114) / 1000;
-    return brightness > 30;
-  }
-  const primaryColor = isUsableColor(player.primary_color)
-    ? player.primary_color
-    : (BORDER_COLORS[player.position_id] || '#3b82f6');
+  const primaryColor = TEAM_COLORS[player.team_short_code] || BORDER_COLORS[player.position_id] || '#3b82f6';
   // secondary_color stripe pattern deferred from MVP — only solid fill for now
 
   return (
