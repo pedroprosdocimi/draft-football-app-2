@@ -3,26 +3,26 @@ import { nationalityToIso2 } from '../utils/nationality.js';
 
 // Jersey colors by team short_code: { p: primary, s: secondary }
 const TEAM_COLORS = {
-  FLA: { p: '#CC0000', s: '#1a1a1a' },
-  PAL: { p: '#006437', s: '#FFFFFF' },
-  FLU: { p: '#831524', s: '#FFFFFF' },
-  BOT: { p: '#FFFFFF', s: '#1a1a1a' },
-  VAS: { p: '#FFFFFF', s: '#1a1a1a' },
-  CAM: { p: '#FFFFFF', s: '#1a1a1a' },
-  CRU: { p: '#0041A0', s: '#FFFFFF' },
-  INT: { p: '#CC0000', s: '#FFFFFF' },
-  GRE: { p: '#0041A0', s: '#1a1a1a' },
-  SAO: { p: '#CC0000', s: '#1a1a1a' },
-  COR: { p: '#FFFFFF', s: '#1a1a1a' },
-  SAN: { p: '#FFFFFF', s: '#1a1a1a' },
-  BAH: { p: '#003087', s: '#CC0000' },
-  CAP: { p: '#CC0000', s: '#1a1a1a' },
-  BRA: { p: '#CC0000', s: '#FFFFFF' },
-  CFC: { p: '#00612C', s: '#FFFFFF' },
-  VIT: { p: '#CC0000', s: '#1a1a1a' },
-  REM: { p: '#003082', s: '#CC0000' },
-  MIR: { p: '#F5C400', s: '#0041A0' },
-  CHA: { p: '#1A5C2A', s: '#FFFFFF' },
+  FLA: { p: '#CC0000', s: '#1a1a1a' },  // Flamengo
+  PAL: { p: '#006437', s: '#FFFFFF' },  // Palmeiras
+  FLU: { p: '#831524', s: '#FFFFFF' },  // Fluminense
+  BOT: { p: '#FFFFFF', s: '#1a1a1a' },  // Botafogo
+  VAS: { p: '#FFFFFF', s: '#1a1a1a' },  // Vasco
+  CAM: { p: '#FFFFFF', s: '#1a1a1a' },  // Atlético MG
+  CRU: { p: '#0041A0', s: '#FFFFFF' },  // Cruzeiro
+  INT: { p: '#CC0000', s: '#FFFFFF' },  // Internacional
+  GRE: { p: '#0041A0', s: '#1a1a1a' },  // Grêmio
+  SAO: { p: '#CC0000', s: '#1a1a1a' },  // São Paulo
+  COR: { p: '#FFFFFF', s: '#1a1a1a' },  // Corinthians
+  SAN: { p: '#FFFFFF', s: '#1a1a1a' },  // Santos
+  BAH: { p: '#003087', s: '#CC0000' },  // Bahia
+  CAP: { p: '#CC0000', s: '#1a1a1a' },  // Athletico PR
+  BRA: { p: '#CC0000', s: '#FFFFFF' },  // Bragantino
+  CFC: { p: '#00612C', s: '#FFFFFF' },  // Coritiba
+  VIT: { p: '#CC0000', s: '#1a1a1a' },  // Vitória
+  REM: { p: '#003082', s: '#CC0000' },  // Remo
+  MIR: { p: '#F5C400', s: '#0041A0' },  // Mirassol
+  CHA: { p: '#1A5C2A', s: '#FFFFFF' },  // Chapecoense
 };
 
 const DETAILED_LABELS = {
@@ -73,6 +73,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const minutesFz = compact ? 10 : 14;
   const posFz = compact ? 14 : 20;
   const nameFz = compact ? 11 : 15;
+  const namePb = compact ? 5 : 8;
   const attrLabelFz = compact ? 10 : 14;
   const attrValFz = compact ? 11 : 15;
   const attrLabelW = compact ? 24 : 34;
@@ -197,7 +198,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           fontSize:nameFz, fontWeight:800, color:'#f9fafb',
           textTransform:'uppercase', letterSpacing:'0.5px', textAlign:'center',
           whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
-          paddingBottom: compact ? 5 : 8,
+          paddingBottom: namePb,
           borderBottom:'1px solid rgba(255,255,255,0.08)'
         }}>
           {displayName}
@@ -212,7 +213,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
                 width:attrLabelW, flexShrink:0, color
               }}>{label}</span>
               <span style={{ fontSize:attrValFz, fontWeight:900, width:attrValW, textAlign:'right', color }}>
-                {Number.isFinite(player[key] || 0) ? (player[key] || 0).toFixed(1) : '0.0'}
+                {Number.isFinite(player[key]) ? (player[key]).toFixed(1) : '0.0'}
               </span>
             </div>
           ))}
