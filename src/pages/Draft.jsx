@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { API_URL } from '../config.js';
 import FormationPickerPhase from '../components/FormationPickerPhase.jsx';
 import PickPanel from '../components/PickPanel.jsx';
+import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 
 // Maps detailed_position_id → basic position_id
 const DETAILED_TO_BASIC = {
@@ -41,6 +42,13 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [activeSlot, setActiveSlot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [pendingPick, setPendingPick] = useState(null);
+  // { player: PlayerObject, slotPosition: number }
+  const [pickedPlayers, setPickedPlayers] = useState({});
+  // { [slotPosition]: PlayerObject } — persists cards for rendering after API confirms
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [poppingSlot, setPoppingSlot] = useState(null);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -117,23 +125,47 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }
   };
 
-  const handlePickPlayer = async (playerId) => {
-    setLoading(true);
-    try {
-      const res = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-        method: 'POST',
-        body: JSON.stringify({ player_id: playerId, slot_position: activeSlot }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+  const handlePickPlayer = (player) => {
+    const slotPosition = activeSlot;
+
+    // 1. Store player optimistically
+    setPickedPlayers(prev => ({ ...prev, [slotPosition]: player }));
+    setPendingPick({ player, slotPosition });
+    setPoppingSlot(slotPosition);
+
+    // 2. Start overlay fade-out
+    setIsAnimatingOut(true);
+
+    // 3. After 300ms, unmount overlay and trigger pop
+    setTimeout(() => {
       setOptions(null);
       setActiveSlot(null);
-      await loadDraft();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+      setIsAnimatingOut(false);
+      setPendingPick(null);
+      setTimeout(() => setPoppingSlot(null), 500);
+    }, 300);
+
+    // 4. Call API in parallel
+    setLoading(true);
+    authFetch(`${API_URL}/drafts/${draftId}/picks`, {
+      method: 'POST',
+      body: JSON.stringify({ player_id: player.id, slot_position: slotPosition }),
+    })
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) throw new Error(data.error);
+        return loadDraft();
+      })
+      .catch(e => {
+        setError(e.message);
+        // Revert optimistic UI on error
+        setPickedPlayers(prev => {
+          const next = { ...prev };
+          delete next[slotPosition];
+          return next;
+        });
+      })
+      .finally(() => setLoading(false));
   };
 
   const handleCaptain = async (playerId) => {
@@ -225,43 +257,60 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
       {/* Starter slots — field layout */}
       {!isBenchPhase && (
-        <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
-          <div className="flex flex-col gap-2">
-            {[4, 3, 2, 1].map(basicPos => {
-              const rowSlots = starterSlots.filter(s =>
-                DETAILED_TO_BASIC[s.detailed_position_id] === basicPos
-              );
-              if (rowSlots.length === 0) return null;
-              return (
-                <div key={basicPos} className="flex gap-2 justify-center">
-                  {rowSlots.map(s => {
-                    const pick = picksBySlot[s.position];
-                    const posLabel = DETAILED_LABELS[s.detailed_position_id] || '?';
-                    if (pick) {
+        <>
+          <style>{`
+            @keyframes card-pop {
+              0%   { transform: scale(0.3); opacity: 0; }
+              60%  { transform: scale(1.08); opacity: 1; }
+              100% { transform: scale(1);   opacity: 1; }
+            }
+          `}</style>
+          <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
+            <div className="flex flex-col gap-3">
+              {[4, 3, 2, 1].map(basicPos => {
+                const rowSlots = starterSlots.filter(s =>
+                  DETAILED_TO_BASIC[s.detailed_position_id] === basicPos
+                );
+                if (rowSlots.length === 0) return null;
+                return (
+                  <div key={basicPos} className="flex gap-2 justify-center overflow-x-auto pb-1">
+                    {rowSlots.map(s => {
+                      const posLabel = DETAILED_LABELS[s.detailed_position_id] || '?';
+                      const playerObj = pickedPlayers[s.position]
+                        ?? (pendingPick?.slotPosition === s.position ? pendingPick.player : null);
+
+                      if (playerObj) {
+                        return (
+                          <div
+                            key={s.position}
+                            style={poppingSlot === s.position
+                              ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
+                              : { flexShrink: 0 }
+                            }
+                          >
+                            <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
+                          </div>
+                        );
+                      }
+
                       return (
-                        <div key={s.position}
-                          className="w-16 h-20 sm:w-20 sm:h-24 flex flex-col bg-gray-800 border border-gray-600 rounded-xl overflow-hidden items-center justify-center p-1">
-                          <span className="text-xs font-bold text-gray-300">{posLabel}</span>
-                          <span className="text-[10px] text-gray-400 text-center truncate w-full mt-1">
-                            {pick.player_id.slice(0,8)}
-                          </span>
-                        </div>
+                        <button
+                          key={s.position}
+                          onClick={() => handleSlotClick(s.position)}
+                          style={{ width: 140, minHeight: 182, flexShrink: 0 }}
+                          className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all"
+                        >
+                          <span className="text-sm font-bold text-gray-400">{posLabel}</span>
+                          <span className="text-gray-600 mt-1 text-lg">+</span>
+                        </button>
                       );
-                    }
-                    return (
-                      <button key={s.position}
-                        onClick={() => handleSlotClick(s.position)}
-                        className="w-16 h-20 sm:w-20 sm:h-24 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all">
-                        <span className="text-xs font-bold text-gray-400">{posLabel}</span>
-                        <span className="text-[10px] text-gray-600 mt-1">+</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                    })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Bench slots */}
@@ -303,6 +352,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           }
           onPickPlayer={handlePickPlayer}
           onClose={() => { setOptions(null); setActiveSlot(null); }}
+          fadingOut={isAnimatingOut}
         />
       )}
     </div>
