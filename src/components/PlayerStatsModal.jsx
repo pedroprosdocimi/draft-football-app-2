@@ -38,7 +38,8 @@ const STAT_LABELS = {
   backward_passes: 'Passes para trás', long_balls: 'Bolas longas',
   long_balls_won: 'Bolas longas certas', long_balls_won_pct: '% Bolas longas',
   tackles: 'Desarmes', tackles_won: 'Desarmes certos', tackles_won_pct: '% Desarmes',
-  tackles_missed: 'Desarmes errados', interceptions: 'Interceptações',
+  tackles_missed: 'Desarmes errados', crosses_missed: 'Cruzamentos errados',
+  passes_missed: 'Passes errados', long_balls_missed: 'Bolas longas erradas', interceptions: 'Interceptações',
   clearances: 'Cortes', blocked_shots: 'Chutes bloqueados',
   goals_conceded: 'Gols sofridos', dribbled_past: 'Dribles sofridos',
   duels_won: 'Duelos ganhos', duels_lost: 'Duelos perdidos',
@@ -57,7 +58,8 @@ const STAT_LABELS = {
 };
 
 const NEGATIVE_STATS = new Set([
-  'big_chances_missed','penalties_missed','tackles_missed','goals_conceded',
+  'big_chances_missed','penalties_missed','tackles_missed','crosses_missed',
+  'passes_missed','long_balls_missed','goals_conceded',
   'dribbled_past','duels_lost','aerials_lost','goalkeeper_goals_conceded',
   'yellowcards','redcards','yellowred_cards','fouls','penalties_committed',
   'offsides','possession_lost','dispossessed',
