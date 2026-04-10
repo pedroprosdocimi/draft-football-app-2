@@ -35,15 +35,14 @@ const GOALKEEPER_ATTRS = [
   ['FIS', '#22d3ee', 'attr_fis'],
 ];
 
-function AttrRow({ label, color, value, maxValue }) {
-  const pct = maxValue > 0 ? Math.min((value / maxValue) * 100, 100) : 0;
+function AttrRow({ label, color, value }) {
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+    <div style={{ display:'flex', alignItems:'center', gap:3 }}>
       <span style={{
-        fontSize:13, fontWeight:800, textTransform:'uppercase',
+        fontSize:14, fontWeight:800, textTransform:'uppercase',
         width:34, flexShrink:0, color
       }}>{label}</span>
-<span style={{ fontSize:13, fontWeight:900, width:32, textAlign:'right', color }}>
+      <span style={{ fontSize:15, fontWeight:900, width:36, textAlign:'right', color }}>
         {Number.isFinite(value) ? value.toFixed(1) : '0.0'}
       </span>
     </div>
@@ -59,7 +58,9 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
   const altPositions = [...new Set((player.alt_positions || []))].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
-  const primaryColor = player.primary_color || '#1a1a1a';
+  const primaryColor = (player.primary_color && player.primary_color !== '#000000')
+    ? player.primary_color
+    : (BORDER_COLORS[player.position_id] || '#3b82f6');
   // secondary_color stripe pattern deferred from MVP — only solid fill for now
 
   return (
@@ -182,9 +183,9 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
         </div>
 
         {/* Attribute grid — 3×2 */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px 10px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'3px 8px' }}>
           {attrs.map(([label, color, key]) => (
-            <AttrRow key={label} label={label} color={color} value={player[key] || 0} maxValue={player.avg_score} />
+            <AttrRow key={label} label={label} color={color} value={player[key] || 0} />
           ))}
         </div>
       </div>
