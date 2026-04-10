@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { API_URL } from '../config.js';
 import DraftHistory from '../components/DraftHistory.jsx';
+import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 
 const POS_LABELS = { 1: 'GOL', 2: 'LAT', 3: 'ZAG', 4: 'MEI', 5: 'ATA' };
 const POS_ORDER = [1, 2, 3, 4, 5];
@@ -452,6 +453,13 @@ export default function Admin({ onBack }) {
   const [statWeightsOpen, setStatWeightsOpen] = useState(false);
   const [scoreTooltip, setScoreTooltip] = useState(null);
 
+  // Player cards section
+  const [cardsTeams, setCardsTeams] = useState([]);
+  const [cardsTeamId, setCardsTeamId] = useState('');
+  const [cardsPosId, setCardsPosId] = useState('');
+  const [cards, setCards] = useState([]);
+  const [loadingCards, setLoadingCards] = useState(false);
+
   // Score by position chart
   const [chartSeasonId, setChartSeasonId] = useState('');
   const [chartRoundsList, setChartRoundsList] = useState([]);
@@ -863,6 +871,27 @@ export default function Admin({ onBack }) {
       .then(r => r.json())
       .then(data => setStatWeights(data.data || []));
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('draft_token');
+    fetch(`${API_URL}/admin/teams`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(data => setCardsTeams(data.data || []));
+  }, []);
+
+  const loadCards = async () => {
+    setLoadingCards(true);
+    const token = localStorage.getItem('draft_token');
+    const params = new URLSearchParams();
+    if (cardsTeamId) params.set('team_id', cardsTeamId);
+    if (cardsPosId) params.set('detailed_position_id', cardsPosId);
+    const res = await fetch(`${API_URL}/admin/player-cards?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setCards(data.data || []);
+    setLoadingCards(false);
+  };
 
   const handleSaveWeights = async () => {
     setSavingWeights(true);
@@ -1928,6 +1957,62 @@ export default function Admin({ onBack }) {
 
         </div>
       )}
+
+      {/* ── Cartinhas dos Jogadores ── */}
+      <div className="card mt-6">
+        <h2 className="text-lg font-semibold text-white mb-4">🃏 Cartinhas dos Jogadores</h2>
+        <div className="flex flex-wrap gap-3 mb-4">
+          <select
+            className="input-field"
+            value={cardsTeamId}
+            onChange={e => setCardsTeamId(e.target.value)}
+            style={{ minWidth: 160 }}
+          >
+            <option value="">Todos os times</option>
+            {cardsTeams.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+          <select
+            className="input-field"
+            value={cardsPosId}
+            onChange={e => setCardsPosId(e.target.value)}
+            style={{ minWidth: 140 }}
+          >
+            <option value="">Todas as posições</option>
+            <option value="1">GOL</option>
+            <option value="2">ZAG</option>
+            <option value="3">LD</option>
+            <option value="4">LE</option>
+            <option value="5">VOL</option>
+            <option value="6">MEI</option>
+            <option value="7">MAT</option>
+            <option value="8">ME</option>
+            <option value="9">MD</option>
+            <option value="10">CA</option>
+            <option value="11">PE</option>
+            <option value="12">PD</option>
+            <option value="13">2AT</option>
+          </select>
+          <button
+            className="btn-primary"
+            onClick={loadCards}
+            disabled={loadingCards}
+          >
+            {loadingCards ? 'Carregando...' : 'Buscar'}
+          </button>
+        </div>
+        {cards.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+            {cards.map(p => (
+              <DraftPlayerCard key={p.id} player={p} isMyTurn={false} />
+            ))}
+          </div>
+        )}
+        {!loadingCards && cards.length === 0 && (
+          <p className="text-gray-500 text-sm">Nenhum resultado. Selecione filtros e clique em Buscar.</p>
+        )}
+      </div>
     </div>
   );
 }
