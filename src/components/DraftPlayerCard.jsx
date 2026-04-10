@@ -36,7 +36,7 @@ const GOALKEEPER_ATTRS = [
 ];
 
 function AttrRow({ label, color, value }) {
-  const pct = Math.min(Math.max((value / 10) * 100, 0), 100);
+  const pct = Math.min(Math.max(value, 0), 100);
   return (
     <div style={{ display:'flex', alignItems:'center', gap:4 }}>
       <span style={{
@@ -50,7 +50,7 @@ function AttrRow({ label, color, value }) {
         <div style={{ height:'100%', width:`${pct}%`, background:color, borderRadius:2 }} />
       </div>
       <span style={{ fontSize:13, fontWeight:900, width:32, textAlign:'right', color }}>
-        {Number.isFinite(value) ? value.toFixed(1) : '0.0'}
+        {Number.isFinite(value) ? value : '0'}
       </span>
     </div>
   );
@@ -186,7 +186,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
         {/* Attribute grid — 3×2 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'6px 10px' }}>
           {attrs.map(([label, color, key]) => (
-            <AttrRow key={label} label={label} color={color} value={player[key] || 0} />
+            <AttrRow key={label} label={label} color={color} value={player.avg_score ? Math.round((player[key] || 0) / player.avg_score * 100) : 0} />
           ))}
         </div>
       </div>
