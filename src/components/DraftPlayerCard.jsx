@@ -1,28 +1,28 @@
 import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
 
-// Jersey colors by team short_code
+// Jersey colors by team short_code: { p: primary, s: secondary }
 const TEAM_COLORS = {
-  FLA: '#CC0000',  // Flamengo
-  PAL: '#006437',  // Palmeiras
-  FLU: '#831524',  // Fluminense
-  BOT: '#808080',  // Botafogo
-  VAS: '#FFFFFF',  // Vasco
-  CAM: '#C0C0C0',  // Atlético MG
-  CRU: '#0041A0',  // Cruzeiro
-  INT: '#CC0000',  // Internacional
-  GRE: '#0041A0',  // Grêmio
-  SAO: '#CC0000',  // São Paulo
-  COR: '#E0E0E0',  // Corinthians
-  SAN: '#F0F0F0',  // Santos
-  BAH: '#003087',  // Bahia
-  CAP: '#CC0000',  // Athletico PR
-  BRA: '#CC0000',  // Bragantino
-  CFC: '#00612C',  // Coritiba
-  VIT: '#CC0000',  // Vitória
-  REM: '#003082',  // Remo
-  MIR: '#F5C400',  // Mirassol
-  CHA: '#1A5C2A',  // Chapecoense
+  FLA: { p: '#CC0000', s: '#1a1a1a' },  // Flamengo
+  PAL: { p: '#006437', s: '#FFFFFF' },  // Palmeiras
+  FLU: { p: '#831524', s: '#FFFFFF' },  // Fluminense
+  BOT: { p: '#FFFFFF', s: '#1a1a1a' },  // Botafogo
+  VAS: { p: '#FFFFFF', s: '#1a1a1a' },  // Vasco
+  CAM: { p: '#FFFFFF', s: '#1a1a1a' },  // Atlético MG
+  CRU: { p: '#0041A0', s: '#FFFFFF' },  // Cruzeiro
+  INT: { p: '#CC0000', s: '#FFFFFF' },  // Internacional
+  GRE: { p: '#0041A0', s: '#1a1a1a' },  // Grêmio
+  SAO: { p: '#CC0000', s: '#1a1a1a' },  // São Paulo
+  COR: { p: '#FFFFFF', s: '#1a1a1a' },  // Corinthians
+  SAN: { p: '#FFFFFF', s: '#1a1a1a' },  // Santos
+  BAH: { p: '#003087', s: '#CC0000' },  // Bahia
+  CAP: { p: '#CC0000', s: '#1a1a1a' },  // Athletico PR
+  BRA: { p: '#CC0000', s: '#FFFFFF' },  // Bragantino
+  CFC: { p: '#00612C', s: '#FFFFFF' },  // Coritiba
+  VIT: { p: '#CC0000', s: '#1a1a1a' },  // Vitória
+  REM: { p: '#003082', s: '#CC0000' },  // Remo
+  MIR: { p: '#F5C400', s: '#0041A0' },  // Mirassol
+  CHA: { p: '#1A5C2A', s: '#FFFFFF' },  // Chapecoense
 };
 
 // Maps detailed_position_id → abbreviated label (Portuguese)
@@ -82,7 +82,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
   const altPositions = [...new Set((player.alt_positions || []))].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
-  const primaryColor = TEAM_COLORS[player.team_short_code] || BORDER_COLORS[player.position_id] || '#3b82f6';
+  const jersey = TEAM_COLORS[player.team_short_code] || { p: BORDER_COLORS[player.position_id] || '#3b82f6', s: '#FFFFFF' };
   // secondary_color stripe pattern deferred from MVP — only solid fill for now
 
   return (
@@ -125,7 +125,8 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
               </clipPath>
             </defs>
             <g clipPath={`url(#jersey-${player.id})`}>
-              <rect x="0" y="0" width="120" height="95" fill={primaryColor}/>
+              <rect x="0" y="0" width="120" height="95" fill={jersey.p}/>
+              <rect x="45" y="0" width="30" height="95" fill={jersey.s} opacity="0.85"/>
             </g>
           </svg>
         </div>
