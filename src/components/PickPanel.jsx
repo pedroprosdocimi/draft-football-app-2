@@ -17,7 +17,7 @@ const POS_COLORS = {
   4: 'border-red-500 bg-red-900/60 text-red-300',
 };
 
-export default function PickPanel({ options, slotDetailedPositionId, isCaptainPick = false, onPickPlayer, onClose }) {
+export default function PickPanel({ options, slotDetailedPositionId, isCaptainPick = false, onPickPlayer, onClose, fadingOut = false }) {
   if (!options) return null;
 
   const basicPos = DETAILED_TO_BASIC[slotDetailedPositionId] || 1;
@@ -27,7 +27,14 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
     : (POS_COLORS[basicPos] || POS_COLORS[1]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 overflow-y-auto">
+    <div
+      className="fixed inset-0 bg-black/80 z-50 overflow-y-auto"
+      style={{
+        opacity: fadingOut ? 0 : 1,
+        pointerEvents: fadingOut ? 'none' : 'auto',
+        transition: 'opacity 0.3s ease',
+      }}
+    >
       <div className="flex flex-col items-center justify-center min-h-full p-3 sm:p-4 gap-4 sm:gap-6">
         <div className="text-center">
           <span className={`border text-sm font-bold px-4 py-1.5 rounded-lg ${badgeClass}`}>
@@ -41,7 +48,7 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
               key={player.id}
               player={player}
               isMyTurn
-              onClick={() => onPickPlayer(player.id)}
+              onClick={() => onPickPlayer(player)}
             />
           ))}
         </div>
