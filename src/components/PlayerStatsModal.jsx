@@ -259,7 +259,7 @@ export default function PlayerStatsModal({ player, onClose }) {
             }}
           >
             {roundNumbers.map(rn => (
-              <option key={rn} value={rn}>Rodada {rn}</option>
+              <option key={rn} value={rn}>{rounds[rn].round_name || `Rodada ${rn}`}</option>
             ))}
           </select>
 
