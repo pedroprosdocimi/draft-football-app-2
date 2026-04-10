@@ -3,13 +3,13 @@ import { API_URL } from '../config.js';
 import DraftPlayerCard from './DraftPlayerCard.jsx';
 
 const CATEGORY_META = {
-  ataque:        { label: 'Ataque',         color: '#f87171' },
-  comportamento: { label: 'Comportamento',  color: '#fbbf24' },
-  criacao:       { label: 'Criação',        color: '#a78bfa' },
-  defesa:        { label: 'Defesa',         color: '#4ade80' },
-  passes:        { label: 'Passes',         color: '#60a5fa' },
-  fisico:        { label: 'Físico',         color: '#22d3ee' },
-  goleiro:       { label: 'Goleiro',        color: '#3b82f6' },
+  ataque:        { label: 'Ataque',        color: '#f87171' },
+  comportamento: { label: 'Comportamento', color: '#fbbf24' },
+  criacao:       { label: 'Criação',       color: '#a78bfa' },
+  defesa:        { label: 'Defesa',        color: '#4ade80' },
+  passes:        { label: 'Passes',        color: '#60a5fa' },
+  fisico:        { label: 'Físico',        color: '#22d3ee' },
+  goleiro:       { label: 'Goleiro',       color: '#3b82f6' },
 };
 
 const CATEGORY_ORDER = ['ataque', 'comportamento', 'criacao', 'defesa', 'passes', 'fisico', 'goleiro'];
@@ -27,12 +27,12 @@ const CATEGORY_SCORE_KEY = {
 const STAT_LABELS = {
   goals: 'Gols', assists: 'Assistências', shots_total: 'Chutes',
   shots_on_target: 'Chutes no alvo', shots_off_target: 'Chutes fora',
-  shots_blocked: 'Chutes bloqueados', big_chances_created: 'Grandes chances criadas',
-  big_chances_missed: 'Grandes chances perdidas', expected_goals: 'xG',
+  shots_blocked: 'Chutes bloq.', big_chances_created: 'Chances criadas',
+  big_chances_missed: 'Chances perdidas', expected_goals: 'xG',
   expected_goals_on_target: 'xGOT', shooting_performance: 'Perf. finalização',
   penalties_scored: 'Pênaltis marcados', penalties_missed: 'Pênaltis perdidos',
   penalties_won: 'Pênaltis conquistados', key_passes: 'Passes-chave',
-  passes_in_final_third: 'Passes no terço final', total_crosses: 'Cruzamentos',
+  passes_in_final_third: 'Passes terço final', total_crosses: 'Cruzamentos',
   accurate_crosses: 'Cruzamentos certos', accurate_crosses_pct: '% Cruzamentos',
   passes: 'Passes', accurate_passes: 'Passes certos', accurate_passes_pct: '% Passes',
   backward_passes: 'Passes para trás', long_balls: 'Bolas longas',
@@ -42,14 +42,14 @@ const STAT_LABELS = {
   clearances: 'Cortes', blocked_shots: 'Chutes bloqueados',
   goals_conceded: 'Gols sofridos', dribbled_past: 'Dribles sofridos',
   duels_won: 'Duelos ganhos', duels_lost: 'Duelos perdidos',
-  duels_won_pct: '% Duelos ganhos', total_duels: 'Duelos totais',
-  dribble_attempts: 'Dribles tentados', successful_dribbles: 'Dribles certos',
+  duels_won_pct: '% Duelos', total_duels: 'Duelos totais',
+  dribble_attempts: 'Dribles tent.', successful_dribbles: 'Dribles certos',
   ball_recovery: 'Recuperações', possession_lost: 'Posse perdida',
   dispossessed: 'Desarme sofrido', touches: 'Toques',
   aerials: 'Duelos aéreos', aerials_won: 'Aéreos ganhos',
   aerials_lost: 'Aéreos perdidos', aerials_won_pct: '% Aéreos',
   saves: 'Defesas', saves_insidebox: 'Defesas (área)',
-  goalkeeper_goals_conceded: 'Gols sofridos (GK)', penalties_saved: 'Pênaltis defendidos',
+  goalkeeper_goals_conceded: 'Gols sofridos (GK)', penalties_saved: 'Pênaltis def.',
   punches: 'Socos', yellowcards: 'Amarelos', redcards: 'Vermelhos',
   yellowred_cards: 'Amarelo-vermelho', fouls: 'Faltas cometidas',
   fouls_drawn: 'Faltas sofridas', penalties_committed: 'Pênaltis cometidos',
@@ -64,13 +64,12 @@ const NEGATIVE_STATS = new Set([
 ]);
 
 function fmtRaw(v) {
-  if (v == null) return '—';
-  if (v % 1 === 0) return String(Math.round(v));
-  return v.toFixed(2);
+  if (v == null || v === undefined) return '—';
+  return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(2);
 }
 
 function fmtPts(v) {
-  if (v == null) return '—';
+  if (v == null || v === undefined) return '—';
   const s = Math.abs(v).toFixed(2);
   return v >= 0 ? `+${s}` : `−${s}`;
 }
@@ -104,37 +103,33 @@ function groupByRound(data) {
 
 function CategoryBlock({ catKey, stats, roundData }) {
   const meta = CATEGORY_META[catKey] || { label: catKey, color: '#9ca3af' };
-  const scoreKey = CATEGORY_SCORE_KEY[catKey];
-  const catScore = roundData[scoreKey];
-  const catTotal = stats.reduce((s, r) => s + (r.contribution || 0), 0);
-  const displayScore = catScore != null ? catScore : catTotal;
+  const catScore = roundData[CATEGORY_SCORE_KEY[catKey]];
+  const displayScore = catScore != null ? catScore : stats.reduce((s, r) => s + (r.contribution || 0), 0);
 
   return (
-    <div style={{ marginBottom: 10 }}>
-      {/* Category header */}
+    <div style={{ marginBottom: 8 }}>
+      {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '7px 12px',
-        background: `${meta.color}1a`,
+        padding: '6px 12px',
+        background: `${meta.color}18`,
         borderLeft: `3px solid ${meta.color}`,
-        borderRadius: '0 6px 0 0',
       }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: meta.color, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
           {meta.label}
         </span>
-        <span style={{ fontSize: 14, fontWeight: 800, color: meta.color }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: meta.color }}>
           {displayScore >= 0 ? `+${displayScore.toFixed(2)}` : displayScore.toFixed(2)}
         </span>
       </div>
 
-      {/* Column headers */}
+      {/* Column labels */}
       <div style={{
-        display: 'grid', gridTemplateColumns: '1fr 48px 40px 42px 58px',
-        padding: '4px 12px',
+        display: 'grid', gridTemplateColumns: '1fr 48px 38px 40px 56px',
+        padding: '3px 12px',
         background: '#0c1322',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
       }}>
-        {['Estatística','Valor','SW','Pos','Pts'].map((h, i) => (
+        {['Estatística', 'Valor', 'SW', 'Pos', 'Pts'].map((h, i) => (
           <span key={h} style={{
             fontSize: 9, fontWeight: 700, color: '#374151', textTransform: 'uppercase',
             textAlign: i === 0 ? 'left' : 'right',
@@ -142,20 +137,19 @@ function CategoryBlock({ catKey, stats, roundData }) {
         ))}
       </div>
 
-      {/* Stat rows */}
+      {/* Rows */}
       {stats.map((row, i) => {
         const isNeg = NEGATIVE_STATS.has(row.stat_name);
         const pts = row.contribution || 0;
         const ptsColor = pts > 0.001 ? '#4ade80' : pts < -0.001 ? '#f87171' : '#4b5563';
         return (
           <div key={row.stat_name} style={{
-            display: 'grid', gridTemplateColumns: '1fr 48px 40px 42px 58px',
+            display: 'grid', gridTemplateColumns: '1fr 48px 38px 40px 56px',
             padding: '5px 12px',
             background: i % 2 === 0 ? '#0f172a' : '#0c1322',
             alignItems: 'center',
-            borderBottom: i === stats.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
           }}>
-            <span style={{ fontSize: 11, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+            <span style={{ fontSize: 11, color: '#9ca3af', display: 'flex', alignItems: 'center', gap: 3, minWidth: 0 }}>
               {isNeg && <span style={{ color: '#f87171', fontSize: 8, flexShrink: 0 }}>▼</span>}
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {STAT_LABELS[row.stat_name] || row.stat_name}
@@ -195,8 +189,7 @@ export default function PlayerStatsModal({ player, onClose }) {
         const rows = d.data || [];
         setData(rows);
         if (rows.length > 0) {
-          const maxRound = Math.max(...rows.map(r => r.round_number));
-          setSelectedRound(maxRound);
+          setSelectedRound(Math.max(...rows.map(r => r.round_number)));
         }
         setLoading(false);
       })
@@ -213,40 +206,42 @@ export default function PlayerStatsModal({ player, onClose }) {
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
         background: 'rgba(0,0,0,0.88)',
-        overflowY: 'auto',
-        display: 'flex', justifyContent: 'center',
-        padding: '24px 12px 40px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
-      <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-        {/* ── Player card + close button ── */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <DraftPlayerCard player={player} isMyTurn={false} />
-          </div>
+      <div style={{
+        width: '100%', maxWidth: 520,
+        maxHeight: '90vh',
+        background: '#111827',
+        borderRadius: 16,
+        boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
+        display: 'flex', flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        {/* Close row */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 12px 0', flexShrink: 0 }}>
           <button
             onClick={onClose}
             style={{
-              background: 'rgba(255,255,255,0.08)', border: 'none',
-              color: '#9ca3af', fontSize: 18, cursor: 'pointer',
-              borderRadius: 8, width: 36, height: 36,
+              background: 'rgba(255,255,255,0.07)', border: 'none',
+              color: '#9ca3af', fontSize: 16, cursor: 'pointer',
+              borderRadius: 8, width: 32, height: 32,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
             }}
           >✕</button>
         </div>
 
-        {/* ── Round selector ── */}
-        <div style={{
-          background: '#111827', borderRadius: 12,
-          padding: '12px 14px',
-          border: '1px solid rgba(255,255,255,0.07)',
-        }}>
-          <label style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 6 }}>
-            Rodada
-          </label>
+        {/* Scrollable body */}
+        <div style={{ overflowY: 'auto', padding: '8px 16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Card */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <DraftPlayerCard player={player} isMyTurn={false} />
+          </div>
+
+          {/* Round dropdown */}
           <select
             value={selectedRound ?? ''}
             onChange={e => setSelectedRound(Number(e.target.value))}
@@ -254,62 +249,62 @@ export default function PlayerStatsModal({ player, onClose }) {
               width: '100%',
               background: '#1f2937', color: '#f9fafb',
               border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 8, padding: '10px 12px',
-              fontSize: 15, fontWeight: 600, cursor: 'pointer',
+              borderRadius: 10, padding: '10px 14px',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer',
               appearance: 'none',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7L0 2h10z'/%3E%3C/svg%3E")`,
               backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 12px center',
-              paddingRight: 36,
+              backgroundPosition: 'right 14px center',
+              paddingRight: 38,
             }}
           >
             {roundNumbers.map(rn => (
               <option key={rn} value={rn}>Rodada {rn}</option>
             ))}
           </select>
-        </div>
 
-        {/* ── Round breakdown ── */}
-        {loading ? (
-          <div style={{ color: '#4b5563', textAlign: 'center', padding: 32 }}>Carregando...</div>
-        ) : data.length === 0 ? (
-          <div style={{ color: '#4b5563', textAlign: 'center', padding: 32 }}>Nenhum dado encontrado.</div>
-        ) : currentRound ? (
-          <div style={{ background: '#111827', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
-            {/* Round header: minutes + total */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '12px 14px',
-              borderBottom: '1px solid rgba(255,255,255,0.07)',
-              background: '#1a2234',
-            }}>
-              <div>
-                <div style={{ fontSize: 10, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Minutos</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#f9fafb' }}>{currentRound.minutes_played ?? '—'}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 10, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Score total</div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: '#fbbf24', lineHeight: 1.1 }}>
-                  {currentRound.score_total != null ? currentRound.score_total.toFixed(2) : '—'}
+          {/* Breakdown */}
+          {loading ? (
+            <div style={{ color: '#4b5563', textAlign: 'center', padding: 24 }}>Carregando...</div>
+          ) : data.length === 0 ? (
+            <div style={{ color: '#4b5563', textAlign: 'center', padding: 24 }}>Nenhum dado encontrado.</div>
+          ) : currentRound ? (
+            <div style={{ background: '#0f172a', borderRadius: 12, overflow: 'hidden' }}>
+              {/* Round header */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '12px 14px',
+                background: '#1a2234',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+              }}>
+                <div>
+                  <div style={{ fontSize: 9, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Minutos</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#f9fafb' }}>{currentRound.minutes_played ?? '—'}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 9, color: '#4b5563', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Score total</div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: '#fbbf24', lineHeight: 1.1 }}>
+                    {currentRound.score_total != null ? currentRound.score_total.toFixed(2) : '—'}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Hint */}
-            <div style={{ fontSize: 9, color: '#374151', padding: '5px 12px', borderBottom: '1px solid rgba(255,255,255,0.04)', textAlign: 'right' }}>
-              SW = peso do stat · Pos = peso da posição · Pts = pontos
-            </div>
+              {/* Hint */}
+              <div style={{ fontSize: 9, color: '#374151', padding: '4px 12px', textAlign: 'right', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                SW = peso do stat · Pos = peso da posição · Pts = pontos
+              </div>
 
-            {/* Categories */}
-            <div style={{ padding: '10px 0 4px' }}>
-              {CATEGORY_ORDER.map(cat => {
-                const stats = currentRound.byCategory[cat];
-                if (!stats || stats.length === 0) return null;
-                return <CategoryBlock key={cat} catKey={cat} stats={stats} roundData={currentRound} />;
-              })}
+              {/* Categories */}
+              <div style={{ paddingTop: 6, paddingBottom: 4 }}>
+                {CATEGORY_ORDER.map(cat => {
+                  const stats = currentRound.byCategory[cat];
+                  if (!stats || stats.length === 0) return null;
+                  return <CategoryBlock key={cat} catKey={cat} stats={stats} roundData={currentRound} />;
+                })}
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </div>
   );
