@@ -1,7 +1,6 @@
 import React from 'react';
-import PlayerCard from './PlayerCard.jsx';
+import DraftPlayerCard from './DraftPlayerCard.jsx';
 
-// Maps detailed_position_id → basic position_id (for color grouping)
 const DETAILED_TO_BASIC = {
   1:1, 2:2, 3:2, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:4, 11:4, 12:4, 13:4
 };
@@ -38,17 +37,18 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
         </div>
         <div className="flex flex-nowrap gap-3 overflow-x-auto w-full pb-2 sm:flex-wrap sm:justify-center sm:overflow-x-visible">
           {options.map(player => (
-            <PlayerCard
+            <DraftPlayerCard
               key={player.id}
               player={player}
-              card
               isMyTurn
               onClick={() => onPickPlayer(player.id)}
             />
           ))}
         </div>
-        <button onClick={onClose}
-          className="text-xs text-gray-600 hover:text-gray-400 border border-gray-700 px-4 py-2 rounded-lg">
+        <button
+          onClick={onClose}
+          className="text-xs text-gray-600 hover:text-gray-400 border border-gray-700 px-4 py-2 rounded-lg"
+        >
           ← Voltar
         </button>
       </div>
