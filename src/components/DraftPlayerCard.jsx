@@ -50,7 +50,7 @@ function AttrRow({ label, color, value }) {
         <div style={{ height:'100%', width:`${pct}%`, background:color, borderRadius:2 }} />
       </div>
       <span style={{ fontSize:13, fontWeight:900, width:32, textAlign:'right', color }}>
-        {value.toFixed(1)}
+        {Number.isFinite(value) ? value.toFixed(1) : '0.0'}
       </span>
     </div>
   );
@@ -62,10 +62,11 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
   const iso2 = nationalityToIso2(player.nationality || '');
   const displayName = player.display_name || player.name;
-  const altPositions = (player.alt_positions || []).slice(0, 2);
+  const altPositions = [...new Set((player.alt_positions || []))].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const primaryColor = player.primary_color || '#1a1a1a';
+  // secondary_color stripe pattern deferred from MVP — only solid fill for now
 
   return (
     <button
@@ -100,7 +101,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn }) {
           position:'absolute', inset:0,
           display:'flex', alignItems:'flex-end', justifyContent:'center'
         }}>
-          <svg viewBox="0 0 120 95" width={108} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 120 95" width={108} fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.7))' }}>
             <defs>
               <clipPath id={`jersey-${player.id}`}>
                 <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z"/>
