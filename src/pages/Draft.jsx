@@ -31,6 +31,49 @@ const SLOT_TONE_CLASSES = {
   '2AT': 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
 };
 
+function FieldPlayerPreview({ player, posLabel }) {
+  const displayName = player?.display_name || player?.name || 'Jogador';
+  const mediaSrc = player?.photo_url || player?.photo || player?.team_logo_url || '';
+  const teamLabel = player?.team_short_code || '-';
+  const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
+
+  return (
+    <div className="w-[6.5rem] overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/82 shadow-[0_18px_32px_rgba(0,0,0,0.36)] backdrop-blur-md">
+      <div className="relative h-20 overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_42%)]" />
+        <div className="absolute left-2 top-2 rounded-full border border-amber-300/25 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black tracking-[0.2em] text-amber-200">
+          {avgScore}
+        </div>
+        <div className="absolute right-2 top-2 rounded-full border border-white/10 bg-slate-950/65 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-200">
+          {posLabel}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 top-7 flex items-end justify-center px-3 pb-2">
+          {mediaSrc ? (
+            <img
+              src={mediaSrc}
+              alt={displayName}
+              className="h-12 w-12 rounded-full border border-white/10 object-cover shadow-[0_8px_18px_rgba(0,0,0,0.4)]"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-sm font-black uppercase text-white shadow-[0_8px_18px_rgba(0,0,0,0.4)]">
+              {displayName.slice(0, 2)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-2.5 py-2 text-center">
+        <div className="truncate text-[11px] font-extrabold uppercase tracking-[0.04em] text-white">
+          {displayName}
+        </div>
+        <div className="mt-1 truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200/75">
+          {teamLabel}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Bench slot definitions
 const BENCH_SLOTS = [
   { slot: 12, label: 'GOL RES',   sub: 'Goleiro' },
@@ -378,9 +421,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 }}
               >
                 {showFieldCard ? (
-                  <div style={{ transform: 'scale(0.64)', transformOrigin: 'center center' }}>
-                    <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
-                  </div>
+                  <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
                 ) : confirmedPick || isLocked ? (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
                     {slotBody}
