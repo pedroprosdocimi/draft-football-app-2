@@ -31,11 +31,37 @@ const SLOT_TONE_CLASSES = {
   '2AT': 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
 };
 
+const TEAM_COLORS = {
+  FLA: { p: '#CC0000', s: '#1a1a1a' },
+  PAL: { p: '#006437', s: '#FFFFFF' },
+  FLU: { p: '#831524', s: '#FFFFFF' },
+  BOT: { p: '#FFFFFF', s: '#1a1a1a' },
+  VAS: { p: '#FFFFFF', s: '#1a1a1a' },
+  CAM: { p: '#FFFFFF', s: '#1a1a1a' },
+  CRU: { p: '#0041A0', s: '#FFFFFF' },
+  INT: { p: '#CC0000', s: '#FFFFFF' },
+  GRE: { p: '#0041A0', s: '#1a1a1a' },
+  SAO: { p: '#CC0000', s: '#1a1a1a' },
+  COR: { p: '#FFFFFF', s: '#1a1a1a' },
+  SAN: { p: '#FFFFFF', s: '#1a1a1a' },
+  BAH: { p: '#003087', s: '#CC0000' },
+  CAP: { p: '#CC0000', s: '#1a1a1a' },
+  BRA: { p: '#CC0000', s: '#FFFFFF' },
+  CFC: { p: '#00612C', s: '#FFFFFF' },
+  VIT: { p: '#CC0000', s: '#1a1a1a' },
+  REM: { p: '#003082', s: '#CC0000' },
+  MIR: { p: '#F5C400', s: '#0041A0' },
+  CHA: { p: '#1A5C2A', s: '#FFFFFF' },
+};
+
 function FieldPlayerPreview({ player, posLabel }) {
   const displayName = player?.display_name || player?.name || 'Jogador';
-  const mediaSrc = player?.photo_url || player?.photo || player?.team_logo_url || '';
   const teamLabel = player?.team_short_code || '-';
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
+  const jerseyColors = {
+    p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
+    s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
+  };
 
   return (
     <div className="w-[6.5rem] overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/82 shadow-[0_18px_32px_rgba(0,0,0,0.36)] backdrop-blur-md">
@@ -48,17 +74,24 @@ function FieldPlayerPreview({ player, posLabel }) {
           {posLabel}
         </div>
         <div className="absolute inset-x-0 bottom-0 top-7 flex items-end justify-center px-3 pb-2">
-          {mediaSrc ? (
-            <img
-              src={mediaSrc}
-              alt={displayName}
-              className="h-12 w-12 rounded-full border border-white/10 object-cover shadow-[0_8px_18px_rgba(0,0,0,0.4)]"
-            />
-          ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-sm font-black uppercase text-white shadow-[0_8px_18px_rgba(0,0,0,0.4)]">
-              {displayName.slice(0, 2)}
-            </div>
-          )}
+          <svg
+            viewBox="0 0 120 95"
+            width="54"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            aria-label={`Camisa de ${displayName}`}
+          >
+            <defs>
+              <clipPath id={`field-jersey-${player?.id || displayName}`}>
+                <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
+              </clipPath>
+            </defs>
+            <g clipPath={`url(#field-jersey-${player?.id || displayName})`}>
+              <rect x="0" y="0" width="120" height="95" fill={jerseyColors.p} />
+              <rect x="45" y="0" width="30" height="95" fill={jerseyColors.s} opacity="0.85" />
+            </g>
+          </svg>
         </div>
       </div>
 
