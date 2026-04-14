@@ -94,102 +94,116 @@ function assignRowTops(rows) {
 }
 
 function buildPreviewRows(slots) {
-  const counts = countPositionLabels(slots);
-
   const rows = PREVIEW_ROWS.map((row) => ({
     ...row,
-    labels: row.labels.flatMap((label) => Array.from({ length: counts[label] || 0 }, () => label)),
-  })).filter((row) => row.labels.length > 0);
+    slots: row.labels.flatMap((label) => (
+      (slots || [])
+        .filter((slot) => POSITION_LABELS[slot.detailed_position_id] === label)
+        .map((slot) => ({ ...slot, label }))
+    )),
+  })).filter((row) => row.slots.length > 0);
 
   return assignRowTops(rows);
 }
 
 function getPreviewPlacements(row, rows) {
   const hasSupportStrikerPair =
-    rows.some((currentRow) => currentRow.key === 'support' && currentRow.labels.length > 0) &&
-    rows.some((currentRow) => currentRow.key === 'striker' && currentRow.labels.length > 0);
+    rows.some((currentRow) => currentRow.key === 'support' && currentRow.slots.length > 0) &&
+    rows.some((currentRow) => currentRow.key === 'striker' && currentRow.slots.length > 0);
 
   if (row.key === 'striker' && hasSupportStrikerPair) {
-    return row.labels.map((label) => ({ label, left: 56 }));
+    return row.slots.map((slot) => ({ ...slot, left: 56 }));
   }
 
   if (row.key === 'support' && hasSupportStrikerPair) {
-    return row.labels.map((label) => ({ label, left: 44 }));
+    return row.slots.map((slot) => ({ ...slot, left: 44 }));
   }
 
   if (row.key === 'goal' || row.key === 'striker' || row.key === 'support') {
-    return row.labels.map((label, index) => ({
-      label,
-      left: spreadAcross(row.labels.length, 44, 56)[index],
+    return row.slots.map((slot, index) => ({
+      ...slot,
+      left: spreadAcross(row.slots.length, 44, 56)[index],
     }));
   }
 
   if (row.key === 'centerBack') {
-    return row.labels.map((label, index) => ({
-      label,
-      left: spreadAcross(row.labels.length, 34, 66)[index],
+    return row.slots.map((slot, index) => ({
+      ...slot,
+      left: spreadAcross(row.slots.length, 34, 66)[index],
     }));
   }
 
   if (row.key === 'fullBack') {
-    return [...row.labels]
-      .sort((a, b) => (a === 'LE' ? -1 : 1) - (b === 'LE' ? -1 : 1))
-      .map((label) => ({
-        label,
-        left: label === 'LE' ? 18 : 82,
+    return [...row.slots]
+      .sort((a, b) => (a.label === 'LE' ? -1 : 1) - (b.label === 'LE' ? -1 : 1))
+      .map((slot) => ({
+        ...slot,
+        left: slot.label === 'LE' ? 18 : 82,
       }));
   }
 
   if (row.key === 'defMid') {
-    return row.labels.map((label, index) => ({
-      label,
-      left: spreadAcross(row.labels.length, 38, 62)[index],
+    return row.slots.map((slot, index) => ({
+      ...slot,
+      left: spreadAcross(row.slots.length, 38, 62)[index],
     }));
   }
 
   if (row.key === 'midfield') {
-    const midfielders = row.labels.filter((label) => label === 'MC');
+    const midfielders = row.slots.filter((slot) => slot.label === 'MC');
     const mcPlacements = spreadAcross(midfielders.length, 38, 62);
     let mcIndex = 0;
 
-    return [...row.labels]
+    return [...row.slots]
       .sort((a, b) => {
         const order = { ME: 1, MC: 2, MD: 3 };
-        return order[a] - order[b];
+        return order[a.label] - order[b.label];
       })
-      .map((label) => {
-        if (label === 'ME') return { label, left: 18 };
-        if (label === 'MD') return { label, left: 82 };
+      .map((slot) => {
+        if (slot.label === 'ME') return { ...slot, left: 18 };
+        if (slot.label === 'MD') return { ...slot, left: 82 };
 
         const left = mcPlacements[mcIndex];
         mcIndex += 1;
-        return { label, left };
+        return { ...slot, left };
       });
   }
 
   if (row.key === 'attackMid') {
-    return row.labels.map((label, index) => ({
-      label,
-      left: spreadAcross(row.labels.length, 42, 58)[index],
+    return row.slots.map((slot, index) => ({
+      ...slot,
+      left: spreadAcross(row.slots.length, 42, 58)[index],
     }));
   }
 
   if (row.key === 'wings') {
-    return [...row.labels]
+    return [...row.slots]
       .sort((a, b) => {
         const order = { PE: 1, PD: 2 };
-        return order[a] - order[b];
+        return order[a.label] - order[b.label];
       })
-      .map((label) => ({
-        label,
-        left: label === 'PE' ? 22 : 78,
+      .map((slot) => ({
+        ...slot,
+        left: slot.label === 'PE' ? 22 : 78,
       }));
   }
 
-  return row.labels.map((label, index) => ({
-    label,
-    left: spreadAcross(row.labels.length, 30, 70)[index],
+  return row.slots.map((slot, index) => ({
+    ...slot,
+    left: spreadAcross(row.slots.length, 30, 70)[index],
   }));
+}
+
+export function getFormationPreviewLayout(formation) {
+  const rows = buildPreviewRows(formation?.slots || []);
+
+  return rows.flatMap((row) => (
+    getPreviewPlacements(row, rows).map((slot, index) => ({
+      ...slot,
+      top: row.top,
+      key: `${formation?.name || 'formation'}-${row.key}-${slot.position || index}-${slot.label}-${index}`,
+    }))
+  ));
 }
 
 export default function FormationPreview({
@@ -197,7 +211,7 @@ export default function FormationPreview({
   containerClassName = 'h-[30rem] max-w-[340px]',
   badgeClassName = 'h-11 w-11 text-[10px]',
 }) {
-  const rows = buildPreviewRows(formation.slots);
+  const placements = getFormationPreviewLayout(formation);
 
   return (
     <div
@@ -225,24 +239,20 @@ export default function FormationPreview({
       <div className="absolute inset-y-3 left-3 w-px bg-gradient-to-b from-transparent via-white/6 to-transparent" />
       <div className="absolute inset-y-3 right-3 w-px bg-gradient-to-b from-transparent via-white/6 to-transparent" />
 
-      {rows.map((row) => {
-        const placements = getPreviewPlacements(row, rows);
-
-        return placements.map(({ label, left }, playerIndex) => {
+      {placements.map(({ key, label, left, top }) => {
           const badgeStyles = POSITION_BADGE_STYLES[label] || 'border-white/15 bg-slate-950/88 text-white ring-white/10';
 
           return (
             <div
-              key={`${formation.name}-${row.key}-${label}-${playerIndex}`}
+              key={key}
               className={`absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-black tracking-wide shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-1 ${badgeClassName} ${badgeStyles}`}
-              style={{ top: `${row.top}%`, left: `${left}%` }}
+              style={{ top: `${top}%`, left: `${left}%` }}
             >
               <div className="absolute inset-1 rounded-full bg-gradient-to-b from-white/10 to-transparent" />
               <span className="relative z-10">{label}</span>
             </div>
           );
-        });
-      })}
+        })}
     </div>
   );
 }

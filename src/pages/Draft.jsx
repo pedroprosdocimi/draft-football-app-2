@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { API_URL } from '../config.js';
 import FormationPickerPhase from '../components/FormationPickerPhase.jsx';
+import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import PickPanel from '../components/PickPanel.jsx';
 import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 
@@ -11,7 +12,23 @@ const DETAILED_TO_BASIC = {
 
 const DETAILED_LABELS = {
   1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MEI', 7:'MAT', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'2AT'
+  6:'MC', 7:'MAT', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'2AT'
+};
+
+const SLOT_TONE_CLASSES = {
+  GOL: 'border-sky-300/40 bg-sky-950/95 text-sky-100 ring-sky-300/20',
+  ZAG: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
+  LD: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
+  LE: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
+  VOL: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
+  MC: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
+  MD: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
+  ME: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
+  MAT: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
+  PE: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
+  PD: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
+  CA: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
+  '2AT': 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
 };
 
 // Bench slot definitions
@@ -24,6 +41,14 @@ const BENCH_SLOTS = [
   { slot: 17, label: 'M/A RES 3', sub: 'Meia ou Atacante' },
   { slot: 18, label: 'M/A RES 4', sub: 'Meia ou Atacante' },
 ];
+
+function getPlayerShortName(player) {
+  const baseName = player?.display_name || player?.name || '';
+  if (!baseName) return 'Escolhido';
+
+  const [firstName, secondName] = baseName.trim().split(/\s+/);
+  return secondName ? `${firstName} ${secondName}` : firstName;
+}
 
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
@@ -68,6 +93,15 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     const f = formations.find(f => f.name === draft.formation);
     return f ? f.slots : [];
   }, [formations, draft]);
+
+  const starterPlacements = useMemo(() => {
+    if (!draft?.formation || formationSlots.length === 0) return [];
+
+    return getFormationPreviewLayout({
+      name: draft.formation,
+      slots: formationSlots,
+    });
+  }, [draft?.formation, formationSlots]);
 
   const loadDraft = useCallback(async () => {
     try {
@@ -275,63 +309,98 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         }
       `}</style>
       <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
-        <div className="flex flex-col gap-3">
-          {[4, 3, 2, 1].map(basicPos => {
-            const rowSlots = starterSlots.filter(s =>
-              DETAILED_TO_BASIC[s.detailed_position_id] === basicPos
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-white">Campo titular</p>
+            <p className="text-xs text-emerald-100/60">
+              Escolha as cartas diretamente na distribuicao da formacao
+            </p>
+          </div>
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-100/70">
+            {starterSlots.length}/11 slots
+          </span>
+        </div>
+
+        <div
+          className="relative mx-auto h-[38rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[42rem]"
+          style={{
+            backgroundImage:
+              'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
+          }}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(110,231,183,0.14),transparent_34%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
+          <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/8 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className="absolute inset-3 rounded-[22px] border border-white/10" />
+          <div className="absolute left-6 right-6 top-1/2 h-px -translate-y-1/2 bg-white/10" />
+          <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+          <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/30" />
+          <div className="absolute left-1/2 top-3 h-12 w-28 -translate-x-1/2 rounded-b-[20px] border border-t-0 border-white/10" />
+          <div className="absolute left-1/2 bottom-3 h-12 w-28 -translate-x-1/2 rounded-t-[20px] border border-b-0 border-white/10" />
+          <div className="absolute left-1/2 top-3 h-6 w-14 -translate-x-1/2 rounded-b-[14px] border border-t-0 border-white/10" />
+          <div className="absolute left-1/2 bottom-3 h-6 w-14 -translate-x-1/2 rounded-t-[14px] border border-b-0 border-white/10" />
+
+          {starterPlacements.map((slot) => {
+            const posLabel = DETAILED_LABELS[slot.detailed_position_id] || slot.label || '?';
+            const toneClasses = SLOT_TONE_CLASSES[posLabel] || 'border-white/15 bg-slate-950/88 text-white ring-white/10';
+            const playerObj = pickedPlayers[slot.position] ?? null;
+            const confirmedPick = picksBySlot[slot.position];
+            const isLocked = isBenchPhase && !playerObj && !confirmedPick;
+            const animationStyle = poppingSlot === slot.position
+              ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' }
+              : undefined;
+
+            const slotBody = (
+              <>
+                <div className={`relative flex h-14 w-14 items-center justify-center rounded-full border font-black tracking-wide shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-1 ${toneClasses}`}>
+                  <div className="absolute inset-1 rounded-full bg-gradient-to-b from-white/10 to-transparent" />
+                  <span className="relative z-10 text-[11px]">{posLabel}</span>
+                </div>
+
+                {playerObj ? (
+                  <>
+                    <div className="max-w-[6.25rem] truncate text-[11px] font-semibold text-white">
+                      {getPlayerShortName(playerObj)}
+                    </div>
+                    <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                      Escolhido
+                    </div>
+                  </>
+                ) : confirmedPick ? (
+                  <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                    Confirmado
+                  </div>
+                ) : isLocked ? (
+                  <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    Fechado
+                  </div>
+                ) : (
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-white/80">
+                    +
+                  </div>
+                )}
+              </>
             );
-            if (rowSlots.length === 0) return null;
+
             return (
-              <div key={basicPos} className="flex gap-2 justify-center overflow-x-auto pb-1">
-                {rowSlots.map(s => {
-                  const posLabel = DETAILED_LABELS[s.detailed_position_id] || '?';
-                  const playerObj = pickedPlayers[s.position] ?? null;
-                  const confirmedPick = picksBySlot[s.position];
-
-                  if (playerObj) {
-                    return (
-                      <div
-                        key={s.position}
-                        style={poppingSlot === s.position
-                          ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
-                          : { flexShrink: 0 }
-                        }
-                      >
-                        <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
-                      </div>
-                    );
-                  }
-
-                  if (confirmedPick) {
-                    return (
-                      <div key={s.position} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1.5px solid #22c55e', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'Inter', system-ui, sans-serif" }}>
-                        <span style={{ fontSize: 16, fontWeight: 900, color: '#f9fafb' }}>{posLabel}</span>
-                        <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>✓ Confirmado</span>
-                      </div>
-                    );
-                  }
-
-                  // During bench phase, starter slots are already filled — show empty placeholder
-                  if (isBenchPhase) {
-                    return (
-                      <div key={s.position} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, border: '1.5px solid #374151', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>{posLabel}</span>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <button
-                      key={s.position}
-                      onClick={() => handleSlotClick(s.position)}
-                      style={{ width: 140, minHeight: 182, flexShrink: 0 }}
-                      className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all"
-                    >
-                      <span className="text-sm font-bold text-gray-400">{posLabel}</span>
-                      <span className="text-gray-600 mt-1 text-lg">+</span>
-                    </button>
-                  );
-                })}
+              <div
+                key={slot.key}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ top: `${slot.top}%`, left: `${slot.left}%`, ...animationStyle }}
+              >
+                {playerObj || confirmedPick || isLocked ? (
+                  <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
+                    {slotBody}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleSlotClick(slot.position)}
+                    className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-dashed border-white/20 bg-slate-950/30 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.18)] transition-all hover:border-emerald-300/40 hover:bg-emerald-300/10"
+                    style={{ touchAction: 'manipulation' }}
+                  >
+                    {slotBody}
+                  </button>
+                )}
               </div>
             );
           })}
