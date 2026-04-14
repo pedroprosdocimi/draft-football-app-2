@@ -17,6 +17,22 @@ const POSITION_LABELS = {
   13: '2AT',
 };
 
+const POSITION_BADGE_STYLES = {
+  GOL: 'border-sky-300/40 bg-sky-950/90 text-sky-100 ring-sky-300/20',
+  ZAG: 'border-emerald-300/40 bg-emerald-950/90 text-emerald-100 ring-emerald-300/20',
+  LD: 'border-emerald-300/40 bg-emerald-950/90 text-emerald-100 ring-emerald-300/20',
+  LE: 'border-emerald-300/40 bg-emerald-950/90 text-emerald-100 ring-emerald-300/20',
+  VOL: 'border-emerald-300/40 bg-emerald-950/90 text-emerald-100 ring-emerald-300/20',
+  MC: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
+  MD: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
+  ME: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
+  MAT: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
+  PE: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
+  PD: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
+  CA: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
+  '2AT': 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
+};
+
 const PREVIEW_ROWS = [
   { key: 'striker', labels: ['CA'], half: 'attack' },
   { key: 'support', labels: ['2AT'], half: 'attack' },
@@ -228,11 +244,12 @@ function FormationPreview({ formation }) {
 
         return placements.map(({ label, left }, playerIndex) => {
           const top = row.top;
+          const badgeStyles = POSITION_BADGE_STYLES[label] || 'border-white/15 bg-slate-950/88 text-white ring-white/10';
 
           return (
             <div
               key={`${formation.name}-${row.key}-${label}-${playerIndex}`}
-              className="absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-slate-950/88 text-[10px] font-black tracking-wide text-white shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-1 ring-emerald-300/10"
+              className={`absolute flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-[10px] font-black tracking-wide shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-1 ${badgeStyles}`}
               style={{ top: `${top}%`, left: `${left}%` }}
             >
               <div className="absolute inset-1 rounded-full bg-gradient-to-b from-white/10 to-transparent" />
