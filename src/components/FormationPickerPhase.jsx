@@ -148,7 +148,7 @@ function FormationPreview({ formation }) {
 
   return (
     <div
-      className="relative mx-auto h-[21.5rem] w-full max-w-[280px] overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)]"
+      className="relative mx-auto h-[22rem] w-full max-w-[320px] overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)]"
       style={{
         backgroundImage:
           'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
@@ -334,7 +334,7 @@ export default function FormationPickerPhase({ onPick }) {
 
         <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3">
           {formations.map((formation) => (
-            <div key={formation.name} className="min-w-[320px] max-w-[320px] flex-none snap-center md:min-w-0 md:max-w-none">
+            <div key={formation.name} className="w-[calc(100vw-2rem)] max-w-[380px] flex-none snap-center md:w-auto md:max-w-none">
               <FormationCard
                 formation={formation}
                 chosen={chosen}
