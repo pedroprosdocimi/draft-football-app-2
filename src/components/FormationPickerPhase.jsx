@@ -17,121 +17,17 @@ const POSITION_LABELS = {
   13: '2AT',
 };
 
-const ROW_POSITION_ORDER = {
-  LE: 1,
-  ME: 1,
-  PE: 1,
-  ZAG: 2,
-  VOL: 3,
-  MC: 4,
-  MAT: 5,
-  CA: 6,
-  '2AT': 7,
-  LD: 8,
-  MD: 9,
-  PD: 10,
-};
-
-const FORMATION_LAYOUTS = {
-  '4-2-3-1': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL', 'VOL'],
-    ['PE', 'MAT', 'PD'],
-    ['CA'],
-  ],
-  '4-3-3': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL'],
-    ['MC', 'MC'],
-    ['PE', 'CA', 'PD'],
-  ],
-  '4-4-2': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['ME', 'MC', 'MC', 'MD'],
-    ['CA', '2AT'],
-  ],
-  '4-1-4-1': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL'],
-    ['ME', 'MC', 'MC', 'MD'],
-    ['CA'],
-  ],
-  '3-5-2': [
-    ['GOL'],
-    ['ZAG', 'ZAG', 'ZAG'],
-    ['ME', 'VOL', 'MC', 'VOL', 'MD'],
-    ['CA', '2AT'],
-  ],
-  '3-4-3': [
-    ['GOL'],
-    ['ZAG', 'ZAG', 'ZAG'],
-    ['ME', 'MC', 'MC', 'MD'],
-    ['PE', 'CA', 'PD'],
-  ],
-  '4-3-1-2': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL', 'MC', 'VOL'],
-    ['MAT'],
-    ['CA', '2AT'],
-  ],
-  '4-4-1-1': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['ME', 'MC', 'MC', 'MD'],
-    ['2AT'],
-    ['CA'],
-  ],
-  '5-3-2': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'ZAG', 'LD'],
-    ['MC', 'VOL', 'MC'],
-    ['CA', '2AT'],
-  ],
-  '5-4-1': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'ZAG', 'LD'],
-    ['ME', 'MC', 'MC', 'MD'],
-    ['CA'],
-  ],
-  '4-5-1': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['ME', 'VOL', 'MC', 'VOL', 'MD'],
-    ['CA'],
-  ],
-  '4-2-2-2': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL', 'VOL'],
-    ['MAT', 'MAT'],
-    ['CA', '2AT'],
-  ],
-  '4-3-2-1': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL', 'MC', 'VOL'],
-    ['MAT', 'MAT'],
-    ['CA'],
-  ],
-  '4-2-4': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL', 'VOL'],
-    ['PE', 'CA', '2AT', 'PD'],
-  ],
-  '4-2-1-3': [
-    ['GOL'],
-    ['LE', 'ZAG', 'ZAG', 'LD'],
-    ['VOL', 'VOL'],
-    ['MAT'],
-    ['PE', 'CA', 'PD'],
-  ],
-};
+const PREVIEW_ROWS = [
+  { key: 'striker', labels: ['CA'], top: 14 },
+  { key: 'support', labels: ['2AT'], top: 22 },
+  { key: 'wings', labels: ['PE', 'PD'], top: 30 },
+  { key: 'attackMid', labels: ['MAT'], top: 39 },
+  { key: 'midfield', labels: ['ME', 'MC', 'MD'], top: 48 },
+  { key: 'defMid', labels: ['VOL'], top: 58 },
+  { key: 'fullBack', labels: ['LE', 'LD'], top: 68 },
+  { key: 'centerBack', labels: ['ZAG'], top: 76 },
+  { key: 'goal', labels: ['GOL'], top: 86 },
+];
 
 function pickRandomFormations(formations, limit = 5) {
   const shuffled = [...formations];
@@ -144,42 +40,111 @@ function pickRandomFormations(formations, limit = 5) {
   return shuffled.slice(0, limit);
 }
 
-function buildFallbackRows(slots) {
-  const grouped = { 1: [], 2: [], 3: [], 4: [] };
-
-  (slots || []).forEach((slot) => {
+function countPositionLabels(slots) {
+  return (slots || []).reduce((accumulator, slot) => {
     const label = POSITION_LABELS[slot.detailed_position_id];
-    if (!label) return;
+    if (!label) return accumulator;
 
-    if (slot.detailed_position_id === 1) grouped[1].push(label);
-    else if (slot.detailed_position_id <= 4) grouped[2].push(label);
-    else if (slot.detailed_position_id <= 9) grouped[3].push(label);
-    else grouped[4].push(label);
-  });
-
-  return Object.values(grouped)
-    .filter((row) => row.length > 0)
-    .map((row) => [...row].sort((a, b) => (ROW_POSITION_ORDER[a] || 99) - (ROW_POSITION_ORDER[b] || 99)));
+    accumulator[label] = (accumulator[label] || 0) + 1;
+    return accumulator;
+  }, {});
 }
 
-function getFormationRows(formation) {
-  return FORMATION_LAYOUTS[formation.name] || buildFallbackRows(formation.slots);
+function buildPreviewRows(slots) {
+  const counts = countPositionLabels(slots);
+
+  return PREVIEW_ROWS.map((row) => ({
+    ...row,
+    labels: row.labels.flatMap((label) => Array.from({ length: counts[label] || 0 }, () => label)),
+  })).filter((row) => row.labels.length > 0);
 }
 
-function getRowTop(index, rowCount) {
-  if (rowCount <= 1) return 50;
+function spreadAcross(count, start, end) {
+  if (count <= 0) return [];
+  if (count === 1) return [(start + end) / 2];
 
-  const start = 85;
-  const end = 15;
-  return start + ((end - start) * index) / (rowCount - 1);
+  const step = (end - start) / (count - 1);
+  return Array.from({ length: count }, (_, index) => start + (step * index));
 }
 
-function getPlayerLeft(index, count) {
-  return ((index + 1) * 100) / (count + 1);
+function getPreviewPlacements(row) {
+  if (row.key === 'goal' || row.key === 'striker' || row.key === 'support') {
+    return row.labels.map((label, index) => ({
+      label,
+      left: spreadAcross(row.labels.length, 44, 56)[index],
+    }));
+  }
+
+  if (row.key === 'centerBack') {
+    return row.labels.map((label, index) => ({
+      label,
+      left: spreadAcross(row.labels.length, 34, 66)[index],
+    }));
+  }
+
+  if (row.key === 'fullBack') {
+    return [...row.labels]
+      .sort((a, b) => (a === 'LE' ? -1 : 1) - (b === 'LE' ? -1 : 1))
+      .map((label) => ({
+        label,
+        left: label === 'LE' ? 18 : 82,
+      }));
+  }
+
+  if (row.key === 'defMid') {
+    return row.labels.map((label, index) => ({
+      label,
+      left: spreadAcross(row.labels.length, 38, 62)[index],
+    }));
+  }
+
+  if (row.key === 'midfield') {
+    const midfielders = row.labels.filter((label) => label === 'MC');
+    const mcPlacements = spreadAcross(midfielders.length, 38, 62);
+    let mcIndex = 0;
+
+    return [...row.labels]
+      .sort((a, b) => {
+        const order = { ME: 1, MC: 2, MD: 3 };
+        return order[a] - order[b];
+      })
+      .map((label) => {
+        if (label === 'ME') return { label, left: 18 };
+        if (label === 'MD') return { label, left: 82 };
+
+        const left = mcPlacements[mcIndex];
+        mcIndex += 1;
+        return { label, left };
+      });
+  }
+
+  if (row.key === 'attackMid') {
+    return row.labels.map((label, index) => ({
+      label,
+      left: spreadAcross(row.labels.length, 42, 58)[index],
+    }));
+  }
+
+  if (row.key === 'wings') {
+    return [...row.labels]
+      .sort((a, b) => {
+        const order = { PE: 1, PD: 2 };
+        return order[a] - order[b];
+      })
+      .map((label) => ({
+        label,
+        left: label === 'PE' ? 22 : 78,
+      }));
+  }
+
+  return row.labels.map((label, index) => ({
+    label,
+    left: spreadAcross(row.labels.length, 30, 70)[index],
+  }));
 }
 
 function FormationPreview({ formation }) {
-  const rows = getFormationRows(formation);
+  const rows = buildPreviewRows(formation.slots);
 
   return (
     <div
@@ -207,15 +172,15 @@ function FormationPreview({ formation }) {
       <div className="absolute inset-y-3 left-3 w-px bg-gradient-to-b from-transparent via-white/6 to-transparent" />
       <div className="absolute inset-y-3 right-3 w-px bg-gradient-to-b from-transparent via-white/6 to-transparent" />
 
-      {rows.map((row, rowIndex) => {
-        const top = getRowTop(rowIndex, rows.length);
+      {rows.map((row) => {
+        const placements = getPreviewPlacements(row);
 
-        return row.map((label, playerIndex) => {
-          const left = getPlayerLeft(playerIndex, row.length);
+        return placements.map(({ label, left }, playerIndex) => {
+          const top = row.top;
 
           return (
             <div
-              key={`${formation.name}-${rowIndex}-${label}-${playerIndex}`}
+              key={`${formation.name}-${row.key}-${label}-${playerIndex}`}
               className="absolute flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-slate-950/88 text-[10px] font-black tracking-wide text-white shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-1 ring-emerald-300/10"
               style={{ top: `${top}%`, left: `${left}%` }}
             >
