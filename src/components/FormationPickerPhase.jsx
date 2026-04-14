@@ -240,15 +240,11 @@ function FormationCard({ formation, chosen, onPick }) {
             {formation.name}
           </h2>
         </div>
-        <span
-          className={`relative z-10 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${
-            isChosen
-              ? 'border-draft-green/60 bg-draft-green/15 text-draft-green'
-              : 'border-white/10 bg-white/5 text-gray-300'
-          }`}
-        >
-          {isChosen ? 'Escolhida' : 'Card tatico'}
-        </span>
+        {isChosen && (
+          <span className="relative z-10 rounded-full border border-draft-green/60 bg-draft-green/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-draft-green">
+            Escolhida
+          </span>
+        )}
       </div>
 
       <div className="relative z-10">
