@@ -42,14 +42,6 @@ const BENCH_SLOTS = [
   { slot: 18, label: 'M/A RES 4', sub: 'Meia ou Atacante' },
 ];
 
-function getPlayerShortName(player) {
-  const baseName = player?.display_name || player?.name || '';
-  if (!baseName) return 'Escolhido';
-
-  const [firstName, secondName] = baseName.trim().split(/\s+/);
-  return secondName ? `${firstName} ${secondName}` : firstName;
-}
-
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
   return fetch(url, {
@@ -322,7 +314,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
 
         <div
-          className="relative mx-auto h-[38rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[42rem]"
+          className="relative mx-auto h-[40rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[44rem]"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
@@ -346,6 +338,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             const playerObj = pickedPlayers[slot.position] ?? null;
             const confirmedPick = picksBySlot[slot.position];
             const isLocked = isBenchPhase && !playerObj && !confirmedPick;
+            const showFieldCard = Boolean(playerObj);
             const animationStyle = poppingSlot === slot.position
               ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' }
               : undefined;
@@ -386,9 +379,18 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               <div
                 key={slot.key}
                 className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={{ top: `${slot.top}%`, left: `${slot.left}%`, ...animationStyle }}
+                style={{
+                  top: `${slot.top}%`,
+                  left: `${slot.left}%`,
+                  zIndex: showFieldCard ? 20 : 10,
+                  ...animationStyle,
+                }}
               >
-                {playerObj || confirmedPick || isLocked ? (
+                {showFieldCard ? (
+                  <div style={{ transform: 'scale(0.64)', transformOrigin: 'center center' }}>
+                    <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
+                  </div>
+                ) : confirmedPick || isLocked ? (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
                     {slotBody}
                   </div>
