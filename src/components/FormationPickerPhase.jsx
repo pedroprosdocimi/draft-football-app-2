@@ -18,15 +18,15 @@ const POSITION_LABELS = {
 };
 
 const PREVIEW_ROWS = [
-  { key: 'striker', labels: ['CA'], top: 14 },
-  { key: 'support', labels: ['2AT'], top: 23 },
-  { key: 'wings', labels: ['PE', 'PD'], top: 32 },
-  { key: 'attackMid', labels: ['MAT'], top: 41 },
+  { key: 'striker', labels: ['CA'], top: 10 },
+  { key: 'support', labels: ['2AT'], top: 20 },
+  { key: 'wings', labels: ['PE', 'PD'], top: 30 },
+  { key: 'attackMid', labels: ['MAT'], top: 40 },
   { key: 'midfield', labels: ['ME', 'MC', 'MD'], top: 50 },
-  { key: 'defMid', labels: ['VOL'], top: 59 },
-  { key: 'fullBack', labels: ['LE', 'LD'], top: 68 },
-  { key: 'centerBack', labels: ['ZAG'], top: 77 },
-  { key: 'goal', labels: ['GOL'], top: 86 },
+  { key: 'defMid', labels: ['VOL'], top: 60 },
+  { key: 'fullBack', labels: ['LE', 'LD'], top: 70 },
+  { key: 'centerBack', labels: ['ZAG'], top: 80 },
+  { key: 'goal', labels: ['GOL'], top: 90 },
 ];
 
 function pickRandomFormations(formations, limit = 5) {
@@ -148,7 +148,7 @@ function FormationPreview({ formation }) {
 
   return (
     <div
-      className="relative mx-auto h-[22rem] w-full max-w-[320px] overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)]"
+      className="relative mx-auto h-[30rem] w-full max-w-[340px] overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)]"
       style={{
         backgroundImage:
           'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
