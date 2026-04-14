@@ -64,22 +64,21 @@ function FieldPlayerPreview({ player, posLabel }) {
   };
 
   return (
-    <div className="w-[6.5rem] overflow-hidden rounded-[24px] border border-white/10 bg-slate-950/82 shadow-[0_18px_32px_rgba(0,0,0,0.36)] backdrop-blur-md">
-      <div className="relative h-20 overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)]">
+    <div className="w-[4.75rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[6.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
+      <div className="relative h-16 overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)] sm:h-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_42%)]" />
-        <div className="absolute left-2 top-2 rounded-full border border-amber-300/25 bg-amber-400/10 px-2 py-0.5 text-[10px] font-black tracking-[0.2em] text-amber-200">
+        <div className="absolute left-1.5 top-1.5 rounded-full border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-black tracking-[0.14em] text-amber-200 sm:left-2 sm:top-2 sm:px-2 sm:text-[10px] sm:tracking-[0.2em]">
           {avgScore}
         </div>
-        <div className="absolute right-2 top-2 rounded-full border border-white/10 bg-slate-950/65 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-200">
+        <div className="absolute right-1.5 top-1.5 rounded-full border border-white/10 bg-slate-950/65 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-200 sm:right-2 sm:top-2 sm:px-2 sm:text-[9px] sm:tracking-[0.18em]">
           {posLabel}
         </div>
-        <div className="absolute inset-x-0 bottom-0 top-7 flex items-end justify-center px-3 pb-2">
+        <div className="absolute inset-x-0 bottom-0 top-6 flex items-end justify-center px-2 pb-1.5 sm:top-7 sm:px-3 sm:pb-2">
           <svg
             viewBox="0 0 120 95"
-            width="54"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="w-[2.5rem] drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[3.375rem]"
             aria-label={`Camisa de ${displayName}`}
           >
             <defs>
@@ -95,11 +94,11 @@ function FieldPlayerPreview({ player, posLabel }) {
         </div>
       </div>
 
-      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-2.5 py-2 text-center">
-        <div className="truncate text-[11px] font-extrabold uppercase tracking-[0.04em] text-white">
+      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2">
+        <div className="truncate text-[9px] font-extrabold uppercase tracking-[0.02em] text-white sm:text-[11px] sm:tracking-[0.04em]">
           {displayName}
         </div>
-        <div className="mt-1 truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200/75">
+        <div className="mt-0.5 truncate text-[8px] font-semibold uppercase tracking-[0.12em] text-emerald-200/75 sm:mt-1 sm:text-[10px] sm:tracking-[0.18em]">
           {teamLabel}
         </div>
       </div>
