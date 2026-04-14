@@ -83,7 +83,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const loadFormations = useCallback(async () => {
     try {
-      const res = await authFetch(`${API_URL}/formations`);
+      const res = await authFetch(`${API_URL}/formations?include_inactive=true`);
       const data = await res.json();
       setFormations(data.data || []);
     } catch {}

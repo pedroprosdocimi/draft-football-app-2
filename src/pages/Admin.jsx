@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { API_URL } from '../config.js';
+import AdminFormationManager from '../components/AdminFormationManager.jsx';
 import DraftHistory from '../components/DraftHistory.jsx';
 import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
@@ -972,6 +973,8 @@ export default function Admin({ onBack }) {
           {roundMsg && <p className="text-sm mt-2">{roundMsg}</p>}
         </div>
       </div>
+
+      <AdminFormationManager />
 
       {/* Stat management table */}
       {statWeights.length > 0 && (() => {
