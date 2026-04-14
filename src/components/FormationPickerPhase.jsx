@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { API_URL } from '../config.js';
 
 const POSITION_LABELS = {
@@ -215,11 +215,46 @@ function FormationPreview({ formation }) {
 function FormationCard({ formation, chosen, onPick }) {
   const isChosen = chosen === formation.name;
   const isDisabled = !!chosen;
+  const touchStateRef = useRef({ startX: 0, startY: 0, moved: false });
+
+  const handleTouchStart = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    touchStateRef.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      moved: false,
+    };
+  };
+
+  const handleTouchMove = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+
+    const deltaX = Math.abs(touch.clientX - touchStateRef.current.startX);
+    const deltaY = Math.abs(touch.clientY - touchStateRef.current.startY);
+
+    if (deltaX > 10 || deltaY > 10) {
+      touchStateRef.current.moved = true;
+    }
+  };
+
+  const handlePick = () => {
+    if (touchStateRef.current.moved) {
+      touchStateRef.current.moved = false;
+      return;
+    }
+
+    onPick(formation.name);
+  };
 
   return (
     <button
       type="button"
-      onClick={() => onPick(formation.name)}
+      onClick={handlePick}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       disabled={isDisabled}
       className={`group relative overflow-hidden rounded-[32px] border p-5 text-left transition-all duration-200 ${
         isChosen
@@ -228,6 +263,7 @@ function FormationCard({ formation, chosen, onPick }) {
             ? 'border-gray-800 bg-gray-900/70 opacity-50'
             : 'border-gray-800 bg-gray-900/90 hover:-translate-y-1 hover:border-emerald-400/40 hover:bg-gray-900'
       }`}
+      style={{ touchAction: 'pan-x' }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.06),transparent_28%)]" />
       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/5 to-transparent" />
