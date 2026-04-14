@@ -8,26 +8,37 @@ const TEAM_COLORS = {
   FLU: { p: '#831524', s: '#FFFFFF' },  // Fluminense
   BOT: { p: '#FFFFFF', s: '#1a1a1a' },  // Botafogo
   VAS: { p: '#FFFFFF', s: '#1a1a1a' },  // Vasco
-  CAM: { p: '#FFFFFF', s: '#1a1a1a' },  // Atlético MG
+  CAM: { p: '#FFFFFF', s: '#1a1a1a' },  // Atletico MG
   CRU: { p: '#0041A0', s: '#FFFFFF' },  // Cruzeiro
   INT: { p: '#CC0000', s: '#FFFFFF' },  // Internacional
-  GRE: { p: '#0041A0', s: '#1a1a1a' },  // Grêmio
-  SAO: { p: '#CC0000', s: '#1a1a1a' },  // São Paulo
+  GRE: { p: '#0041A0', s: '#1a1a1a' },  // Gremio
+  SAO: { p: '#CC0000', s: '#1a1a1a' },  // Sao Paulo
   COR: { p: '#FFFFFF', s: '#1a1a1a' },  // Corinthians
   SAN: { p: '#FFFFFF', s: '#1a1a1a' },  // Santos
   BAH: { p: '#003087', s: '#CC0000' },  // Bahia
   CAP: { p: '#CC0000', s: '#1a1a1a' },  // Athletico PR
   BRA: { p: '#CC0000', s: '#FFFFFF' },  // Bragantino
   CFC: { p: '#00612C', s: '#FFFFFF' },  // Coritiba
-  VIT: { p: '#CC0000', s: '#1a1a1a' },  // Vitória
+  VIT: { p: '#CC0000', s: '#1a1a1a' },  // Vitoria
   REM: { p: '#003082', s: '#CC0000' },  // Remo
   MIR: { p: '#F5C400', s: '#0041A0' },  // Mirassol
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },  // Chapecoense
 };
 
 const DETAILED_LABELS = {
-  1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MEI', 7:'MAT', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'2AT'
+  1: 'GOL',
+  2: 'ZAG',
+  3: 'LD',
+  4: 'LE',
+  5: 'VOL',
+  6: 'MEI',
+  7: 'MAT',
+  8: 'ME',
+  9: 'MD',
+  10: 'CA',
+  11: 'PE',
+  12: 'PD',
+  13: '2AT',
 };
 
 const BORDER_COLORS = {
@@ -61,27 +72,40 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
   const iso2 = nationalityToIso2(player.nationality || '');
   const displayName = player.display_name || player.name;
-  const altPositions = [...new Set((player.alt_positions || []))].slice(0, 2);
+  const altPositions = [...new Set(player.alt_positions || [])].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
-  const jersey = TEAM_COLORS[player.team_short_code] || { p: BORDER_COLORS[player.position_id] || '#3b82f6', s: '#FFFFFF' };
+  const jersey = TEAM_COLORS[player.team_short_code] || {
+    p: BORDER_COLORS[player.position_id] || '#3b82f6',
+    s: '#FFFFFF',
+  };
 
   const W = compact ? 140 : 210;
-  const topH = compact ? 80 : 120;
+  const topH = compact ? 84 : 126;
   const jerseyW = compact ? 72 : 108;
   const scoreFz = compact ? 18 : 26;
   const minutesFz = compact ? 10 : 14;
   const posFz = compact ? 14 : 20;
   const nameFz = compact ? 11 : 15;
-  const namePb = compact ? 5 : 8;
+  const namePb = compact ? 6 : 9;
   const attrLabelFz = compact ? 10 : 14;
   const attrValFz = compact ? 11 : 15;
   const attrLabelW = compact ? 24 : 34;
   const attrValW = compact ? 26 : 36;
   const flagW = compact ? 20 : 28;
   const flagH = compact ? 14 : 20;
-  const bottomPad = compact ? '6px 8px 12px' : '8px 12px 17px';
-  const gap = compact ? 6 : 8;
+  const bottomPad = compact ? '8px 9px 12px' : '10px 12px 17px';
+  const gap = compact ? 7 : 9;
+  const radius = compact ? 18 : 22;
+  const chipPad = compact ? '5px 7px' : '6px 8px';
+  const chipRadius = compact ? 12 : 14;
+  const mutedLabelColor = 'rgba(203,213,225,0.56)';
+  const shellBackground = 'linear-gradient(180deg, rgba(7,12,21,0.98) 0%, rgba(3,7,16,1) 100%)';
+  const topBackground = `radial-gradient(circle at top, ${borderColor}22 0%, transparent 34%), linear-gradient(180deg, rgba(21,31,51,0.97) 0%, rgba(12,20,36,0.98) 52%, rgba(6,12,24,1) 100%)`;
+  const bottomBackground = 'linear-gradient(180deg, rgba(15,23,42,0.98) 0%, rgba(8,13,25,1) 100%)';
+  const chipBackground = 'rgba(2,6,23,0.62)';
+  const chipBorder = '1px solid rgba(255,255,255,0.09)';
+  const outerShadow = `0 20px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset, 0 0 0 1px ${borderColor}55`;
 
   return (
     <button
@@ -90,130 +114,316 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
       style={{
         width: W,
         flexShrink: 0,
-        borderRadius: 14,
+        borderRadius: radius,
         overflow: 'hidden',
-        border: `1.5px solid ${borderColor}`,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-        background: 'transparent',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: outerShadow,
+        background: shellBackground,
         cursor: isMyTurn ? 'pointer' : 'default',
         opacity: isMyTurn ? 1 : 0.8,
         textAlign: 'left',
         transition: 'transform 0.15s, box-shadow 0.15s',
         fontFamily: "'Inter', system-ui, sans-serif",
-      }}
-      onMouseEnter={e => { if (isMyTurn) e.currentTarget.style.transform = 'scale(1.04)'; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-    >
-      {/* ── TOP ── */}
-      <div style={{
-        height: topH,
-        background: '#1a2234',
         position: 'relative',
-        overflow: 'hidden',
-      }}>
-        {/* Jersey */}
-        <div style={{
-          position:'absolute', inset:0,
-          display:'flex', alignItems:'flex-end', justifyContent:'center'
-        }}>
-          <svg viewBox="0 0 120 95" width={jerseyW} fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.7))' }}>
+      }}
+      onMouseEnter={(e) => {
+        if (isMyTurn) {
+          e.currentTarget.style.transform = 'translateY(-2px) scale(1.03)';
+          e.currentTarget.style.boxShadow = `0 26px 58px rgba(0,0,0,0.56), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 0 0 1px ${borderColor}88`;
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = outerShadow;
+      }}
+    >
+      <div
+        style={{
+          height: topH,
+          background: topBackground,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(circle at 50% 10%, rgba(255,255,255,0.12), transparent 32%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: compact ? 7 : 9,
+            borderRadius: compact ? 14 : 18,
+            border: '1px solid rgba(255,255,255,0.08)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            left: compact ? 10 : 12,
+            right: compact ? 10 : 12,
+            bottom: compact ? 11 : 13,
+            height: 1,
+            background: `linear-gradient(90deg, transparent 0%, ${borderColor}50 18%, rgba(255,255,255,0.12) 50%, ${borderColor}50 82%, transparent 100%)`,
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+          }}
+        >
+          <svg
+            viewBox="0 0 120 95"
+            width={jerseyW}
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.72))' }}
+          >
             <defs>
               <clipPath id={`jersey-${player.id}`}>
-                <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z"/>
+                <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
               </clipPath>
             </defs>
             <g clipPath={`url(#jersey-${player.id})`}>
-              <rect x="0" y="0" width="120" height="95" fill={jersey.p}/>
-              <rect x="45" y="0" width="30" height="95" fill={jersey.s} opacity="0.85"/>
+              <rect x="0" y="0" width="120" height="95" fill={jersey.p} />
+              <rect x="45" y="0" width="30" height="95" fill={jersey.s} opacity="0.85" />
             </g>
           </svg>
         </div>
 
-        {/* Top-left: score */}
-        <div style={{ position:'absolute', top:9, left:11 }}>
-          <div style={{ fontSize:scoreFz, fontWeight:800, color:'#fbbf24', lineHeight:1.05 }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: compact ? 8 : 10,
+            left: compact ? 9 : 11,
+            padding: chipPad,
+            borderRadius: chipRadius,
+            background: chipBackground,
+            border: chipBorder,
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div style={{ fontSize: scoreFz, fontWeight: 900, color: '#fbbf24', lineHeight: 1.02 }}>
             {avgScore}
           </div>
-          <div style={{ fontSize:8, color:'#6b7280' }}>score méd.</div>
+          <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>score med.</div>
         </div>
 
-        {/* Top-right: minutes + flag */}
-        <div style={{
-          position:'absolute', top:9, right:11,
-          display:'flex', flexDirection:'column', alignItems:'flex-end', gap:8
-        }}>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:minutesFz, fontWeight:700, color:'#d1d5db', lineHeight:1 }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: compact ? 8 : 10,
+            right: compact ? 9 : 11,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: compact ? 6 : 8,
+          }}
+        >
+          <div
+            style={{
+              textAlign: 'right',
+              padding: chipPad,
+              borderRadius: chipRadius,
+              background: chipBackground,
+              border: chipBorder,
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
               {avgMinutes}'
             </div>
-            <div style={{ fontSize:8, color:'#6b7280' }}>méd. min.</div>
-            <div style={{ fontSize:minutesFz, fontWeight:700, color:'#d1d5db', lineHeight:1, marginTop:4 }}>
+            <div style={{ fontSize: 8, color: mutedLabelColor }}>med. min.</div>
+            <div
+              style={{
+                fontSize: minutesFz,
+                fontWeight: 700,
+                color: '#d1d5db',
+                lineHeight: 1,
+                marginTop: 4,
+              }}
+            >
               {player.matches_played ?? 0}
             </div>
-            <div style={{ fontSize:8, color:'#6b7280' }}>partidas</div>
+            <div style={{ fontSize: 8, color: mutedLabelColor }}>partidas</div>
           </div>
           {iso2 && (
             <span
               className={`fi fi-${iso2}`}
-              style={{ display:'inline-block', width:flagW, height:flagH, borderRadius:3, boxShadow:'0 1px 4px rgba(0,0,0,0.5)' }}
+              style={{
+                display: 'inline-block',
+                width: flagW,
+                height: flagH,
+                borderRadius: 4,
+                boxShadow: '0 3px 10px rgba(0,0,0,0.45)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
             />
           )}
         </div>
 
-        {/* Bottom-left: alt positions + main position */}
-        <div style={{
-          position:'absolute', bottom:9, left:11,
-          display:'flex', flexDirection:'column', alignItems:'flex-start', gap:2
-        }}>
-          {altPositions.map(posID => (
-            <span key={posID} style={{
-              fontSize:9, fontWeight:600, color:'#9ca3af',
-              background:'rgba(255,255,255,0.08)',
-              borderRadius:3, padding:'1px 5px', lineHeight:1.5, display:'block'
-            }}>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: compact ? 8 : 10,
+            left: compact ? 9 : 11,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 2,
+          }}
+        >
+          {altPositions.map((posID) => (
+            <span
+              key={posID}
+              style={{
+                fontSize: 9,
+                fontWeight: 600,
+                color: '#9ca3af',
+                background: 'rgba(15,23,42,0.68)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 999,
+                padding: '1px 6px',
+                lineHeight: 1.5,
+                display: 'block',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
               {DETAILED_LABELS[posID] || posID}
             </span>
           ))}
-          <span style={{ fontSize:posFz, fontWeight:900, color:'#f9fafb', lineHeight:1, letterSpacing:'0.5px', marginTop:1 }}>
+          <span
+            style={{
+              fontSize: posFz,
+              fontWeight: 900,
+              color: '#f9fafb',
+              lineHeight: 1,
+              letterSpacing: '0.5px',
+              marginTop: 2,
+              textShadow: '0 4px 12px rgba(0,0,0,0.45)',
+            }}
+          >
             {DETAILED_LABELS[player.detailed_position_id] || '?'}
           </span>
         </div>
 
-        {/* Bottom-right: team code */}
-        <div style={{ position:'absolute', bottom:9, right:11 }}>
-          <span style={{ fontSize:11, fontWeight:700, color:'#6b7280', letterSpacing:'0.5px' }}>
-            {player.team_short_code || '—'}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: compact ? 8 : 10,
+            right: compact ? 9 : 11,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'rgba(226,232,240,0.72)',
+              letterSpacing: '0.08em',
+              background: 'rgba(15,23,42,0.68)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 999,
+              padding: '3px 7px',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {player.team_short_code || '-'}
           </span>
         </div>
       </div>
 
-      {/* ── BOTTOM ── */}
-      <div style={{
-        background:'#111827',
-        padding: bottomPad,
-        display:'flex', flexDirection:'column', gap,
-      }}>
-        {/* Player name */}
-        <div style={{
-          fontSize:nameFz, fontWeight:800, color:'#f9fafb',
-          textTransform:'uppercase', letterSpacing:'0.5px', textAlign:'center',
-          whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
-          paddingBottom: namePb,
-          borderBottom:'1px solid rgba(255,255,255,0.08)'
-        }}>
+      <div
+        style={{
+          background: bottomBackground,
+          padding: bottomPad,
+          display: 'flex',
+          flexDirection: 'column',
+          gap,
+          position: 'relative',
+          borderTop: '1px solid rgba(255,255,255,0.07)',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: `linear-gradient(180deg, ${borderColor}14 0%, transparent 18%)`,
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div
+          style={{
+            fontSize: nameFz,
+            fontWeight: 800,
+            color: '#f9fafb',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            paddingBottom: namePb,
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            position: 'relative',
+          }}
+        >
           {displayName}
         </div>
 
-        {/* Attribute grid — 3×2 */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'3px 8px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '4px 8px',
+            position: 'relative',
+          }}
+        >
           {attrs.map(([label, color, key]) => (
-            <div key={label} style={{ display:'flex', alignItems:'center', gap:3 }}>
-              <span style={{
-                fontSize:attrLabelFz, fontWeight:800, textTransform:'uppercase',
-                width:attrLabelW, flexShrink:0, color
-              }}>{label}</span>
-              <span style={{ fontSize:attrValFz, fontWeight:900, width:attrValW, textAlign:'right', color }}>
-                {Number.isFinite(player[key]) ? (player[key]).toFixed(1) : '0.0'}
+            <div
+              key={label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 3,
+                padding: '2px 0',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: attrLabelFz,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  width: attrLabelW,
+                  flexShrink: 0,
+                  color,
+                }}
+              >
+                {label}
+              </span>
+              <span
+                style={{
+                  fontSize: attrValFz,
+                  fontWeight: 900,
+                  width: attrValW,
+                  textAlign: 'right',
+                  color,
+                }}
+              >
+                {Number.isFinite(player[key]) ? player[key].toFixed(1) : '0.0'}
               </span>
             </div>
           ))}
