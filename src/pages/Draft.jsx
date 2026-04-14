@@ -16,11 +16,13 @@ const DETAILED_LABELS = {
 
 // Bench slot definitions
 const BENCH_SLOTS = [
-  { slot: 12, label: 'DEF RES 1', sub: 'Defensor' },
-  { slot: 13, label: 'DEF RES 2', sub: 'Defensor' },
-  { slot: 14, label: 'M/A RES 1', sub: 'Meia ou Atacante' },
-  { slot: 15, label: 'M/A RES 2', sub: 'Meia ou Atacante' },
-  { slot: 16, label: 'M/A RES 3', sub: 'Meia ou Atacante' },
+  { slot: 12, label: 'GOL RES',   sub: 'Goleiro' },
+  { slot: 13, label: 'DEF RES 1', sub: 'Defensor' },
+  { slot: 14, label: 'DEF RES 2', sub: 'Defensor' },
+  { slot: 15, label: 'M/A RES 1', sub: 'Meia ou Atacante' },
+  { slot: 16, label: 'M/A RES 2', sub: 'Meia ou Atacante' },
+  { slot: 17, label: 'M/A RES 3', sub: 'Meia ou Atacante' },
+  { slot: 18, label: 'M/A RES 4', sub: 'Meia ou Atacante' },
 ];
 
 function authFetch(url, options = {}) {
@@ -251,7 +253,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         <span className="text-xs text-gray-500 font-mono uppercase">
           {isBenchPhase ? 'Reservas' : 'Titulares'} · {draft.formation}
         </span>
-        <span className="text-xs text-gray-600">{(draft.picks || []).length}/16 picks</span>
+        <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
       </div>
 
       {error && (
@@ -264,94 +266,118 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         <div className="text-center text-gray-500 text-sm py-4 animate-pulse">Carregando...</div>
       )}
 
-      {/* Starter slots — field layout */}
-      {!isBenchPhase && (
-        <>
-          <style>{`
-            @keyframes card-pop {
-              0%   { transform: scale(0.3); opacity: 0; }
-              60%  { transform: scale(1.08); opacity: 1; }
-              100% { transform: scale(1);   opacity: 1; }
-            }
-          `}</style>
-          <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
-            <div className="flex flex-col gap-3">
-              {[4, 3, 2, 1].map(basicPos => {
-                const rowSlots = starterSlots.filter(s =>
-                  DETAILED_TO_BASIC[s.detailed_position_id] === basicPos
-                );
-                if (rowSlots.length === 0) return null;
-                return (
-                  <div key={basicPos} className="flex gap-2 justify-center overflow-x-auto pb-1">
-                    {rowSlots.map(s => {
-                      const posLabel = DETAILED_LABELS[s.detailed_position_id] || '?';
-                      const playerObj = pickedPlayers[s.position] ?? null;
-                      const confirmedPick = picksBySlot[s.position];
+      {/* Field — always visible during starter and bench drafting */}
+      <style>{`
+        @keyframes card-pop {
+          0%   { transform: scale(0.3); opacity: 0; }
+          60%  { transform: scale(1.08); opacity: 1; }
+          100% { transform: scale(1);   opacity: 1; }
+        }
+      `}</style>
+      <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
+        <div className="flex flex-col gap-3">
+          {[4, 3, 2, 1].map(basicPos => {
+            const rowSlots = starterSlots.filter(s =>
+              DETAILED_TO_BASIC[s.detailed_position_id] === basicPos
+            );
+            if (rowSlots.length === 0) return null;
+            return (
+              <div key={basicPos} className="flex gap-2 justify-center overflow-x-auto pb-1">
+                {rowSlots.map(s => {
+                  const posLabel = DETAILED_LABELS[s.detailed_position_id] || '?';
+                  const playerObj = pickedPlayers[s.position] ?? null;
+                  const confirmedPick = picksBySlot[s.position];
 
-                      if (playerObj) {
-                        return (
-                          <div
-                            key={s.position}
-                            style={poppingSlot === s.position
-                              ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
-                              : { flexShrink: 0 }
-                            }
-                          >
-                            <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
-                          </div>
-                        );
-                      }
+                  if (playerObj) {
+                    return (
+                      <div
+                        key={s.position}
+                        style={poppingSlot === s.position
+                          ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
+                          : { flexShrink: 0 }
+                        }
+                      >
+                        <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
+                      </div>
+                    );
+                  }
 
-                      if (confirmedPick) {
-                        return (
-                          <div key={s.position} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1.5px solid #22c55e', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'Inter', system-ui, sans-serif" }}>
-                            <span style={{ fontSize: 16, fontWeight: 900, color: '#f9fafb' }}>{posLabel}</span>
-                            <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>✓ Confirmado</span>
-                          </div>
-                        );
-                      }
+                  if (confirmedPick) {
+                    return (
+                      <div key={s.position} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1.5px solid #22c55e', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'Inter', system-ui, sans-serif" }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, color: '#f9fafb' }}>{posLabel}</span>
+                        <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>✓ Confirmado</span>
+                      </div>
+                    );
+                  }
 
-                      return (
-                        <button
-                          key={s.position}
-                          onClick={() => handleSlotClick(s.position)}
-                          style={{ width: 140, minHeight: 182, flexShrink: 0 }}
-                          className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all"
-                        >
-                          <span className="text-sm font-bold text-gray-400">{posLabel}</span>
-                          <span className="text-gray-600 mt-1 text-lg">+</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
+                  // During bench phase, starter slots are already filled — show empty placeholder
+                  if (isBenchPhase) {
+                    return (
+                      <div key={s.position} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, border: '1.5px solid #374151', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: '#6b7280' }}>{posLabel}</span>
+                      </div>
+                    );
+                  }
 
-      {/* Bench slots */}
+                  return (
+                    <button
+                      key={s.position}
+                      onClick={() => handleSlotClick(s.position)}
+                      style={{ width: 140, minHeight: 182, flexShrink: 0 }}
+                      className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all"
+                    >
+                      <span className="text-sm font-bold text-gray-400">{posLabel}</span>
+                      <span className="text-gray-600 mt-1 text-lg">+</span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bench slots — only during bench phase */}
       {isBenchPhase && (
         <div className="mb-4">
           <p className="text-sm font-semibold text-white mb-3">Reservas</p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {BENCH_SLOTS.map(({ slot, label, sub }) => {
-              const pick = picksBySlot[slot];
-              if (pick) {
+              const playerObj = pickedPlayers[slot] ?? null;
+              const confirmedPick = picksBySlot[slot];
+
+              if (playerObj) {
                 return (
-                  <div key={slot} className="flex-1 min-w-[120px] bg-gray-800 border border-gray-600 rounded-xl p-3">
-                    <div className="text-xs text-gray-500 mb-1">{label}</div>
-                    <div className="text-xs text-gray-300 truncate">{pick.player_id.slice(0,8)}…</div>
+                  <div
+                    key={slot}
+                    style={poppingSlot === slot
+                      ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
+                      : { flexShrink: 0 }
+                    }
+                  >
+                    <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
                   </div>
                 );
               }
+
+              if (confirmedPick) {
+                return (
+                  <div key={slot} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, border: '1.5px solid #22c55e', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'Inter', system-ui, sans-serif" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f9fafb' }}>{label}</span>
+                    <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>✓ Confirmado</span>
+                  </div>
+                );
+              }
+
               return (
                 <button key={slot}
                   onClick={() => handleSlotClick(slot)}
-                  className="flex-1 min-w-[120px] border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 rounded-xl p-3 transition-all text-left">
-                  <div className="text-sm font-bold text-gray-300">{label}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{sub}</div>
+                  style={{ width: 140, minHeight: 182, flexShrink: 0 }}
+                  className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all"
+                >
+                  <span className="text-sm font-bold text-gray-300">{label}</span>
+                  <span className="text-xs text-gray-500 mt-1">{sub}</span>
                 </button>
               );
             })}
