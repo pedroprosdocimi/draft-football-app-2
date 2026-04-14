@@ -100,7 +100,25 @@ function spreadAcross(count, start, end) {
   return Array.from({ length: count }, (_, index) => start + (step * index));
 }
 
-function getPreviewPlacements(row) {
+function getPreviewPlacements(row, rows) {
+  const hasSupportStrikerPair =
+    rows.some((currentRow) => currentRow.key === 'support' && currentRow.labels.length > 0) &&
+    rows.some((currentRow) => currentRow.key === 'striker' && currentRow.labels.length > 0);
+
+  if (row.key === 'striker' && hasSupportStrikerPair) {
+    return row.labels.map((label) => ({
+      label,
+      left: 56,
+    }));
+  }
+
+  if (row.key === 'support' && hasSupportStrikerPair) {
+    return row.labels.map((label) => ({
+      label,
+      left: 44,
+    }));
+  }
+
   if (row.key === 'goal' || row.key === 'striker' || row.key === 'support') {
     return row.labels.map((label, index) => ({
       label,
@@ -206,7 +224,7 @@ function FormationPreview({ formation }) {
       <div className="absolute inset-y-3 right-3 w-px bg-gradient-to-b from-transparent via-white/6 to-transparent" />
 
       {rows.map((row) => {
-        const placements = getPreviewPlacements(row);
+        const placements = getPreviewPlacements(row, rows);
 
         return placements.map(({ label, left }, playerIndex) => {
           const top = row.top;
