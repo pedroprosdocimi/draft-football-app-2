@@ -107,6 +107,18 @@ const STAT_COLS = [
   'yellowcards','redcards','yellowred_cards','offsides',
 ];
 
+const ADMIN_CATEGORY_META = {
+  ataque:        { label: 'Ataque',        color: '#f87171' },
+  criacao:       { label: 'Criação',       color: '#a78bfa' },
+  passes:        { label: 'Passes',        color: '#60a5fa' },
+  defesa:        { label: 'Defesa',        color: '#4ade80' },
+  fisico:        { label: 'Físico',        color: '#22d3ee' },
+  goleiro:       { label: 'Goleiro',       color: '#818cf8' },
+  comportamento: { label: 'Comportamento', color: '#fbbf24' },
+  outro:         { label: 'Outros',        color: '#6b7280' },
+};
+const ADMIN_CATEGORY_ORDER = ['ataque','criacao','passes','defesa','fisico','goleiro','comportamento'];
+
 const DETAILED_POSITIONS_FILTER = [
   { id: 1,  label: 'Goleiro' },
   { id: 2,  label: 'Zagueiro Central' },
@@ -1253,6 +1265,22 @@ export default function Admin({ onBack }) {
             playerStats.some(p => p[col] != null)
           );
 
+          // Group columns by category, in defined order
+          const colsByCategory = ADMIN_CATEGORY_ORDER
+            .map(cat => ({
+              catKey: cat,
+              meta: ADMIN_CATEGORY_META[cat],
+              cols: nonEmptyCols.filter(col => swMap[col]?.category === cat),
+            }))
+            .filter(g => g.cols.length > 0);
+          const uncatCols = nonEmptyCols.filter(col => {
+            const cat = swMap[col]?.category;
+            return !cat || !ADMIN_CATEGORY_ORDER.includes(cat);
+          });
+          if (uncatCols.length > 0) {
+            colsByCategory.unshift({ catKey: 'outro', meta: ADMIN_CATEGORY_META.outro, cols: uncatCols });
+          }
+
           const calcScore = (p) => {
             const posWeights = allPosStatWeights[p.detailed_position_id] || {};
             let total = 0;
@@ -1302,6 +1330,28 @@ export default function Admin({ onBack }) {
               <div ref={statsTableScrollRef} onScroll={syncFromTable} className="overflow-x-auto rounded-b-lg border border-gray-800">
                 <table className="text-xs whitespace-nowrap">
                   <thead className="bg-gray-900 sticky top-0">
+                    {/* Row 1 — category group headers */}
+                    <tr>
+                      <th colSpan={4} className="sticky left-0 z-10 bg-gray-900 border-r border-gray-700" style={{ minWidth: 448 }} />
+                      {colsByCategory.map(({ catKey, meta, cols }) => (
+                        <th key={catKey} colSpan={cols.length} style={{
+                          background: `${meta.color}18`,
+                          color: meta.color,
+                          borderBottom: `2px solid ${meta.color}60`,
+                          borderRight: `2px solid ${meta.color}40`,
+                          textAlign: 'center',
+                          fontSize: 9,
+                          fontWeight: 800,
+                          letterSpacing: '0.6px',
+                          textTransform: 'uppercase',
+                          padding: '4px 8px',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {meta.label}
+                        </th>
+                      ))}
+                    </tr>
+                    {/* Row 2 — individual stat names */}
                     <tr>
                       <th onClick={() => handleStatsSort('display_name')} className="sticky left-0 z-10 bg-gray-900 px-3 py-2 text-left font-semibold text-gray-300 border-r border-gray-700 min-w-[160px] cursor-pointer hover:text-white select-none">
                         Jogador{sortIndicator('display_name')}
@@ -1313,11 +1363,23 @@ export default function Admin({ onBack }) {
                         Score{sortIndicator('_score')}
                       </th>
                       <th className="px-2 py-2 text-left font-semibold text-gray-400 border-r border-gray-800/50 whitespace-nowrap" style={{ minWidth: 160 }}>Pos. Alternativas</th>
-                      {nonEmptyCols.map(col => (
-                        <th key={col} onClick={() => handleStatsSort(col)} className="px-2 py-2 text-center font-semibold text-gray-400 border-r border-gray-800/50 min-w-[60px] cursor-pointer hover:text-white select-none whitespace-nowrap">
-                          {STAT_LABELS[col] || col}{sortIndicator(col)}
-                        </th>
-                      ))}
+                      {colsByCategory.flatMap(({ catKey, meta, cols }) =>
+                        cols.map((col, i) => (
+                          <th key={col} onClick={() => handleStatsSort(col)}
+                            className="px-2 py-2 text-center font-semibold cursor-pointer select-none whitespace-nowrap"
+                            style={{
+                              color: meta.color,
+                              background: `${meta.color}0d`,
+                              borderRight: i === cols.length - 1
+                                ? `2px solid ${meta.color}40`
+                                : `1px solid ${meta.color}15`,
+                              minWidth: 60,
+                            }}
+                          >
+                            {STAT_LABELS[col] || col}{sortIndicator(col)}
+                          </th>
+                        ))
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800/50">
@@ -1340,11 +1402,21 @@ export default function Admin({ onBack }) {
                         <td className="px-2 py-2 text-xs text-gray-400 border-r border-gray-800/50" style={{ minWidth: 160 }}>
                           {p.alt_positions || <span className="text-gray-700">—</span>}
                         </td>
-                        {nonEmptyCols.map(col => (
-                          <td key={col} className={`px-2 py-2 text-center border-r border-gray-800/50 ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}>
-                            {fmtStat(col, p[col])}
-                          </td>
-                        ))}
+                        {colsByCategory.flatMap(({ catKey, meta, cols }) =>
+                          cols.map((col, i) => (
+                            <td key={col}
+                              className={`px-2 py-2 text-center ${p[col] !== null && p[col] !== undefined ? 'text-white' : 'text-gray-700'}`}
+                              style={{
+                                background: `${meta.color}06`,
+                                borderRight: i === cols.length - 1
+                                  ? `2px solid ${meta.color}25`
+                                  : `1px solid ${meta.color}10`,
+                              }}
+                            >
+                              {fmtStat(col, p[col])}
+                            </td>
+                          ))
+                        )}
                       </tr>
                     ))}
                   </tbody>
