@@ -38,8 +38,7 @@ const PREVIEW_ROWS = [
   { key: 'support', labels: ['2AT'], half: 'attack' },
   { key: 'wings', labels: ['PE', 'PD'], half: 'attack' },
   { key: 'attackMid', labels: ['MAT'], half: 'attack' },
-  { key: 'wideMid', labels: ['ME', 'MD'], half: 'attack' },
-  { key: 'midfield', labels: ['MC'], half: 'attack' },
+  { key: 'midfield', labels: ['ME', 'MC', 'MD'], half: 'attack' },
   { key: 'defMid', labels: ['VOL'], half: 'defense' },
   { key: 'fullBack', labels: ['LE', 'LD'], half: 'defense' },
   { key: 'centerBack', labels: ['ZAG'], half: 'defense' },
@@ -167,22 +166,23 @@ function getPreviewPlacements(row, rows) {
   }
 
   if (row.key === 'midfield') {
-    return row.labels.map((label, index) => ({
-      label,
-      left: spreadAcross(row.labels.length, 38, 62)[index],
-    }));
-  }
+    const midfielders = row.labels.filter((label) => label === 'MC');
+    const mcPlacements = spreadAcross(midfielders.length, 38, 62);
+    let mcIndex = 0;
 
-  if (row.key === 'wideMid') {
     return [...row.labels]
       .sort((a, b) => {
-        const order = { ME: 1, MD: 2 };
+        const order = { ME: 1, MC: 2, MD: 3 };
         return order[a] - order[b];
       })
-      .map((label) => ({
-        label,
-        left: label === 'ME' ? 22 : 78,
-      }));
+      .map((label) => {
+        if (label === 'ME') return { label, left: 18 };
+        if (label === 'MD') return { label, left: 82 };
+
+        const left = mcPlacements[mcIndex];
+        mcIndex += 1;
+        return { label, left };
+      });
   }
 
   if (row.key === 'attackMid') {
