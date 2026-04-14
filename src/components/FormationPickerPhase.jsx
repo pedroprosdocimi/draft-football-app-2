@@ -19,13 +19,13 @@ const POSITION_LABELS = {
 
 const PREVIEW_ROWS = [
   { key: 'striker', labels: ['CA'], top: 14 },
-  { key: 'support', labels: ['2AT'], top: 22 },
-  { key: 'wings', labels: ['PE', 'PD'], top: 30 },
-  { key: 'attackMid', labels: ['MAT'], top: 39 },
-  { key: 'midfield', labels: ['ME', 'MC', 'MD'], top: 48 },
-  { key: 'defMid', labels: ['VOL'], top: 58 },
+  { key: 'support', labels: ['2AT'], top: 23 },
+  { key: 'wings', labels: ['PE', 'PD'], top: 32 },
+  { key: 'attackMid', labels: ['MAT'], top: 41 },
+  { key: 'midfield', labels: ['ME', 'MC', 'MD'], top: 50 },
+  { key: 'defMid', labels: ['VOL'], top: 59 },
   { key: 'fullBack', labels: ['LE', 'LD'], top: 68 },
-  { key: 'centerBack', labels: ['ZAG'], top: 76 },
+  { key: 'centerBack', labels: ['ZAG'], top: 77 },
   { key: 'goal', labels: ['GOL'], top: 86 },
 ];
 
