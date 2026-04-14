@@ -17,101 +17,116 @@ const POSITION_LABELS = {
   13: '2AT',
 };
 
+const ROW_POSITION_ORDER = {
+  LE: 1,
+  ME: 1,
+  PE: 1,
+  ZAG: 2,
+  VOL: 3,
+  MC: 4,
+  MAT: 5,
+  CA: 6,
+  '2AT': 7,
+  LD: 8,
+  MD: 9,
+  PD: 10,
+};
+
 const FORMATION_LAYOUTS = {
   '4-2-3-1': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL', 'VOL'],
-    ['PD', 'MAT', 'PE'],
+    ['PE', 'MAT', 'PD'],
     ['CA'],
   ],
   '4-3-3': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL'],
     ['MC', 'MC'],
     ['PE', 'CA', 'PD'],
   ],
   '4-4-2': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
-    ['MD', 'MC', 'MC', 'ME'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
+    ['ME', 'MC', 'MC', 'MD'],
     ['CA', '2AT'],
   ],
   '4-1-4-1': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL'],
-    ['MD', 'MC', 'MC', 'ME'],
+    ['ME', 'MC', 'MC', 'MD'],
     ['CA'],
   ],
   '3-5-2': [
     ['GOL'],
     ['ZAG', 'ZAG', 'ZAG'],
-    ['MD', 'VOL', 'MC', 'VOL', 'ME'],
+    ['ME', 'VOL', 'MC', 'VOL', 'MD'],
     ['CA', '2AT'],
   ],
   '3-4-3': [
     ['GOL'],
     ['ZAG', 'ZAG', 'ZAG'],
-    ['MD', 'MC', 'MC', 'ME'],
+    ['ME', 'MC', 'MC', 'MD'],
     ['PE', 'CA', 'PD'],
   ],
   '4-3-1-2': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL', 'MC', 'VOL'],
     ['MAT'],
     ['CA', '2AT'],
   ],
   '4-4-1-1': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
-    ['MD', 'MC', 'MC', 'ME'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
+    ['ME', 'MC', 'MC', 'MD'],
     ['2AT'],
     ['CA'],
   ],
   '5-3-2': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'ZAG', 'LD'],
     ['MC', 'VOL', 'MC'],
     ['CA', '2AT'],
   ],
   '5-4-1': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'ZAG', 'LE'],
-    ['MD', 'MC', 'MC', 'ME'],
+    ['LE', 'ZAG', 'ZAG', 'ZAG', 'LD'],
+    ['ME', 'MC', 'MC', 'MD'],
     ['CA'],
   ],
   '4-5-1': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
-    ['MD', 'VOL', 'MC', 'VOL', 'ME'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
+    ['ME', 'VOL', 'MC', 'VOL', 'MD'],
     ['CA'],
   ],
   '4-2-2-2': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL', 'VOL'],
     ['MAT', 'MAT'],
     ['CA', '2AT'],
   ],
   '4-3-2-1': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL', 'MC', 'VOL'],
     ['MAT', 'MAT'],
     ['CA'],
   ],
   '4-2-4': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL', 'VOL'],
-    ['PD', 'CA', '2AT', 'PE'],
+    ['PE', 'CA', '2AT', 'PD'],
   ],
   '4-2-1-3': [
     ['GOL'],
-    ['LD', 'ZAG', 'ZAG', 'LE'],
+    ['LE', 'ZAG', 'ZAG', 'LD'],
     ['VOL', 'VOL'],
     ['MAT'],
     ['PE', 'CA', 'PD'],
@@ -142,7 +157,9 @@ function buildFallbackRows(slots) {
     else grouped[4].push(label);
   });
 
-  return Object.values(grouped).filter((row) => row.length > 0);
+  return Object.values(grouped)
+    .filter((row) => row.length > 0)
+    .map((row) => [...row].sort((a, b) => (ROW_POSITION_ORDER[a] || 99) - (ROW_POSITION_ORDER[b] || 99)));
 }
 
 function getFormationRows(formation) {
