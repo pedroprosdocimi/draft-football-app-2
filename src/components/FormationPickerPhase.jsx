@@ -18,15 +18,15 @@ const POSITION_LABELS = {
 };
 
 const PREVIEW_ROWS = [
-  { key: 'striker', labels: ['CA'], top: 10 },
-  { key: 'support', labels: ['2AT'], top: 20 },
-  { key: 'wings', labels: ['PE', 'PD'], top: 30 },
-  { key: 'attackMid', labels: ['MAT'], top: 40 },
-  { key: 'midfield', labels: ['ME', 'MC', 'MD'], top: 50 },
-  { key: 'defMid', labels: ['VOL'], top: 60 },
-  { key: 'fullBack', labels: ['LE', 'LD'], top: 70 },
-  { key: 'centerBack', labels: ['ZAG'], top: 80 },
-  { key: 'goal', labels: ['GOL'], top: 90 },
+  { key: 'striker', labels: ['CA'], half: 'attack' },
+  { key: 'support', labels: ['2AT'], half: 'attack' },
+  { key: 'wings', labels: ['PE', 'PD'], half: 'attack' },
+  { key: 'attackMid', labels: ['MAT'], half: 'attack' },
+  { key: 'midfield', labels: ['ME', 'MC', 'MD'], half: 'attack' },
+  { key: 'defMid', labels: ['VOL'], half: 'defense' },
+  { key: 'fullBack', labels: ['LE', 'LD'], half: 'defense' },
+  { key: 'centerBack', labels: ['ZAG'], half: 'defense' },
+  { key: 'goal', labels: ['GOL'], half: 'defense' },
 ];
 
 function pickRandomFormations(formations, limit = 5) {
@@ -53,10 +53,43 @@ function countPositionLabels(slots) {
 function buildPreviewRows(slots) {
   const counts = countPositionLabels(slots);
 
-  return PREVIEW_ROWS.map((row) => ({
+  const rows = PREVIEW_ROWS.map((row) => ({
     ...row,
     labels: row.labels.flatMap((label) => Array.from({ length: counts[label] || 0 }, () => label)),
   })).filter((row) => row.labels.length > 0);
+
+  return assignRowTops(rows);
+}
+
+function assignRowTops(rows) {
+  const attackRows = rows.filter((row) => row.half === 'attack');
+  const defenseRows = rows.filter((row) => row.half === 'defense');
+
+  const attackTops = distributeHalf(attackRows.length, 12, 46);
+  const defenseTops = distributeHalf(defenseRows.length, 58, 90);
+
+  let attackIndex = 0;
+  let defenseIndex = 0;
+
+  return rows.map((row) => {
+    if (row.half === 'attack') {
+      const top = attackTops[attackIndex];
+      attackIndex += 1;
+      return { ...row, top };
+    }
+
+    const top = defenseTops[defenseIndex];
+    defenseIndex += 1;
+    return { ...row, top };
+  });
+}
+
+function distributeHalf(count, start, end) {
+  if (count <= 0) return [];
+  if (count === 1) return [(start + end) / 2];
+
+  const step = (end - start) / (count - 1);
+  return Array.from({ length: count }, (_, index) => start + (step * index));
 }
 
 function spreadAcross(count, start, end) {
