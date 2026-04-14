@@ -350,16 +350,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   <span className="relative z-10 text-[11px]">{posLabel}</span>
                 </div>
 
-                {playerObj ? (
-                  <>
-                    <div className="max-w-[6.25rem] truncate text-[11px] font-semibold text-white">
-                      {getPlayerShortName(playerObj)}
-                    </div>
-                    <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                      Escolhido
-                    </div>
-                  </>
-                ) : confirmedPick ? (
+                {confirmedPick ? (
                   <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
                     Confirmado
                   </div>
