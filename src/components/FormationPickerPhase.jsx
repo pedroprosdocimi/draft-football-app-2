@@ -238,7 +238,7 @@ function FormationCard({ formation, chosen, onPick }) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       disabled={isDisabled}
-      className={`group relative overflow-hidden rounded-[36px] border p-6 text-left transition-all duration-200 ${
+      className={`group relative w-full overflow-hidden rounded-[36px] border p-6 text-left transition-all duration-200 ${
         isChosen
           ? 'border-draft-green bg-emerald-500/10 shadow-[0_0_0_1px_rgba(34,197,94,0.15),0_24px_60px_rgba(6,95,70,0.25)]'
           : isDisabled
