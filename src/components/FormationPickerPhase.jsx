@@ -152,8 +152,8 @@ function getFormationRows(formation) {
 function getRowTop(index, rowCount) {
   if (rowCount <= 1) return 50;
 
-  const start = 15;
-  const end = 85;
+  const start = 85;
+  const end = 15;
   return start + ((end - start) * index) / (rowCount - 1);
 }
 
@@ -324,14 +324,15 @@ export default function FormationPickerPhase({ onPick }) {
           </p>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3">
           {formations.map((formation) => (
-            <FormationCard
-              key={formation.name}
-              formation={formation}
-              chosen={chosen}
-              onPick={handlePick}
-            />
+            <div key={formation.name} className="min-w-[280px] max-w-[280px] flex-none snap-center md:min-w-0 md:max-w-none">
+              <FormationCard
+                formation={formation}
+                chosen={chosen}
+                onPick={handlePick}
+              />
+            </div>
           ))}
         </div>
       </div>
