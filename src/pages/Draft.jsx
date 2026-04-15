@@ -4,6 +4,7 @@ import FormationPickerPhase from '../components/FormationPickerPhase.jsx';
 import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import PickPanel from '../components/PickPanel.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
+import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 
 // Maps detailed_position_id → basic position_id
 const DETAILED_TO_BASIC = {
@@ -54,6 +55,14 @@ function authFetch(url, options = {}) {
   });
 }
 
+function normalizeDraftPlayer(player) {
+  if (!player) return null;
+  return {
+    ...player,
+    id: player.id ?? player.player_id ?? null,
+  };
+}
+
 export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [draft, setDraft] = useState(null);
   const [formations, setFormations] = useState(null);
@@ -71,8 +80,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [draggingSlot, setDraggingSlot] = useState(null); // slot being drag-swapped
   const [dropTargetSlot, setDropTargetSlot] = useState(null); // highlighted drop target
   const [selectedBenchSlot, setSelectedBenchSlot] = useState(null); // bench swap selection
+  const [selectedCard, setSelectedCard] = useState(null);
   const animTimeoutsRef = React.useRef([]);
   const fieldRef = React.useRef(null);
+  const fieldGestureRef = React.useRef(null);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -167,8 +178,21 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     return closest;
   }, [starterPlacements]);
 
-  const handleFieldPointerDown = useCallback((e, slotPosition) => {
+  const handleOpenPlayerStats = useCallback((player) => {
+    const normalizedPlayer = normalizeDraftPlayer(player);
+    if (!normalizedPlayer?.id) return;
+    setSelectedCard(normalizedPlayer);
+  }, []);
+
+  const handleFieldPointerDown = useCallback((e, slotPosition, player) => {
+    if (!normalizeDraftPlayer(player)?.id) return;
     e.preventDefault();
+    fieldGestureRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+      slotPosition,
+    };
     setDraggingSlot(slotPosition);
     fieldRef.current?.setPointerCapture(e.pointerId);
   }, []);
@@ -204,6 +228,17 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handleFieldPointerMove = useCallback((e) => {
     if (draggingSlot === null) return;
+    if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
+      const deltaX = e.clientX - fieldGestureRef.current.startX;
+      const deltaY = e.clientY - fieldGestureRef.current.startY;
+      if (Math.hypot(deltaX, deltaY) > 8) {
+        fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
+      }
+    }
+    if (!fieldGestureRef.current?.moved) {
+      setDropTargetSlot(null);
+      return;
+    }
     const target = getSlotAtPoint(e.clientX, e.clientY);
     if (!target || target === draggingSlot) { setDropTargetSlot(null); return; }
     const hasPlayer = pickedPlayers[target] || picksBySlot[target];
@@ -212,13 +247,22 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handleFieldPointerUp = useCallback((e) => {
     if (draggingSlot === null) return;
+    const activePlayer = normalizeDraftPlayer(pickedPlayers[draggingSlot] || picksBySlot[draggingSlot]);
+    if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
+      if (activePlayer) handleOpenPlayerStats(activePlayer);
+      fieldGestureRef.current = null;
+      setDraggingSlot(null);
+      setDropTargetSlot(null);
+      return;
+    }
     const target = getSlotAtPoint(e.clientX, e.clientY);
     if (target && target !== draggingSlot && (pickedPlayers[target] || picksBySlot[target])) {
       handleSwap(draggingSlot, target);
     }
+    fieldGestureRef.current = null;
     setDraggingSlot(null);
     setDropTargetSlot(null);
-  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSwap = async (slotA, slotB) => {
     const playerAId = pickedPlayers[slotA]?.id || picksBySlot[slotA]?.player_id;
@@ -422,9 +466,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
       )}
 
-      {loading && (
-        <div className="text-center text-gray-500 text-sm py-4 animate-pulse">Carregando...</div>
-      )}
 
       {/* Field — always visible during starter and bench drafting */}
       <style>{`
@@ -451,7 +492,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           ref={fieldRef}
           onPointerMove={handleFieldPointerMove}
           onPointerUp={handleFieldPointerUp}
-          onPointerLeave={() => { setDraggingSlot(null); setDropTargetSlot(null); }}
+          onPointerLeave={() => {
+            fieldGestureRef.current = null;
+            setDraggingSlot(null);
+            setDropTargetSlot(null);
+          }}
           className="relative mx-auto h-[40rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[44rem]"
           style={{
             backgroundImage:
@@ -474,8 +519,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           {starterPlacements.map((slot) => {
             const posLabel = DETAILED_LABELS[slot.detailed_position_id] || slot.label || '?';
             const toneClasses = SLOT_TONE_CLASSES[posLabel] || 'border-white/15 bg-slate-950/88 text-white ring-white/10';
-            const playerObj = pickedPlayers[slot.position] ?? null;
+            const playerObj = normalizeDraftPlayer(pickedPlayers[slot.position] ?? null);
             const confirmedPick = picksBySlot[slot.position];
+            const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
             const isLocked = isBenchPhase && !playerObj && !confirmedPick;
             const showFieldCard = Boolean(playerObj);
             const animationStyle = poppingSlot === slot.position
@@ -518,7 +564,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               >
                 {showFieldCard || confirmedPick ? (
                   <div
-                    onPointerDown={(e) => handleFieldPointerDown(e, slot.position)}
+                    onPointerDown={(e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
                     style={{
                       touchAction: 'none',
                       cursor: draggingSlot === slot.position ? 'grabbing' : 'grab',
@@ -528,7 +574,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       transition: 'opacity 0.15s, outline 0.1s',
                     }}
                   >
-                    <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
+                    <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
                   </div>
                 ) : isLocked ? (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
@@ -555,8 +601,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           <p className="text-sm font-semibold text-white mb-3">Reservas</p>
           <div className="flex flex-wrap gap-2">
             {BENCH_SLOTS.map(({ slot, label, sub }) => {
-              const playerObj = pickedPlayers[slot] ?? null;
+              const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
               const confirmedPick = picksBySlot[slot];
+              const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
               const posLabel = playerObj
                 ? (DETAILED_LABELS[playerObj.detailed_position_id] || '?')
                 : confirmedPick
@@ -579,7 +626,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       transition: 'outline 0.1s',
                     }}
                   >
-                    <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
+                    <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
                   </div>
                 );
               }
@@ -608,6 +655,13 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           onPickPlayer={handlePickPlayer}
           onClose={() => { setOptions(null); setActiveSlot(null); }}
           fadingOut={isAnimatingOut}
+        />
+      )}
+
+      {selectedCard && (
+        <PlayerStatsModal
+          player={selectedCard}
+          onClose={() => setSelectedCard(null)}
         />
       )}
     </div>
