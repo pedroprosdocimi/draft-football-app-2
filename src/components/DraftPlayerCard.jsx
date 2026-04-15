@@ -317,28 +317,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           </div>
         )}
 
-        {/* Bottom-right: next opponent logo */}
-        {player.next_opponent_logo_url && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: compact ? 6 : 8,
-              right: compact ? 6 : 8,
-            }}
-          >
-            <img
-              src={player.next_opponent_logo_url}
-              alt="próximo adversário"
-              style={{
-                width: compact ? 22 : 30,
-                height: compact ? 22 : 30,
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))',
-                opacity: 0.9,
-              }}
-            />
-          </div>
-        )}
+        {/* Bottom-right: next opponent logo — disabled */}
 
       </div>
 
