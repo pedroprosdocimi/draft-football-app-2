@@ -153,9 +153,9 @@ export default function FieldPlayerPreview({ player, posLabel }) {
             ))}
           </div>
 
-          {/* Flag — bottom-right */}
+          {/* Flag — bottom-left */}
           {iso2 && (
-            <div style={{ position: 'absolute', bottom: 2, right: 4 }}>
+            <div style={{ position: 'absolute', bottom: 2, left: 4 }}>
               <span
                 className={`fi fi-${iso2}`}
                 style={{

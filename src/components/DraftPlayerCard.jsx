@@ -212,19 +212,21 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>score med.</div>
         </div>
 
-        {/* Left: minutes + matches — below score */}
+        {/* Bottom-right: minutes + matches */}
         <div
           style={{
             position: 'absolute',
-            top: compact ? 44 : 58,
-            left: 0,
+            bottom: 0,
+            right: 0,
             padding: chipPad,
-            borderRadius: `0 ${chipRadius}px ${chipRadius}px 0`,
+            borderRadius: `${chipRadius}px 0 0 0`,
             background: chipBackground,
             border: chipBorder,
-            borderLeft: 'none',
+            borderRight: 'none',
+            borderBottom: 'none',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
             backdropFilter: 'blur(8px)',
+            textAlign: 'right',
           }}
         >
           <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
@@ -289,13 +291,13 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           ))}
         </div>
 
-        {/* Bottom-right: flag */}
+        {/* Bottom-left: flag */}
         {iso2 && (
           <div
             style={{
               position: 'absolute',
               bottom: compact ? 8 : 10,
-              right: compact ? 9 : 11,
+              left: compact ? 9 : 11,
             }}
           >
             <span
