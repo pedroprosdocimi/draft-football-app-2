@@ -2076,13 +2076,13 @@ export default function Admin({ onBack }) {
             <option value="4">LE</option>
             <option value="5">VOL</option>
             <option value="6">MEI</option>
-            <option value="7">MAT</option>
+            <option value="7">MEI</option>
             <option value="8">ME</option>
             <option value="9">MD</option>
             <option value="10">CA</option>
             <option value="11">PE</option>
             <option value="12">PD</option>
-            <option value="13">2AT</option>
+            <option value="13">SA</option>
           </select>
           <button
             className="btn-primary"

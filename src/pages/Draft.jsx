@@ -12,7 +12,7 @@ const DETAILED_TO_BASIC = {
 
 const DETAILED_LABELS = {
   1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MC', 7:'MAT', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'2AT'
+  6:'MC', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA'
 };
 
 const SLOT_TONE_CLASSES = {
@@ -24,11 +24,11 @@ const SLOT_TONE_CLASSES = {
   MC: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
   MD: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
   ME: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
-  MAT: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
+  MEI: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
   PE: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
   PD: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
   CA: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
-  '2AT': 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
+  'SA': 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
 };
 
 const TEAM_COLORS = {

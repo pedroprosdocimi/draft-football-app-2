@@ -7,13 +7,13 @@ const POSITION_LABELS = {
   4: 'LE',
   5: 'VOL',
   6: 'MC',
-  7: 'MAT',
+  7: 'MEI',
   8: 'ME',
   9: 'MD',
   10: 'CA',
   11: 'PE',
   12: 'PD',
-  13: '2AT',
+  13: 'SA',
 };
 
 const POSITION_BADGE_STYLES = {
@@ -25,18 +25,18 @@ const POSITION_BADGE_STYLES = {
   MC: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
   MD: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
   ME: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
-  MAT: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
+  MEI: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
   PE: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
   PD: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
   CA: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
-  '2AT': 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
+  'SA': 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
 };
 
 const PREVIEW_ROWS = [
   { key: 'striker', labels: ['CA'], half: 'attack' },
-  { key: 'support', labels: ['2AT'], half: 'attack' },
+  { key: 'support', labels: ['SA'], half: 'attack' },
   { key: 'wings', labels: ['PE', 'PD'], half: 'attack' },
-  { key: 'attackMid', labels: ['MAT'], half: 'attack' },
+  { key: 'attackMid', labels: ['MEI'], half: 'attack' },
   { key: 'midfield', labels: ['ME', 'MC', 'MD'], half: 'attack' },
   { key: 'defMid', labels: ['VOL'], half: 'defense' },
   { key: 'fullBack', labels: ['LE', 'LD'], half: 'defense' },

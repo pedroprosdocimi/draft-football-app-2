@@ -32,13 +32,13 @@ const DETAILED_LABELS = {
   4: 'LE',
   5: 'VOL',
   6: 'MEI',
-  7: 'MAT',
+  7: 'MEI',
   8: 'ME',
   9: 'MD',
   10: 'CA',
   11: 'PE',
   12: 'PD',
-  13: '2AT',
+  13: 'SA',
 };
 
 const BORDER_COLORS = {
