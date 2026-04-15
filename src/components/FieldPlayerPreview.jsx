@@ -148,9 +148,6 @@ export default function FieldPlayerPreview({ player, posLabel }) {
                   display: 'inline-block',
                   width: 18,
                   height: 13,
-                  borderRadius: 3,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.45)',
-                  border: '1px solid rgba(255,255,255,0.1)',
                 }}
               />
             </div>

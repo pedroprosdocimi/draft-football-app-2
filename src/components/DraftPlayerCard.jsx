@@ -304,9 +304,6 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
                 display: 'inline-block',
                 width: flagW,
                 height: flagH,
-                borderRadius: 4,
-                boxShadow: '0 3px 10px rgba(0,0,0,0.45)',
-                border: '1px solid rgba(255,255,255,0.1)',
               }}
             />
           </div>
