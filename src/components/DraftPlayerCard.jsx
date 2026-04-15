@@ -237,27 +237,40 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           <div style={{ fontSize: 8, color: mutedLabelColor }}>partidas</div>
         </div>
 
-        {/* Top-right: main position + alt positions */}
-        <div
+        {/* Top-right: main position */}
+        <span
           style={{
             position: 'absolute',
-            top: compact ? 8 : 10,
+            top: 0,
             right: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end',
-            gap: 4,
+            fontSize: posFz,
+            fontWeight: 900,
+            color: '#f9fafb',
+            lineHeight: 1,
+            letterSpacing: '0.5px',
+            textShadow: '0 4px 12px rgba(0,0,0,0.55)',
+            padding: chipPad,
+            borderRadius: `0 0 0 ${chipRadius}px`,
+            background: chipBackground,
+            border: chipBorder,
+            borderRight: 'none',
+            borderTop: 'none',
+            backdropFilter: 'blur(8px)',
           }}
         >
-          <span
+          {getDetailedPositionLabel(player.detailed_position_id)}
+        </span>
+
+        {/* Right: alt positions — below main position */}
+        {altPositions.length > 0 && (
+          <div
             style={{
-              fontSize: posFz,
-              fontWeight: 900,
-              color: '#f9fafb',
-              lineHeight: 1,
-              letterSpacing: '0.5px',
-              textShadow: '0 4px 12px rgba(0,0,0,0.55)',
-              padding: chipPad,
+              position: 'absolute',
+              top: compact ? 36 : 48,
+              right: 0,
+              display: 'flex',
+              gap: 3,
+              padding: `3px ${compact ? 6 : 8}px 3px 6px`,
               borderRadius: `${chipRadius}px 0 0 ${chipRadius}px`,
               background: chipBackground,
               border: chipBorder,
@@ -265,31 +278,21 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
               backdropFilter: 'blur(8px)',
             }}
           >
-            {getDetailedPositionLabel(player.detailed_position_id)}
-          </span>
-          {altPositions.length > 0 && (
-            <div style={{ display: 'flex', gap: 3, justifyContent: 'flex-end' }}>
-              {altPositions.map((posID) => (
-                <span
-                  key={posID}
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 600,
-                    color: '#9ca3af',
-                    background: 'rgba(15,23,42,0.68)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 999,
-                    padding: '1px 6px',
-                    lineHeight: 1.5,
-                    backdropFilter: 'blur(8px)',
-                  }}
-                >
-                  {getDetailedPositionLabel(posID)}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+            {altPositions.map((posID) => (
+              <span
+                key={posID}
+                style={{
+                  fontSize: 9,
+                  fontWeight: 600,
+                  color: '#9ca3af',
+                  lineHeight: 1.5,
+                }}
+              >
+                {getDetailedPositionLabel(posID)}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Bottom-left: flag */}
         {iso2 && (
