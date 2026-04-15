@@ -25,8 +25,16 @@ const TEAM_COLORS = {
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },
 };
 
+function formatName(name) {
+  if (name.length <= 11) return name;
+  const parts = name.split(' ');
+  if (parts.length < 2) return name;
+  return `${parts[0][0]}. ${parts.slice(1).join(' ')}`;
+}
+
 export default function FieldPlayerPreview({ player, posLabel }) {
-  const displayName = player?.display_name || player?.name || 'Jogador';
+  const rawName = player?.display_name || player?.name || 'Jogador';
+  const displayName = formatName(rawName);
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
   const nameFontSize = displayName.length > 14 ? 7 : displayName.length > 10 ? 8 : 9;
   const jerseyColors = {
