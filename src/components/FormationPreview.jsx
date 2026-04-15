@@ -197,13 +197,25 @@ function getPreviewPlacements(row, rows) {
 export function getFormationPreviewLayout(formation) {
   const rows = buildPreviewRows(formation?.slots || []);
 
-  return rows.flatMap((row) => (
+  // Build default computed placements
+  const computed = rows.flatMap((row) => (
     getPreviewPlacements(row, rows).map((slot, index) => ({
       ...slot,
       top: row.top,
       key: `${formation?.name || 'formation'}-${row.key}-${slot.position || index}-${slot.label}-${index}`,
     }))
   ));
+
+  // Override with stored x/y when available (x !== 0 || y !== 0)
+  const storedByPosition = {};
+  (formation?.slots || []).forEach((s) => {
+    if (s.x !== 0 || s.y !== 0) storedByPosition[s.position] = { left: s.x, top: s.y };
+  });
+
+  return computed.map((placement) => {
+    const override = storedByPosition[placement.position];
+    return override ? { ...placement, left: override.left, top: override.top } : placement;
+  });
 }
 
 export default function FormationPreview({
