@@ -82,24 +82,32 @@ function FieldPlayerPreview({ player, posLabel }) {
 
           <div className="flex items-center justify-center">
             <div className="relative h-[3.2rem] w-[2.4rem] overflow-hidden sm:h-[4rem] sm:w-[3.2rem]">
-              <svg
-                viewBox="0 0 120 95"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="absolute left-1/2 top-0 w-[3.25rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[4.25rem]"
-                aria-label={`Camisa de ${displayName}`}
-              >
-                <defs>
-                <clipPath id={`field-jersey-${player?.id || displayName}`}>
-                  <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
-                </clipPath>
-              </defs>
-              <g clipPath={`url(#field-jersey-${player?.id || displayName})`}>
-                <rect x="0" y="0" width="120" height="95" fill={jerseyColors.p} />
-                <rect x="45" y="0" width="30" height="95" fill={jerseyColors.s} opacity="0.85" />
-              </g>
-            </svg>
-          </div>
+              {player?.team_jersey_url ? (
+                <img
+                  src={player.team_jersey_url}
+                  alt={player.team_short_code}
+                  className="absolute left-1/2 top-0 w-[3.25rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[4.25rem] object-contain"
+                />
+              ) : (
+                <svg
+                  viewBox="0 0 120 95"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="absolute left-1/2 top-0 w-[3.25rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[4.25rem]"
+                  aria-label={`Camisa de ${displayName}`}
+                >
+                  <defs>
+                    <clipPath id={`field-jersey-${player?.id || displayName}`}>
+                      <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
+                    </clipPath>
+                  </defs>
+                  <g clipPath={`url(#field-jersey-${player?.id || displayName})`}>
+                    <rect x="0" y="0" width="120" height="95" fill={jerseyColors.p} />
+                    <rect x="45" y="0" width="30" height="95" fill={jerseyColors.s} opacity="0.85" />
+                  </g>
+                </svg>
+              )}
+            </div>
           </div>
         </div>
       </div>

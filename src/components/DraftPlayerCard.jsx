@@ -183,23 +183,35 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             justifyContent: 'center',
           }}
         >
-          <svg
-            viewBox="0 0 120 95"
-            width={jerseyW}
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.72))' }}
-          >
-            <defs>
-              <clipPath id={`jersey-${player.id}`}>
-                <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
-              </clipPath>
-            </defs>
-            <g clipPath={`url(#jersey-${player.id})`}>
-              <rect x="0" y="0" width="120" height="95" fill={jersey.p} />
-              <rect x="45" y="0" width="30" height="95" fill={jersey.s} opacity="0.85" />
-            </g>
-          </svg>
+          {player.team_jersey_url ? (
+            <img
+              src={player.team_jersey_url}
+              alt={player.team_short_code}
+              width={jerseyW}
+              style={{
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.72))',
+              }}
+            />
+          ) : (
+            <svg
+              viewBox="0 0 120 95"
+              width={jerseyW}
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ filter: 'drop-shadow(0 8px 18px rgba(0,0,0,0.72))' }}
+            >
+              <defs>
+                <clipPath id={`jersey-${player.id}`}>
+                  <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
+                </clipPath>
+              </defs>
+              <g clipPath={`url(#jersey-${player.id})`}>
+                <rect x="0" y="0" width="120" height="95" fill={jersey.p} />
+                <rect x="45" y="0" width="30" height="95" fill={jersey.s} opacity="0.85" />
+              </g>
+            </svg>
+          )}
         </div>
 
         <div
