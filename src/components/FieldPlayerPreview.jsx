@@ -1,9 +1,5 @@
 import React from 'react';
-
-const DETAILED_LABELS = {
-  1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MC', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA',
-};
+import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
 
 const TEAM_COLORS = {
   FLA: { p: '#CC0000', s: '#1a1a1a' },
@@ -35,7 +31,7 @@ export default function FieldPlayerPreview({ player, posLabel }) {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
   };
-  const altPositions = [...new Set(player?.alt_positions || [])].slice(0, 2);
+  const altPositions = [...new Set((player?.alt_positions || []).map((positionId) => normalizeDetailedPositionId(positionId)))].slice(0, 2);
 
   return (
     <div className="w-[5.75rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[7.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
@@ -83,7 +79,7 @@ export default function FieldPlayerPreview({ player, posLabel }) {
             </div>
             {altPositions.map((id) => (
               <div key={id} className="rounded-[6px] border border-slate-600 bg-slate-800 px-1 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
-                {DETAILED_LABELS[id] || id}
+                {getDetailedPositionLabel(id)}
               </div>
             ))}
           </div>

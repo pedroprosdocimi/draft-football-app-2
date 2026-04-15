@@ -5,15 +5,11 @@ import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import PickPanel from '../components/PickPanel.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
+import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
 
 // Maps detailed_position_id → basic position_id
 const DETAILED_TO_BASIC = {
   1:1, 2:2, 3:2, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:4, 11:4, 12:4, 13:4
-};
-
-const DETAILED_LABELS = {
-  1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MC', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA'
 };
 
 const SLOT_TONE_CLASSES = {
@@ -28,8 +24,7 @@ const SLOT_TONE_CLASSES = {
   MEI: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
   PE: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
   PD: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
-  CA: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
-  'SA': 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
+  ATA: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
 };
 
 // Bench slot definitions
@@ -206,10 +201,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     const slotADef = starterPlacements.find(s => s.position === slotA);
     const slotBDef = starterPlacements.find(s => s.position === slotB);
     if (!slotADef || !slotBDef) return true;
-    const positionsOf = (p) => [p.detailed_position_id, ...(p.alt_positions || [])];
     return (
-      positionsOf(playerA).includes(slotBDef.detailed_position_id) &&
-      positionsOf(playerB).includes(slotADef.detailed_position_id)
+      matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id) &&
+      matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)
     );
   }, [pickedPlayers, starterPlacements]);
 
@@ -428,7 +422,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {starterPicks.map(pick => {
-              const posLabel = DETAILED_LABELS[pick.detailed_position_id] || '?';
+              const posLabel = getDetailedPositionLabel(pick.detailed_position_id);
               return (
                 <button key={pick.slot_position}
                   onClick={() => handleCaptain(pick.player_id)}
@@ -517,7 +511,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           <div className="absolute left-1/2 bottom-3 h-6 w-14 -translate-x-1/2 rounded-t-[14px] border border-b-0 border-white/10" />
 
           {starterPlacements.map((slot) => {
-            const posLabel = DETAILED_LABELS[slot.detailed_position_id] || slot.label || '?';
+            const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || slot.label || '?';
             const toneClasses = SLOT_TONE_CLASSES[posLabel] || 'border-white/15 bg-slate-950/88 text-white ring-white/10';
             const playerObj = normalizeDraftPlayer(pickedPlayers[slot.position] ?? null);
             const confirmedPick = picksBySlot[slot.position];
@@ -605,9 +599,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               const confirmedPick = picksBySlot[slot];
               const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
               const posLabel = playerObj
-                ? (DETAILED_LABELS[playerObj.detailed_position_id] || '?')
+                ? getDetailedPositionLabel(playerObj.detailed_position_id)
                 : confirmedPick
-                  ? (DETAILED_LABELS[confirmedPick.detailed_position_id] || '?')
+                  ? getDetailedPositionLabel(confirmedPick.detailed_position_id)
                   : null;
 
               const isSelected = selectedBenchSlot === slot;

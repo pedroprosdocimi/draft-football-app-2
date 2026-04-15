@@ -2,11 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { API_URL } from '../config.js';
 import { getFormationPreviewLayout } from './FormationPreview.jsx';
 import FieldPlayerPreview from './FieldPlayerPreview.jsx';
-
-const POSITION_LABELS = {
-  1: 'GOL', 2: 'ZAG', 3: 'LD', 4: 'LE', 5: 'VOL',
-  6: 'MC', 7: 'MEI', 8: 'ME', 9: 'MD', 10: 'CA', 11: 'PE', 12: 'PD', 13: 'SA',
-};
+import { getDetailedPositionLabel } from '../utils/positions.js';
 
 function buildDefaultPositions(formation) {
   const layout = getFormationPreviewLayout(formation);
@@ -176,7 +172,7 @@ export default function FormationSlotEditor({ formation, onClose, onSaved }) {
               const pos = positions[slot.position] || { x: 50, y: 50 };
               const isDragging = dragging === slot.position;
               const player = playersByPos[slot.detailed_position_id] || null;
-              const posLabel = POSITION_LABELS[slot.detailed_position_id] || '?';
+              const posLabel = getDetailedPositionLabel(slot.detailed_position_id);
 
               return (
                 <div

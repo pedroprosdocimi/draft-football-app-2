@@ -4,6 +4,12 @@ import AdminFormationManager from '../components/AdminFormationManager.jsx';
 import DraftHistory from '../components/DraftHistory.jsx';
 import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
+import {
+  buildCanonicalPositionWeightsMap,
+  DETAILED_POSITION_FILTER_OPTIONS,
+  normalizeDetailedPositionId,
+  normalizeDetailedPositionText,
+} from '../utils/positions.js';
 
 const POS_LABELS = { 1: 'GOL', 2: 'LAT', 3: 'ZAG', 4: 'MEI', 5: 'ATA' };
 const POS_ORDER = [1, 2, 3, 4, 5];
@@ -120,21 +126,7 @@ const ADMIN_CATEGORY_META = {
 };
 const ADMIN_CATEGORY_ORDER = ['ataque','criacao','passes','defesa','fisico','goleiro','comportamento'];
 
-const DETAILED_POSITIONS_FILTER = [
-  { id: 1,  label: 'Goleiro' },
-  { id: 2,  label: 'Zagueiro Central' },
-  { id: 3,  label: 'Lateral Direito' },
-  { id: 4,  label: 'Lateral Esquerdo' },
-  { id: 5,  label: 'Volante' },
-  { id: 6,  label: 'Meio-campista Central' },
-  { id: 7,  label: 'Meia Atacante' },
-  { id: 8,  label: 'Meia Esquerda' },
-  { id: 9,  label: 'Meia Direita' },
-  { id: 10, label: 'Centroavante' },
-  { id: 11, label: 'Ponta Esquerda' },
-  { id: 12, label: 'Ponta Direita' },
-  { id: 13, label: 'Segundo Atacante' },
-];
+const DETAILED_POSITIONS_FILTER = DETAILED_POSITION_FILTER_OPTIONS;
 
 function fmtStat(key, value) {
   if (value === null || value === undefined) return '—';
@@ -734,12 +726,7 @@ export default function Admin({ onBack }) {
       setStatsSeasons(seasonsData.data || []);
       setStatsTeams(teamsData.data || []);
       // Build lookup: { detailedPosId: { stat_name: weight } }
-      const map = {};
-      for (const w of (posWeightsData.data || [])) {
-        if (!map[w.detailed_position_id]) map[w.detailed_position_id] = {};
-        map[w.detailed_position_id][w.stat_name] = w.weight;
-      }
-      setAllPosStatWeights(map);
+      setAllPosStatWeights(buildCanonicalPositionWeightsMap(posWeightsData.data || []));
     });
   }, []);
 
@@ -761,7 +748,7 @@ export default function Admin({ onBack }) {
     const token = localStorage.getItem('draft_token');
     const params = new URLSearchParams({ round_id: statsRoundId });
     if (statsTeamId) params.set('team_id', statsTeamId);
-    if (statsPosId) params.set('detailed_position_id', statsPosId);
+    if (statsPosId) params.set('detailed_position_id', normalizeDetailedPositionId(statsPosId));
     try {
       const res = await fetch(`${API_URL}/admin/player-stats?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
@@ -805,9 +792,9 @@ export default function Admin({ onBack }) {
         const data = await res.json();
         for (const p of (data.data || [])) {
           if (chartOnlyPlayed && (!p.minutes_played || p.minutes_played === 0)) continue;
-          const posName = p.detailed_position_name || p.position_name || 'Desconhecido';
+          const posName = normalizeDetailedPositionText(p.detailed_position_name || p.position_name || 'Desconhecido');
           if (!posMap[posName]) posMap[posName] = { total: 0, count: 0 };
-          const posWeights = allPosStatWeights[p.detailed_position_id] || {};
+          const posWeights = allPosStatWeights[normalizeDetailedPositionId(p.detailed_position_id)] || {};
           let score = 0;
           for (const stat of STAT_COLS) {
             const val = p[stat];
@@ -836,7 +823,7 @@ export default function Admin({ onBack }) {
     setPosStatMsg(null);
     const token = localStorage.getItem('draft_token');
     try {
-      const res = await fetch(`${API_URL}/admin/position-stat-weights?detailed_position_id=${posId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/admin/position-stat-weights?detailed_position_id=${normalizeDetailedPositionId(posId)}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       const map = {};
       for (const w of (data.data || [])) map[w.stat_name] = w.weight;
@@ -852,7 +839,7 @@ export default function Admin({ onBack }) {
     setPosStatMsg(null);
     const token = localStorage.getItem('draft_token');
     try {
-      const body = STAT_COLS.map(stat => ({ detailed_position_id: Number(posStatPosId), stat_name: stat, weight: posStatWeights[stat] ?? 100 }));
+      const body = STAT_COLS.map(stat => ({ detailed_position_id: normalizeDetailedPositionId(posStatPosId), stat_name: stat, weight: posStatWeights[stat] ?? 100 }));
       const res = await fetch(`${API_URL}/admin/position-stat-weights`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -866,12 +853,7 @@ export default function Admin({ onBack }) {
         fetch(`${API_URL}/admin/position-stat-weights`, { headers: authHeaders })
           .then(r => r.json())
           .then(posWeightsData => {
-            const map = {};
-            for (const w of (posWeightsData.data || [])) {
-              if (!map[w.detailed_position_id]) map[w.detailed_position_id] = {};
-              map[w.detailed_position_id][w.stat_name] = w.weight;
-            }
-            setAllPosStatWeights(map);
+            setAllPosStatWeights(buildCanonicalPositionWeightsMap(posWeightsData.data || []));
           });
       } else {
         setPosStatMsg(`❌ ${data.error}`);
@@ -902,7 +884,7 @@ export default function Admin({ onBack }) {
     const token = localStorage.getItem('draft_token');
     const params = new URLSearchParams();
     if (cardsTeamId) params.set('team_id', cardsTeamId);
-    if (cardsPosId) params.set('detailed_position_id', cardsPosId);
+    if (cardsPosId) params.set('detailed_position_id', normalizeDetailedPositionId(cardsPosId));
     const res = await fetch(`${API_URL}/admin/player-cards?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -1285,7 +1267,7 @@ export default function Admin({ onBack }) {
           }
 
           const calcScore = (p) => {
-            const posWeights = allPosStatWeights[p.detailed_position_id] || {};
+            const posWeights = allPosStatWeights[normalizeDetailedPositionId(p.detailed_position_id)] || {};
             let total = 0;
             const breakdown = [];
             for (const stat of STAT_COLS) {
@@ -1390,7 +1372,7 @@ export default function Admin({ onBack }) {
                       <tr key={p.player_id} className="hover:bg-gray-800/40">
                         <td className="sticky left-0 z-10 bg-gray-900 px-3 py-2 font-medium text-white border-r border-gray-700">
                           {p.display_name}
-                          <div className="text-gray-500 text-xs font-normal">{p.detailed_position_name}</div>
+                          <div className="text-gray-500 text-xs font-normal">{normalizeDetailedPositionText(p.detailed_position_name)}</div>
                         </td>
                         <td className="sticky left-[160px] z-10 bg-gray-900 px-2 py-2 text-gray-300 border-r border-gray-700" style={{ minWidth: 56 }}>{p.team_short_code}</td>
                         <td
@@ -1403,7 +1385,7 @@ export default function Admin({ onBack }) {
                           {p._score.toFixed(2)}
                         </td>
                         <td className="px-2 py-2 text-xs text-gray-400 border-r border-gray-800/50" style={{ minWidth: 160 }}>
-                          {p.alt_positions || <span className="text-gray-700">—</span>}
+                          {normalizeDetailedPositionText(p.alt_positions) || <span className="text-gray-700">—</span>}
                         </td>
                         {colsByCategory.flatMap(({ catKey, meta, cols }) =>
                           cols.map((col, i) => (
@@ -2079,10 +2061,9 @@ export default function Admin({ onBack }) {
             <option value="7">MEI</option>
             <option value="8">ME</option>
             <option value="9">MD</option>
-            <option value="10">CA</option>
+            <option value="10">ATA</option>
             <option value="11">PE</option>
             <option value="12">PD</option>
-            <option value="13">SA</option>
           </select>
           <button
             className="btn-primary"

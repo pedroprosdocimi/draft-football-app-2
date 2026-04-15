@@ -1,20 +1,5 @@
 import React from 'react';
-
-const POSITION_LABELS = {
-  1: 'GOL',
-  2: 'ZAG',
-  3: 'LD',
-  4: 'LE',
-  5: 'VOL',
-  6: 'MC',
-  7: 'MEI',
-  8: 'ME',
-  9: 'MD',
-  10: 'CA',
-  11: 'PE',
-  12: 'PD',
-  13: 'SA',
-};
+import { getDetailedPositionLabel } from '../utils/positions.js';
 
 const POSITION_BADGE_STYLES = {
   GOL: 'border-sky-300/40 bg-sky-950/90 text-sky-100 ring-sky-300/20',
@@ -28,13 +13,11 @@ const POSITION_BADGE_STYLES = {
   MEI: 'border-amber-300/40 bg-amber-950/90 text-amber-100 ring-amber-300/20',
   PE: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
   PD: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
-  CA: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
-  'SA': 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
+  ATA: 'border-rose-300/40 bg-rose-950/90 text-rose-100 ring-rose-300/20',
 };
 
 const PREVIEW_ROWS = [
-  { key: 'striker', labels: ['CA'], half: 'attack' },
-  { key: 'support', labels: ['SA'], half: 'attack' },
+  { key: 'attack', labels: ['ATA'], half: 'attack' },
   { key: 'wings', labels: ['PE', 'PD'], half: 'attack' },
   { key: 'attackMid', labels: ['MEI'], half: 'attack' },
   { key: 'midfield', labels: ['ME', 'MC', 'MD'], half: 'attack' },
@@ -46,7 +29,7 @@ const PREVIEW_ROWS = [
 
 function countPositionLabels(slots) {
   return (slots || []).reduce((accumulator, slot) => {
-    const label = POSITION_LABELS[slot.detailed_position_id];
+    const label = getDetailedPositionLabel(slot.detailed_position_id);
     if (!label) return accumulator;
 
     accumulator[label] = (accumulator[label] || 0) + 1;
@@ -98,7 +81,7 @@ function buildPreviewRows(slots) {
     ...row,
     slots: row.labels.flatMap((label) => (
       (slots || [])
-        .filter((slot) => POSITION_LABELS[slot.detailed_position_id] === label)
+        .filter((slot) => getDetailedPositionLabel(slot.detailed_position_id) === label)
         .map((slot) => ({ ...slot, label }))
     )),
   })).filter((row) => row.slots.length > 0);
@@ -107,19 +90,11 @@ function buildPreviewRows(slots) {
 }
 
 function getPreviewPlacements(row, rows) {
-  const hasSupportStrikerPair =
-    rows.some((currentRow) => currentRow.key === 'support' && currentRow.slots.length > 0) &&
-    rows.some((currentRow) => currentRow.key === 'striker' && currentRow.slots.length > 0);
-
-  if (row.key === 'striker' && hasSupportStrikerPair) {
-    return row.slots.map((slot) => ({ ...slot, left: 56 }));
+  if (row.key === 'attack' && row.slots.length === 2) {
+    return row.slots.map((slot, index) => ({ ...slot, left: index === 0 ? 44 : 56 }));
   }
 
-  if (row.key === 'support' && hasSupportStrikerPair) {
-    return row.slots.map((slot) => ({ ...slot, left: 44 }));
-  }
-
-  if (row.key === 'goal' || row.key === 'striker' || row.key === 'support') {
+  if (row.key === 'goal' || row.key === 'attack') {
     return row.slots.map((slot, index) => ({
       ...slot,
       left: spreadAcross(row.slots.length, 44, 56)[index],

@@ -1,9 +1,5 @@
 import React from 'react';
-
-const DETAILED_LABELS = {
-  1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MC', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA'
-};
+import { getDetailedPositionLabel } from '../utils/positions.js';
 
 const POS_COLORS = {
   1: { bg: 'bg-blue-600', border: 'border-blue-500', btn: 'border-blue-500 bg-blue-900/60 hover:bg-blue-800/80', glow: 'hover:shadow-blue-600/40' },
@@ -16,7 +12,7 @@ const DEFAULT_COLORS = { bg: 'bg-gray-600', border: 'border-gray-500', btn: 'bor
 
 export default function PlayerCard({ player, onClick, isMyTurn, compact = false, card = false, isCaptain = false }) {
   const colors = POS_COLORS[player.position_id] || DEFAULT_COLORS;
-  const posLabel = DETAILED_LABELS[player.detailed_position_id] || '?';
+  const posLabel = getDetailedPositionLabel(player.detailed_position_id);
   const displayName = player.display_name || player.name;
 
   if (compact) {

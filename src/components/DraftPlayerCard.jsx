@@ -1,5 +1,6 @@
 import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
+import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
 
 // Jersey colors by team short_code: { p: primary, s: secondary }
 const TEAM_COLORS = {
@@ -23,22 +24,6 @@ const TEAM_COLORS = {
   REM: { p: '#003082', s: '#CC0000' },  // Remo
   MIR: { p: '#F5C400', s: '#0041A0' },  // Mirassol
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },  // Chapecoense
-};
-
-const DETAILED_LABELS = {
-  1: 'GOL',
-  2: 'ZAG',
-  3: 'LD',
-  4: 'LE',
-  5: 'VOL',
-  6: 'MC',
-  7: 'MEI',
-  8: 'ME',
-  9: 'MD',
-  10: 'CA',
-  11: 'PE',
-  12: 'PD',
-  13: 'SA',
 };
 
 const BORDER_COLORS = {
@@ -72,7 +57,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
   const iso2 = nationalityToIso2(player.nationality || '');
   const displayName = player.display_name || player.name;
-  const altPositions = [...new Set(player.alt_positions || [])].slice(0, 2);
+  const altPositions = [...new Set((player.alt_positions || []).map((positionId) => normalizeDetailedPositionId(positionId)))].slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const jersey = TEAM_COLORS[player.team_short_code] || {
@@ -314,7 +299,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
                 backdropFilter: 'blur(8px)',
               }}
             >
-              {DETAILED_LABELS[posID] || posID}
+              {getDetailedPositionLabel(posID)}
             </span>
           ))}
           <span
@@ -328,7 +313,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
               textShadow: '0 4px 12px rgba(0,0,0,0.45)',
             }}
           >
-            {DETAILED_LABELS[player.detailed_position_id] || '?'}
+            {getDetailedPositionLabel(player.detailed_position_id)}
           </span>
         </div>
 

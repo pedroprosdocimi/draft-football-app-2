@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../config.js';
+import { getDetailedPositionLabel } from '../utils/positions.js';
 
 export default function EndScreen({ draftId, onGoHome }) {
   const [draft, setDraft] = useState(null);
@@ -16,11 +17,6 @@ export default function EndScreen({ draftId, onGoHome }) {
       <p className="text-gray-400 animate-pulse">Carregando resultado...</p>
     </div>
   );
-
-  const DETAILED_LABELS = {
-    1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-    6:'MC', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA'
-  };
 
   const starters = (draft.picks || []).filter(p => p.slot_position <= 11)
     .sort((a, b) => a.slot_position - b.slot_position);
@@ -43,7 +39,7 @@ export default function EndScreen({ draftId, onGoHome }) {
               <div key={p.slot_position} className="flex items-center gap-3 py-1">
                 <span className="text-xs font-mono text-gray-500 w-6">{p.slot_position}</span>
                 <span className="text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded font-bold">
-                  {DETAILED_LABELS[p.detailed_position_id] || '?'}
+                  {getDetailedPositionLabel(p.detailed_position_id)}
                 </span>
                 <span className="text-sm text-white font-mono truncate flex-1">
                   {p.player_id.slice(0, 8)}…
@@ -64,7 +60,7 @@ export default function EndScreen({ draftId, onGoHome }) {
                 <div key={p.slot_position} className="flex items-center gap-3 py-1">
                   <span className="text-xs font-mono text-gray-500 w-6">{p.slot_position}</span>
                   <span className="text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded font-bold">
-                    {DETAILED_LABELS[p.detailed_position_id] || '?'}
+                    {getDetailedPositionLabel(p.detailed_position_id)}
                   </span>
                   <span className="text-sm text-white font-mono truncate flex-1">
                     {p.player_id.slice(0, 8)}…
