@@ -65,24 +65,31 @@ function FieldPlayerPreview({ player, posLabel }) {
 
   return (
     <div className="w-[4.75rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[6.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
-      <div className="relative h-[4.35rem] overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)] sm:h-[5.4rem]">
+      <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_42%)]" />
-        <div className="absolute left-1.5 top-1.5 rounded-full border border-amber-300/25 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-black tracking-[0.14em] text-amber-200 sm:left-2 sm:top-2 sm:px-2 sm:text-[10px] sm:tracking-[0.2em]">
-          {avgScore}
-        </div>
-        <div className="absolute right-1.5 top-1.5 rounded-full border border-white/10 bg-slate-950/65 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-200 sm:right-2 sm:top-2 sm:px-2 sm:text-[9px] sm:tracking-[0.18em]">
-          {posLabel}
-        </div>
-        <div className="absolute inset-x-0 bottom-0 top-5.5 flex items-end justify-center px-2 pb-0 sm:top-6.5 sm:px-3">
-          <div className="relative h-[2.8rem] w-[3rem] overflow-hidden sm:h-[3.6rem] sm:w-[4.1rem]">
-            <svg
-              viewBox="0 0 120 95"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="absolute left-1/2 top-0 w-[3rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[4.1rem]"
-              aria-label={`Camisa de ${displayName}`}
-            >
-              <defs>
+        <div className="relative grid min-h-[4.6rem] grid-cols-[3fr_2fr] gap-1.5 px-1.5 py-1.5 sm:min-h-[5.7rem] sm:gap-2 sm:px-2 sm:py-2">
+          <div className="flex min-w-0 flex-col justify-between">
+            <div className="rounded-[10px] border border-amber-300/25 bg-amber-400/10 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
+              {avgScore}
+            </div>
+            <div className="rounded-[10px] border border-white/10 bg-slate-950/65 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-slate-100 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
+              {posLabel}
+            </div>
+            <div className="rounded-[10px] border border-emerald-200/10 bg-emerald-400/10 px-1.5 py-1 text-center text-[8px] font-bold uppercase tracking-[0.08em] text-emerald-100/85 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.12em]">
+              {teamLabel}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center">
+            <div className="relative h-[3.2rem] w-[2.4rem] overflow-hidden sm:h-[4rem] sm:w-[3.2rem]">
+              <svg
+                viewBox="0 0 120 95"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute left-1/2 top-0 w-[3.25rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[4.25rem]"
+                aria-label={`Camisa de ${displayName}`}
+              >
+                <defs>
                 <clipPath id={`field-jersey-${player?.id || displayName}`}>
                   <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
                 </clipPath>
@@ -93,9 +100,7 @@ function FieldPlayerPreview({ player, posLabel }) {
               </g>
             </svg>
           </div>
-        </div>
-        <div className="absolute left-1/2 top-[2.8rem] z-10 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/72 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/85 shadow-[0_6px_12px_rgba(0,0,0,0.28)] sm:top-[3.55rem] sm:px-2 sm:text-[9px] sm:tracking-[0.16em]">
-          {teamLabel}
+          </div>
         </div>
       </div>
 
