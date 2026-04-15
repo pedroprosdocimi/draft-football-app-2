@@ -102,9 +102,6 @@ function FieldPlayerPreview({ player, posLabel }) {
           <div className="rounded-[10px] border border-white/10 bg-slate-950/65 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-slate-100 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
             {posLabel}
           </div>
-          <div className="rounded-[10px] border border-emerald-200/10 bg-emerald-400/10 px-1.5 py-1 text-center text-[8px] font-bold uppercase tracking-[0.08em] text-emerald-100/85 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.12em]">
-            {teamLabel}
-          </div>
         </div>
       </div>
 
