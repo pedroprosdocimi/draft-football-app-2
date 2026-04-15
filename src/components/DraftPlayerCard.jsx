@@ -2,6 +2,7 @@ import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
 import {
   getDetailedPositionLabel,
+  getDetailedPositionPalette,
   getPlayerAlternativeDetailedPositionIds,
   getPlayerPrimaryDetailedPositionId,
   normalizeDetailedPositionId,
@@ -73,6 +74,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   )]
     .filter((id) => id !== primaryPositionId)
     .slice(0, 2);
+  const primaryPositionPalette = getDetailedPositionPalette(primaryPositionId);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const jersey = TEAM_COLORS[player.team_short_code] || {
@@ -269,14 +271,14 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             style={{
               fontSize: posFz,
               fontWeight: 900,
-              color: '#f9fafb',
+              color: primaryPositionPalette.text,
               lineHeight: 1,
               letterSpacing: '0.5px',
               textShadow: '0 4px 12px rgba(0,0,0,0.55)',
               padding: chipPad,
               borderRadius: `0 0 0 ${chipRadius}px`,
-              background: chipBackground,
-              border: chipBorder,
+              background: primaryPositionPalette.background,
+              border: `1px solid ${primaryPositionPalette.border}`,
               borderRight: 'none',
               borderTop: 'none',
               backdropFilter: 'blur(8px)',
@@ -290,12 +292,12 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
               style={{
                 fontSize: 9,
                 fontWeight: 600,
-                color: '#9ca3af',
+                color: getDetailedPositionPalette(posID).text,
                 lineHeight: 1,
                 padding: `3px ${compact ? 6 : 8}px 3px 6px`,
                 borderRadius: `${chipRadius}px 0 0 ${chipRadius}px`,
-                background: chipBackground,
-                border: chipBorder,
+                background: getDetailedPositionPalette(posID).background,
+                border: `1px solid ${getDetailedPositionPalette(posID).border}`,
                 borderRight: 'none',
                 borderTop: 'none',
                 backdropFilter: 'blur(8px)',

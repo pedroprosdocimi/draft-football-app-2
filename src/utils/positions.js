@@ -32,6 +32,50 @@ export const DETAILED_POSITION_FILTER_OPTIONS = [
   { id: 12, label: 'Ponta Direita' },
 ];
 
+const POSITION_COLOR_PALETTES = {
+  blue: {
+    text: '#bfdbfe',
+    background: 'rgba(30, 64, 175, 0.82)',
+    border: 'rgba(96, 165, 250, 0.5)',
+  },
+  green: {
+    text: '#bbf7d0',
+    background: 'rgba(22, 101, 52, 0.82)',
+    border: 'rgba(74, 222, 128, 0.45)',
+  },
+  yellow: {
+    text: '#fde68a',
+    background: 'rgba(161, 98, 7, 0.82)',
+    border: 'rgba(250, 204, 21, 0.45)',
+  },
+  red: {
+    text: '#fecaca',
+    background: 'rgba(153, 27, 27, 0.82)',
+    border: 'rgba(248, 113, 113, 0.45)',
+  },
+  neutral: {
+    text: '#f9fafb',
+    background: 'rgba(2, 6, 23, 0.62)',
+    border: 'rgba(255, 255, 255, 0.09)',
+  },
+};
+
+const POSITION_COLOR_GROUPS = {
+  1: 'blue',
+  2: 'green',
+  3: 'green',
+  4: 'green',
+  5: 'yellow',
+  6: 'yellow',
+  7: 'yellow',
+  8: 'yellow',
+  9: 'yellow',
+  10: 'red',
+  11: 'red',
+  12: 'red',
+  13: 'red',
+};
+
 
 export function normalizeDetailedPositionId(value) {
   const positionId = Number(value);
@@ -44,6 +88,12 @@ export function normalizeDetailedPositionId(value) {
 export function getDetailedPositionLabel(value) {
   const normalizedId = normalizeDetailedPositionId(value);
   return DETAILED_LABELS[normalizedId] || DETAILED_LABELS[Number(value)] || '?';
+}
+
+export function getDetailedPositionPalette(value) {
+  const normalizedId = normalizeDetailedPositionId(value);
+  const colorGroup = POSITION_COLOR_GROUPS[normalizedId];
+  return POSITION_COLOR_PALETTES[colorGroup] || POSITION_COLOR_PALETTES.neutral;
 }
 
 export function getPlayerPrimaryDetailedPositionId(player) {

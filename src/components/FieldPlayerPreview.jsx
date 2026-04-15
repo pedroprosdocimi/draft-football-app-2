@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   getDetailedPositionLabel,
+  getDetailedPositionPalette,
   getPlayerAlternativeDetailedPositionIds,
   getPlayerPrimaryDetailedPositionId,
   normalizeDetailedPositionId,
@@ -63,6 +64,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   )]
     .filter((id) => id !== normalizedPlayerPos)
     .slice(0, 2);
+  const primaryPositionPalette = getDetailedPositionPalette(normalizedPlayerPos);
 
   const iso2 = nationalityToIso2(player?.nationality || '');
 
@@ -131,14 +133,14 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
             <div
               style={{
                 padding: '3px 5px',
-                borderRadius: '8px 0 0 8px',
-                background: 'rgba(2,6,23,0.62)',
-                border: '1px solid rgba(255,255,255,0.09)',
+              borderRadius: '8px 0 0 8px',
+                background: primaryPositionPalette.background,
+                border: `1px solid ${primaryPositionPalette.border}`,
                 borderRight: 'none',
                 backdropFilter: 'blur(8px)',
                 fontSize: 9,
                 fontWeight: 900,
-                color: '#f9fafb',
+                color: primaryPositionPalette.text,
                 lineHeight: 1,
                 letterSpacing: '0.5px',
                 textTransform: 'uppercase',
@@ -152,14 +154,14 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                 style={{
                   padding: '2px 5px 2px 4px',
                   borderRadius: '6px 0 0 6px',
-                  background: 'rgba(2,6,23,0.62)',
-                  border: '1px solid rgba(255,255,255,0.09)',
+                  background: getDetailedPositionPalette(id).background,
+                  border: `1px solid ${getDetailedPositionPalette(id).border}`,
                   borderRight: 'none',
                   borderTop: 'none',
                   backdropFilter: 'blur(8px)',
                   fontSize: 7,
                   fontWeight: 600,
-                  color: '#9ca3af',
+                  color: getDetailedPositionPalette(id).text,
                   lineHeight: 1,
                   textTransform: 'uppercase',
                 }}
