@@ -26,6 +26,11 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
     ? options
     : options.filter((player) => matchesDetailedPositionSlot(player, normalizedSlotPositionId));
 
+  // DEBUG — remover depois
+  if (options?.length > 0) {
+    console.log('[PickPanel] nationality values:', options.map(p => p.nationality));
+  }
+
   return (
     <div
       className="fixed inset-0 bg-black/80 z-50 overflow-y-auto"
