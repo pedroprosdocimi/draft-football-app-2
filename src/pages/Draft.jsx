@@ -68,9 +68,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   // { [slotPosition]: PlayerObject } — persists cards for rendering after API confirms
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [poppingSlot, setPoppingSlot] = useState(null);
-  const [replacingSlot, setReplacingSlot] = useState(null); // slot being replaced via long-press
+  const [draggingSlot, setDraggingSlot] = useState(null); // slot being drag-swapped
+  const [dropTargetSlot, setDropTargetSlot] = useState(null); // highlighted drop target
   const animTimeoutsRef = React.useRef([]);
-  const longPressRef = React.useRef(null);
+  const fieldRef = React.useRef(null);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -141,23 +142,92 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }
   };
 
-  const startLongPress = (slotPosition) => {
-    longPressRef.current = setTimeout(() => {
-      longPressRef.current = null;
-      setReplacingSlot(slotPosition);
-      handleSlotClick(slotPosition, true);
-    }, 500);
-  };
+  const getSlotAtPoint = useCallback((clientX, clientY) => {
+    const rect = fieldRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    const xPct = ((clientX - rect.left) / rect.width) * 100;
+    const yPct = ((clientY - rect.top) / rect.height) * 100;
+    let closest = null;
+    let minDist = 12;
+    starterPlacements.forEach((slot) => {
+      const dist = Math.hypot(slot.left - xPct, slot.top - yPct);
+      if (dist < minDist) { minDist = dist; closest = slot.position; }
+    });
+    return closest;
+  }, [starterPlacements]);
 
-  const cancelLongPress = () => {
-    if (longPressRef.current) {
-      clearTimeout(longPressRef.current);
-      longPressRef.current = null;
+  const handleFieldPointerDown = useCallback((e, slotPosition) => {
+    e.preventDefault();
+    setDraggingSlot(slotPosition);
+    fieldRef.current?.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handleFieldPointerMove = useCallback((e) => {
+    if (draggingSlot === null) return;
+    const target = getSlotAtPoint(e.clientX, e.clientY);
+    setDropTargetSlot(target !== draggingSlot ? target : null);
+  }, [draggingSlot, getSlotAtPoint]);
+
+  const handleFieldPointerUp = useCallback((e) => {
+    if (draggingSlot === null) return;
+    const target = getSlotAtPoint(e.clientX, e.clientY);
+    if (target && target !== draggingSlot && (pickedPlayers[target] || picksBySlot[target])) {
+      handleSwap(draggingSlot, target);
+    }
+    setDraggingSlot(null);
+    setDropTargetSlot(null);
+  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSwap = async (slotA, slotB) => {
+    const playerAId = pickedPlayers[slotA]?.id || picksBySlot[slotA]?.player_id;
+    const playerBId = pickedPlayers[slotB]?.id || picksBySlot[slotB]?.player_id;
+    if (!playerAId || !playerBId) return;
+
+    // Optimistic swap
+    setPickedPlayers((prev) => {
+      const next = { ...prev };
+      const a = prev[slotA];
+      const b = prev[slotB];
+      if (a !== undefined) next[slotB] = a; else delete next[slotB];
+      if (b !== undefined) next[slotA] = b; else delete next[slotA];
+      return next;
+    });
+
+    try {
+      setLoading(true);
+      const r1 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
+        method: 'PUT',
+        body: JSON.stringify({ player_id: playerBId, slot_position: slotA }),
+      });
+      const d1 = await r1.json();
+      if (!r1.ok) throw new Error(d1.error);
+
+      const r2 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
+        method: 'PUT',
+        body: JSON.stringify({ player_id: playerAId, slot_position: slotB }),
+      });
+      const d2 = await r2.json();
+      if (!r2.ok) throw new Error(d2.error);
+
+      await loadDraft();
+    } catch (e) {
+      setError(e.message);
+      // Revert
+      setPickedPlayers((prev) => {
+        const next = { ...prev };
+        const a = prev[slotA];
+        const b = prev[slotB];
+        if (a !== undefined) next[slotB] = a; else delete next[slotB];
+        if (b !== undefined) next[slotA] = b; else delete next[slotA];
+        return next;
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSlotClick = async (slotPosition, isReplace = false) => {
-    if (!isReplace && (picksBySlot[slotPosition] || pickedPlayers[slotPosition])) return;
+  const handleSlotClick = async (slotPosition) => {
+    if (picksBySlot[slotPosition] || pickedPlayers[slotPosition]) return;
     setActiveSlot(slotPosition);
     setLoading(true);
     try {
@@ -175,7 +245,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handlePickPlayer = (player) => {
     const slotPosition = activeSlot;
-    const isReplace = replacingSlot === slotPosition;
 
     // 1. Store player optimistically
     setPickedPlayers(prev => ({ ...prev, [slotPosition]: player }));
@@ -192,7 +261,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       setActiveSlot(null);
       setIsAnimatingOut(false);
       setPendingPick(null);
-      setReplacingSlot(null);
       const t2 = setTimeout(() => {
         setPoppingSlot(null);
         animTimeoutsRef.current = animTimeoutsRef.current.filter(id => id !== t2);
@@ -201,10 +269,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }, 300);
     animTimeoutsRef.current.push(t1);
 
-    // 4. Call API in parallel (PUT for replace, POST for new pick)
+    // 4. Call API in parallel
     setLoading(true);
     authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-      method: isReplace ? 'PUT' : 'POST',
+      method: 'POST',
       body: JSON.stringify({ player_id: player.id, slot_position: slotPosition }),
     })
       .then(res => res.json().then(data => ({ ok: res.ok, data })))
@@ -214,13 +282,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       })
       .catch(e => {
         setError(e.message);
-        // Revert optimistic UI on error
         setPickedPlayers(prev => {
           const next = { ...prev };
           delete next[slotPosition];
           return next;
         });
-        setReplacingSlot(null);
       })
       .finally(() => setLoading(false));
   };
@@ -334,10 +400,15 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
 
         <div
+          ref={fieldRef}
+          onPointerMove={handleFieldPointerMove}
+          onPointerUp={handleFieldPointerUp}
+          onPointerLeave={() => { setDraggingSlot(null); setDropTargetSlot(null); }}
           className="relative mx-auto h-[40rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[44rem]"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
+            cursor: draggingSlot !== null ? 'grabbing' : 'default',
           }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(110,231,183,0.14),transparent_34%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
@@ -397,25 +468,19 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   ...animationStyle,
                 }}
               >
-                {showFieldCard ? (
+                {showFieldCard || confirmedPick ? (
                   <div
-                    onPointerDown={() => startLongPress(slot.position)}
-                    onPointerUp={cancelLongPress}
-                    onPointerLeave={cancelLongPress}
-                    style={{ touchAction: 'none', cursor: 'grab' }}
-                    title="Segure para substituir"
+                    onPointerDown={(e) => handleFieldPointerDown(e, slot.position)}
+                    style={{
+                      touchAction: 'none',
+                      cursor: draggingSlot === slot.position ? 'grabbing' : 'grab',
+                      opacity: draggingSlot === slot.position ? 0.5 : 1,
+                      outline: dropTargetSlot === slot.position ? '2px solid rgba(110,231,183,0.8)' : 'none',
+                      borderRadius: '20px',
+                      transition: 'opacity 0.15s, outline 0.1s',
+                    }}
                   >
                     <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
-                  </div>
-                ) : confirmedPick ? (
-                  <div
-                    onPointerDown={() => startLongPress(slot.position)}
-                    onPointerUp={cancelLongPress}
-                    onPointerLeave={cancelLongPress}
-                    style={{ touchAction: 'none', cursor: 'grab' }}
-                    title="Segure para substituir"
-                  >
-                    <FieldPlayerPreview player={null} posLabel={posLabel} />
                   </div>
                 ) : isLocked ? (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
@@ -454,14 +519,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 return (
                   <div
                     key={slot}
-                    onPointerDown={() => startLongPress(slot)}
-                    onPointerUp={cancelLongPress}
-                    onPointerLeave={cancelLongPress}
                     style={poppingSlot === slot
-                      ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0, touchAction: 'none', cursor: 'grab' }
-                      : { flexShrink: 0, touchAction: 'none', cursor: 'grab' }
+                      ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
+                      : { flexShrink: 0 }
                     }
-                    title="Segure para substituir"
                   >
                     <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
                   </div>
@@ -470,14 +531,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
               if (confirmedPick) {
                 return (
-                  <div
-                    key={slot}
-                    onPointerDown={() => startLongPress(slot)}
-                    onPointerUp={cancelLongPress}
-                    onPointerLeave={cancelLongPress}
-                    style={{ flexShrink: 0, touchAction: 'none', cursor: 'grab' }}
-                    title="Segure para substituir"
-                  >
+                  <div key={slot} style={{ flexShrink: 0 }}>
                     <FieldPlayerPreview player={null} posLabel={posLabel} />
                   </div>
                 );
