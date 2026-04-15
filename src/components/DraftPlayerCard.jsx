@@ -141,15 +141,6 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
         <div
           style={{
             position: 'absolute',
-            inset: compact ? 7 : 9,
-            borderRadius: compact ? 14 : 18,
-            border: '1px solid rgba(255,255,255,0.08)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
             left: compact ? 10 : 12,
             right: compact ? 10 : 12,
             bottom: compact ? 11 : 13,
@@ -204,11 +195,12 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           style={{
             position: 'absolute',
             top: compact ? 8 : 10,
-            left: compact ? 9 : 11,
+            left: 0,
             padding: chipPad,
-            borderRadius: chipRadius,
+            borderRadius: `0 ${chipRadius}px ${chipRadius}px 0`,
             background: chipBackground,
             border: chipBorder,
+            borderLeft: 'none',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
             backdropFilter: 'blur(8px)',
           }}
@@ -233,7 +225,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           style={{
             position: 'absolute',
             top: compact ? 8 : 10,
-            right: compact ? 9 : 11,
+            right: 0,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-end',
@@ -249,9 +241,10 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
               letterSpacing: '0.5px',
               textShadow: '0 4px 12px rgba(0,0,0,0.55)',
               padding: chipPad,
-              borderRadius: chipRadius,
+              borderRadius: `${chipRadius}px 0 0 ${chipRadius}px`,
               background: chipBackground,
               border: chipBorder,
+              borderRight: 'none',
               backdropFilter: 'blur(8px)',
             }}
           >
