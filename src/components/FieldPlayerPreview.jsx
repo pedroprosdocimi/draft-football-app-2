@@ -28,6 +28,7 @@ const TEAM_COLORS = {
 export default function FieldPlayerPreview({ player, posLabel }) {
   const displayName = player?.display_name || player?.name || 'Jogador';
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
+  const nameFontSize = displayName.length > 14 ? 7 : displayName.length > 10 ? 8 : 9;
   const jerseyColors = {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
@@ -45,14 +46,14 @@ export default function FieldPlayerPreview({ player, posLabel }) {
           <img
             src={player.team_jersey_url}
             alt={player.team_short_code}
-            className="absolute bottom-[-2%] left-1/2 h-[88%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           />
         ) : (
           <svg
             viewBox="0 0 120 95"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute bottom-[-2%] left-1/2 h-[88%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           >
             <defs>
               <clipPath id={`field-jersey-${player?.id || displayName}`}>
@@ -67,18 +68,17 @@ export default function FieldPlayerPreview({ player, posLabel }) {
         )}
 
         <div className="relative min-h-[4.6rem] sm:min-h-[5.7rem]">
-          {/* Score — flush top-left corner */}
+          {/* Score — left edge, slightly below top */}
           <div
             style={{
               position: 'absolute',
-              top: 0,
+              top: 5,
               left: 0,
-              padding: '4px 6px',
-              borderRadius: '0 0 10px 0',
+              padding: '3px 5px',
+              borderRadius: '0 8px 8px 0',
               background: 'rgba(2,6,23,0.62)',
               border: '1px solid rgba(255,255,255,0.09)',
               borderLeft: 'none',
-              borderTop: 'none',
               backdropFilter: 'blur(8px)',
             }}
           >
@@ -87,11 +87,11 @@ export default function FieldPlayerPreview({ player, posLabel }) {
             </div>
           </div>
 
-          {/* Main position + alt positions — flush top-right corner */}
+          {/* Main position + alt positions — right edge, slightly below top */}
           <div
             style={{
               position: 'absolute',
-              top: 0,
+              top: 5,
               right: 0,
               display: 'flex',
               flexDirection: 'column',
@@ -100,12 +100,11 @@ export default function FieldPlayerPreview({ player, posLabel }) {
           >
             <div
               style={{
-                padding: '4px 6px',
-                borderRadius: '0 0 0 10px',
+                padding: '3px 5px',
+                borderRadius: '8px 0 0 8px',
                 background: 'rgba(2,6,23,0.62)',
                 border: '1px solid rgba(255,255,255,0.09)',
                 borderRight: 'none',
-                borderTop: 'none',
                 backdropFilter: 'blur(8px)',
                 fontSize: 9,
                 fontWeight: 900,
@@ -121,8 +120,8 @@ export default function FieldPlayerPreview({ player, posLabel }) {
               <div
                 key={id}
                 style={{
-                  padding: '2px 6px 2px 4px',
-                  borderRadius: '8px 0 0 8px',
+                  padding: '2px 5px 2px 4px',
+                  borderRadius: '6px 0 0 6px',
                   background: 'rgba(2,6,23,0.62)',
                   border: '1px solid rgba(255,255,255,0.09)',
                   borderRight: 'none',
@@ -160,7 +159,19 @@ export default function FieldPlayerPreview({ player, posLabel }) {
       </div>
 
       <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2">
-        <div className="text-[9px] font-extrabold uppercase leading-tight tracking-[0.02em] text-white sm:text-[11px] sm:tracking-[0.04em]">
+        <div
+          style={{
+            fontSize: nameFontSize,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.02em',
+            color: '#ffffff',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            lineHeight: 1.2,
+          }}
+        >
           {displayName}
         </div>
       </div>
