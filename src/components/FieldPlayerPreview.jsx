@@ -1,5 +1,6 @@
 import React from 'react';
 import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
+import { nationalityToIso2 } from '../utils/nationality.js';
 
 const TEAM_COLORS = {
   FLA: { p: '#CC0000', s: '#1a1a1a' },
@@ -32,6 +33,7 @@ export default function FieldPlayerPreview({ player, posLabel }) {
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
   };
   const altPositions = [...new Set((player?.alt_positions || []).map((positionId) => normalizeDetailedPositionId(positionId)))].slice(0, 2);
+  const iso2 = nationalityToIso2(player?.nationality || '');
 
   return (
     <div className="w-[5.75rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[7.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
@@ -137,6 +139,23 @@ export default function FieldPlayerPreview({ player, posLabel }) {
               </div>
             ))}
           </div>
+
+          {/* Flag — bottom-left */}
+          {iso2 && (
+            <div style={{ position: 'absolute', bottom: 6, left: 6 }}>
+              <span
+                className={`fi fi-${iso2}`}
+                style={{
+                  display: 'inline-block',
+                  width: 18,
+                  height: 13,
+                  borderRadius: 3,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.45)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
