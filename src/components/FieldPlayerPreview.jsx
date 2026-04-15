@@ -72,7 +72,7 @@ export default function FieldPlayerPreview({ player, posLabel }) {
           <div
             style={{
               position: 'absolute',
-              top: 5,
+              top: 2,
               left: 0,
               padding: '3px 5px',
               borderRadius: '0 8px 8px 0',
