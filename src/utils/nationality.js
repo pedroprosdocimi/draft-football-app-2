@@ -1,7 +1,20 @@
 // Maps the `nationality` string from the API (from Sportmonks) to ISO 3166-1 alpha-2.
-// Add entries as new nationalities appear in the player pool.
+// SportMonks returns country names (e.g. "Brazil"), not adjectives (e.g. "Brazilian").
+// Both forms are mapped for compatibility.
 const NATIONALITY_ISO2 = {
-  // South America
+  // South America — country names (SportMonks format)
+  'Brazil':       'br',
+  'Argentina':    'ar',
+  'Uruguay':      'uy',
+  'Colombia':     'co',
+  'Chile':        'cl',
+  'Paraguay':     'py',
+  'Bolivia':      'bo',
+  'Peru':         'pe',
+  'Ecuador':      'ec',
+  'Venezuela':    've',
+
+  // South America — adjective forms (fallback)
   'Brazilian':    'br',
   'Argentine':    'ar',
   'Uruguayan':    'uy',
@@ -13,7 +26,34 @@ const NATIONALITY_ISO2 = {
   'Ecuadorian':   'ec',
   'Venezuelan':   've',
 
-  // Europe
+  // Europe — country names
+  'Portugal':     'pt',
+  'Spain':        'es',
+  'France':       'fr',
+  'Germany':      'de',
+  'Italy':        'it',
+  'England':      'gb-eng',
+  'Netherlands':  'nl',
+  'Belgium':      'be',
+  'Croatia':      'hr',
+  'Serbia':       'rs',
+  'Denmark':      'dk',
+  'Sweden':       'se',
+  'Norway':       'no',
+  'Switzerland':  'ch',
+  'Austria':      'at',
+  'Poland':       'pl',
+  'Czech Republic': 'cz',
+  'Slovakia':     'sk',
+  'Hungary':      'hu',
+  'Romania':      'ro',
+  'Bulgaria':     'bg',
+  'Ukraine':      'ua',
+  'Russia':       'ru',
+  'Greece':       'gr',
+  'Turkey':       'tr',
+
+  // Europe — adjective forms (fallback)
   'Portuguese':   'pt',
   'Spanish':      'es',
   'French':       'fr',
@@ -40,7 +80,20 @@ const NATIONALITY_ISO2 = {
   'Greek':        'gr',
   'Turkish':      'tr',
 
-  // Africa
+  // Africa — country names
+  'Senegal':      'sn',
+  'Nigeria':      'ng',
+  "Côte d'Ivoire": 'ci',
+  'Ghana':        'gh',
+  'Morocco':      'ma',
+  'Algeria':      'dz',
+  'Tunisia':      'tn',
+  'Egypt':        'eg',
+  'Cameroon':     'cm',
+  'Mali':         'ml',
+  'Guinea':       'gn',
+
+  // Africa — adjective forms (fallback)
   'Senegalese':   'sn',
   'Nigerian':     'ng',
   'Ivorian':      'ci',
@@ -53,7 +106,15 @@ const NATIONALITY_ISO2 = {
   'Malian':       'ml',
   'Guinean':      'gn',
 
-  // Others
+  // Others — country names
+  'Mexico':       'mx',
+  'United States': 'us',
+  'Canada':       'ca',
+  'Japan':        'jp',
+  'South Korea':  'kr',
+  'Australia':    'au',
+
+  // Others — adjective forms (fallback)
   'Mexican':      'mx',
   'American':     'us',
   'Canadian':     'ca',
