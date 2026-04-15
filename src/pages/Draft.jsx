@@ -80,19 +80,19 @@ function FieldPlayerPreview({ player, posLabel }) {
             </div>
           </div>
 
-          <div className="relative h-full overflow-hidden">
+          <div className="relative overflow-hidden">
             {player?.team_jersey_url ? (
               <img
                 src={player.team_jersey_url}
                 alt={player.team_short_code}
-                className="absolute bottom-0 right-[-18%] h-[108%] w-auto object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+                className="absolute bottom-0 right-[-18%] h-[4.6rem] w-auto object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:h-[5.7rem]"
               />
             ) : (
               <svg
                 viewBox="0 0 120 95"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="absolute bottom-0 right-[-18%] h-[108%] w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+                className="absolute bottom-0 right-[-18%] h-[4.6rem] w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:h-[5.7rem]"
                 aria-label={`Camisa de ${displayName}`}
               >
                 <defs>
