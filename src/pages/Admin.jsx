@@ -251,6 +251,29 @@ function RoundsHeader({ recentRounds, sort, onSort }) {
   );
 }
 
+function normalizeAltPositions(altPositions) {
+  if (Array.isArray(altPositions)) return altPositions.map((positionId) => Number(positionId));
+  if (typeof altPositions === 'string') {
+    return altPositions
+      .split(',')
+      .map((positionId) => Number(positionId.trim()))
+      .filter((positionId) => !Number.isNaN(positionId));
+  }
+  return [];
+}
+
+function matchesDetailedPosition(player, detailedPositionId) {
+  const normalizedPositionId = Number(detailedPositionId);
+  if (Number.isNaN(normalizedPositionId)) return true;
+
+  const allPositions = [
+    Number(player.detailed_position_id),
+    ...normalizeAltPositions(player.alt_positions),
+  ].filter((positionId) => !Number.isNaN(positionId));
+
+  return allPositions.includes(normalizedPositionId);
+}
+
 function PlayerRow({ player, match, action, recentRounds = [] }) {
   const posColor = POS_COLORS[player.position_id] || 'bg-gray-600';
   return (
@@ -902,12 +925,15 @@ export default function Admin({ onBack }) {
     const token = localStorage.getItem('draft_token');
     const params = new URLSearchParams();
     if (cardsTeamId) params.set('team_id', cardsTeamId);
-    if (cardsPosId) params.set('detailed_position_id', cardsPosId);
     const res = await fetch(`${API_URL}/admin/player-cards?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
-    setCards(data.data || []);
+    const allCards = data.data || [];
+    const filteredCards = cardsPosId
+      ? allCards.filter((player) => matchesDetailedPosition(player, cardsPosId))
+      : allCards;
+    setCards(filteredCards);
     setLoadingCards(false);
   };
 
@@ -2075,7 +2101,7 @@ export default function Admin({ onBack }) {
             <option value="3">LD</option>
             <option value="4">LE</option>
             <option value="5">VOL</option>
-            <option value="6">MEI</option>
+            <option value="6">MC</option>
             <option value="7">MEI</option>
             <option value="8">ME</option>
             <option value="9">MD</option>
