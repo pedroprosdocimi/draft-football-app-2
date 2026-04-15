@@ -209,7 +209,9 @@ export function getFormationPreviewLayout(formation) {
   // Override with stored x/y when available (x !== 0 || y !== 0)
   const storedByPosition = {};
   (formation?.slots || []).forEach((s) => {
-    if (s.x !== 0 || s.y !== 0) storedByPosition[s.position] = { left: s.x, top: s.y };
+    if (s.x != null && s.y != null && (s.x !== 0 || s.y !== 0)) {
+      storedByPosition[s.position] = { left: s.x, top: s.y };
+    }
   });
 
   return computed.map((placement) => {
