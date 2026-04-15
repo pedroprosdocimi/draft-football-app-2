@@ -96,21 +96,21 @@ function FieldPlayerPreview({ player, posLabel }) {
         )}
 
         <div className="relative flex min-h-[4.6rem] flex-col justify-between px-1.5 py-1.5 sm:min-h-[5.7rem] sm:px-2 sm:py-2" style={{ width: '55%' }}>
-          <div className="rounded-[10px] border border-amber-400 bg-amber-500 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-white sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
+          <div className="rounded-[10px] border border-amber-700 bg-amber-800 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
             {avgScore}
-          </div>
-          <div className="rounded-[10px] border border-slate-500 bg-slate-700 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-white sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
-            {posLabel}
           </div>
           {altPositions.length > 0 && (
             <div className="flex gap-0.5">
               {altPositions.map((id) => (
-                <div key={id} className="flex-1 rounded-[8px] border border-slate-600 bg-slate-800 px-1 py-0.5 text-center text-[7px] font-bold uppercase tracking-[0.08em] text-slate-300 sm:text-[8px]">
+                <div key={id} className="flex-1 rounded-[6px] border border-slate-600 bg-slate-800 px-0.5 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
                   {DETAILED_LABELS[id] || id}
                 </div>
               ))}
             </div>
           )}
+          <div className="rounded-[10px] border border-slate-500 bg-slate-700 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-white sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
+            {posLabel}
+          </div>
         </div>
       </div>
 
