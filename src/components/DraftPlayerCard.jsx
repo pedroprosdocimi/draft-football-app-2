@@ -199,6 +199,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           )}
         </div>
 
+        {/* Top-left: score + minutes + matches */}
         <div
           style={{
             position: 'absolute',
@@ -216,8 +217,18 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             {avgScore}
           </div>
           <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>score med.</div>
+          <div style={{ height: compact ? 4 : 5 }} />
+          <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
+            {avgMinutes}'
+          </div>
+          <div style={{ fontSize: 8, color: mutedLabelColor }}>med. min.</div>
+          <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1, marginTop: 3 }}>
+            {player.matches_played ?? 0}
+          </div>
+          <div style={{ fontSize: 8, color: mutedLabelColor }}>partidas</div>
         </div>
 
+        {/* Top-right: main position + alt positions */}
         <div
           style={{
             position: 'absolute',
@@ -226,38 +237,59 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-end',
-            gap: compact ? 6 : 8,
+            gap: 4,
           }}
         >
-          <div
+          <span
             style={{
-              textAlign: 'right',
+              fontSize: posFz,
+              fontWeight: 900,
+              color: '#f9fafb',
+              lineHeight: 1,
+              letterSpacing: '0.5px',
+              textShadow: '0 4px 12px rgba(0,0,0,0.55)',
               padding: chipPad,
               borderRadius: chipRadius,
               background: chipBackground,
               border: chipBorder,
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
               backdropFilter: 'blur(8px)',
             }}
           >
-            <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
-              {avgMinutes}'
+            {getDetailedPositionLabel(player.detailed_position_id)}
+          </span>
+          {altPositions.length > 0 && (
+            <div style={{ display: 'flex', gap: 3, justifyContent: 'flex-end' }}>
+              {altPositions.map((posID) => (
+                <span
+                  key={posID}
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 600,
+                    color: '#9ca3af',
+                    background: 'rgba(15,23,42,0.68)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 999,
+                    padding: '1px 6px',
+                    lineHeight: 1.5,
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  {getDetailedPositionLabel(posID)}
+                </span>
+              ))}
             </div>
-            <div style={{ fontSize: 8, color: mutedLabelColor }}>med. min.</div>
-            <div
-              style={{
-                fontSize: minutesFz,
-                fontWeight: 700,
-                color: '#d1d5db',
-                lineHeight: 1,
-                marginTop: 4,
-              }}
-            >
-              {player.matches_played ?? 0}
-            </div>
-            <div style={{ fontSize: 8, color: mutedLabelColor }}>partidas</div>
-          </div>
-          {iso2 && (
+          )}
+        </div>
+
+        {/* Bottom-left: flag */}
+        {iso2 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: compact ? 8 : 10,
+              left: compact ? 9 : 11,
+            }}
+          >
             <span
               className={`fi fi-${iso2}`}
               style={{
@@ -269,53 +301,8 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
                 border: '1px solid rgba(255,255,255,0.1)',
               }}
             />
-          )}
-        </div>
-
-        <div
-          style={{
-            position: 'absolute',
-            bottom: compact ? 8 : 10,
-            left: compact ? 9 : 11,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: 2,
-          }}
-        >
-          {altPositions.map((posID) => (
-            <span
-              key={posID}
-              style={{
-                fontSize: 9,
-                fontWeight: 600,
-                color: '#9ca3af',
-                background: 'rgba(15,23,42,0.68)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 999,
-                padding: '1px 6px',
-                lineHeight: 1.5,
-                display: 'block',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              {getDetailedPositionLabel(posID)}
-            </span>
-          ))}
-          <span
-            style={{
-              fontSize: posFz,
-              fontWeight: 900,
-              color: '#f9fafb',
-              lineHeight: 1,
-              letterSpacing: '0.5px',
-              marginTop: 2,
-              textShadow: '0 4px 12px rgba(0,0,0,0.45)',
-            }}
-          >
-            {getDetailedPositionLabel(player.detailed_position_id)}
-          </span>
-        </div>
+          </div>
+        )}
 
       </div>
 
