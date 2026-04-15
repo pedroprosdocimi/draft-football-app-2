@@ -289,13 +289,13 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           ))}
         </div>
 
-        {/* Bottom-left: flag */}
+        {/* Bottom-right: flag */}
         {iso2 && (
           <div
             style={{
               position: 'absolute',
               bottom: compact ? 8 : 10,
-              left: compact ? 9 : 11,
+              right: compact ? 9 : 11,
             }}
           >
             <span
