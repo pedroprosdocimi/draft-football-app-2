@@ -68,7 +68,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   // { [slotPosition]: PlayerObject } — persists cards for rendering after API confirms
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [poppingSlot, setPoppingSlot] = useState(null);
+  const [replacingSlot, setReplacingSlot] = useState(null); // slot being replaced via long-press
   const animTimeoutsRef = React.useRef([]);
+  const longPressRef = React.useRef(null);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -139,8 +141,23 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }
   };
 
-  const handleSlotClick = async (slotPosition) => {
-    if (picksBySlot[slotPosition] || pickedPlayers[slotPosition]) return;
+  const startLongPress = (slotPosition) => {
+    longPressRef.current = setTimeout(() => {
+      longPressRef.current = null;
+      setReplacingSlot(slotPosition);
+      handleSlotClick(slotPosition, true);
+    }, 500);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+      longPressRef.current = null;
+    }
+  };
+
+  const handleSlotClick = async (slotPosition, isReplace = false) => {
+    if (!isReplace && (picksBySlot[slotPosition] || pickedPlayers[slotPosition])) return;
     setActiveSlot(slotPosition);
     setLoading(true);
     try {
@@ -158,6 +175,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handlePickPlayer = (player) => {
     const slotPosition = activeSlot;
+    const isReplace = replacingSlot === slotPosition;
 
     // 1. Store player optimistically
     setPickedPlayers(prev => ({ ...prev, [slotPosition]: player }));
@@ -174,6 +192,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       setActiveSlot(null);
       setIsAnimatingOut(false);
       setPendingPick(null);
+      setReplacingSlot(null);
       const t2 = setTimeout(() => {
         setPoppingSlot(null);
         animTimeoutsRef.current = animTimeoutsRef.current.filter(id => id !== t2);
@@ -182,10 +201,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }, 300);
     animTimeoutsRef.current.push(t1);
 
-    // 4. Call API in parallel
+    // 4. Call API in parallel (PUT for replace, POST for new pick)
     setLoading(true);
     authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-      method: 'POST',
+      method: isReplace ? 'PUT' : 'POST',
       body: JSON.stringify({ player_id: player.id, slot_position: slotPosition }),
     })
       .then(res => res.json().then(data => ({ ok: res.ok, data })))
@@ -201,6 +220,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           delete next[slotPosition];
           return next;
         });
+        setReplacingSlot(null);
       })
       .finally(() => setLoading(false));
   };
@@ -378,8 +398,26 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 }}
               >
                 {showFieldCard ? (
-                  <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
-                ) : confirmedPick || isLocked ? (
+                  <div
+                    onPointerDown={() => startLongPress(slot.position)}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    style={{ touchAction: 'none', cursor: 'grab' }}
+                    title="Segure para substituir"
+                  >
+                    <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
+                  </div>
+                ) : confirmedPick ? (
+                  <div
+                    onPointerDown={() => startLongPress(slot.position)}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    style={{ touchAction: 'none', cursor: 'grab' }}
+                    title="Segure para substituir"
+                  >
+                    <FieldPlayerPreview player={null} posLabel={posLabel} />
+                  </div>
+                ) : isLocked ? (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
                     {slotBody}
                   </div>
@@ -416,10 +454,14 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 return (
                   <div
                     key={slot}
+                    onPointerDown={() => startLongPress(slot)}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
                     style={poppingSlot === slot
-                      ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
-                      : { flexShrink: 0 }
+                      ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0, touchAction: 'none', cursor: 'grab' }
+                      : { flexShrink: 0, touchAction: 'none', cursor: 'grab' }
                     }
+                    title="Segure para substituir"
                   >
                     <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
                   </div>
@@ -428,7 +470,14 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
               if (confirmedPick) {
                 return (
-                  <div key={slot} style={{ flexShrink: 0 }}>
+                  <div
+                    key={slot}
+                    onPointerDown={() => startLongPress(slot)}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    style={{ flexShrink: 0, touchAction: 'none', cursor: 'grab' }}
+                    title="Segure para substituir"
+                  >
                     <FieldPlayerPreview player={null} posLabel={posLabel} />
                   </div>
                 );
