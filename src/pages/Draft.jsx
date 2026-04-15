@@ -3,7 +3,6 @@ import { API_URL } from '../config.js';
 import FormationPickerPhase from '../components/FormationPickerPhase.jsx';
 import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import PickPanel from '../components/PickPanel.jsx';
-import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 
 // Maps detailed_position_id → basic position_id
@@ -407,6 +406,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             {BENCH_SLOTS.map(({ slot, label, sub }) => {
               const playerObj = pickedPlayers[slot] ?? null;
               const confirmedPick = picksBySlot[slot];
+              const posLabel = playerObj
+                ? (DETAILED_LABELS[playerObj.detailed_position_id] || '?')
+                : confirmedPick
+                  ? (DETAILED_LABELS[confirmedPick.detailed_position_id] || '?')
+                  : null;
 
               if (playerObj) {
                 return (
@@ -417,28 +421,28 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       : { flexShrink: 0 }
                     }
                   >
-                    <DraftPlayerCard player={playerObj} compact isMyTurn={false} />
+                    <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
                   </div>
                 );
               }
 
               if (confirmedPick) {
                 return (
-                  <div key={slot} style={{ width: 140, minHeight: 182, flexShrink: 0, borderRadius: 10, border: '1.5px solid #22c55e', background: '#111827', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'Inter', system-ui, sans-serif" }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f9fafb' }}>{label}</span>
-                    <span style={{ fontSize: 9, color: '#4ade80', fontWeight: 700 }}>✓ Confirmado</span>
+                  <div key={slot} style={{ flexShrink: 0 }}>
+                    <FieldPlayerPreview player={null} posLabel={posLabel} />
                   </div>
                 );
               }
 
               return (
-                <button key={slot}
+                <button
+                  key={slot}
                   onClick={() => handleSlotClick(slot)}
-                  style={{ width: 140, minHeight: 182, flexShrink: 0 }}
-                  className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-600 hover:border-draft-green hover:bg-draft-green/10 transition-all"
+                  className="flex w-[5.75rem] flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 py-6 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10 sm:w-[7.5rem] sm:rounded-[24px]"
+                  style={{ flexShrink: 0 }}
                 >
-                  <span className="text-sm font-bold text-gray-300">{label}</span>
-                  <span className="text-xs text-gray-500 mt-1">{sub}</span>
+                  <span className="text-[11px] font-bold text-gray-300">{label}</span>
+                  <span className="text-[9px] text-gray-500">{sub}</span>
                 </button>
               );
             })}
