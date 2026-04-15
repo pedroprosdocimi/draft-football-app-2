@@ -42,18 +42,19 @@ export default function FieldPlayerPreview({ player, posLabel }) {
       <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_42%)]" />
 
+        {/* Jersey — centered */}
         {player?.team_jersey_url ? (
           <img
             src={player.team_jersey_url}
             alt={player.team_short_code}
-            className="absolute bottom-[-2%] right-[-6%] h-[88%] w-auto object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-2%] left-1/2 h-[88%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           />
         ) : (
           <svg
             viewBox="0 0 120 95"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute bottom-[-2%] right-[-6%] h-[88%] w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-2%] left-1/2 h-[88%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           >
             <defs>
               <clipPath id={`field-jersey-${player?.id || displayName}`}>
@@ -67,21 +68,24 @@ export default function FieldPlayerPreview({ player, posLabel }) {
           </svg>
         )}
 
-        <div className="relative flex min-h-[4.6rem] flex-col justify-between px-1.5 py-1.5 sm:min-h-[5.7rem] sm:px-2 sm:py-2" style={{ width: '55%' }}>
-          <div className="rounded-[10px] border border-amber-700 bg-amber-800 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
-            {avgScore}
-          </div>
-          {altPositions.length > 0 && (
-            <div className="flex gap-0.5">
-              {altPositions.map((id) => (
-                <div key={id} className="rounded-[6px] border border-slate-600 bg-slate-800 px-1 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
-                  {DETAILED_LABELS[id] || id}
-                </div>
-              ))}
+        <div className="relative min-h-[4.6rem] sm:min-h-[5.7rem]">
+          {/* Score — upper left */}
+          <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2">
+            <div className="rounded-[10px] border border-amber-700 bg-amber-800 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
+              {avgScore}
             </div>
-          )}
-          <div className="rounded-[10px] border border-slate-500 bg-slate-700 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-white sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
-            {posLabel}
+          </div>
+
+          {/* Main position + alt positions — upper right */}
+          <div className="absolute right-1.5 top-1.5 flex flex-col items-end gap-0.5 sm:right-2 sm:top-2">
+            <div className="rounded-[10px] border border-slate-500 bg-slate-700 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-white sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
+              {posLabel}
+            </div>
+            {altPositions.map((id) => (
+              <div key={id} className="rounded-[6px] border border-slate-600 bg-slate-800 px-1 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
+                {DETAILED_LABELS[id] || id}
+              </div>
+            ))}
           </div>
         </div>
       </div>
