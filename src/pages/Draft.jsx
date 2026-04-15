@@ -70,6 +70,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [poppingSlot, setPoppingSlot] = useState(null);
   const [draggingSlot, setDraggingSlot] = useState(null); // slot being drag-swapped
   const [dropTargetSlot, setDropTargetSlot] = useState(null); // highlighted drop target
+  const [selectedBenchSlot, setSelectedBenchSlot] = useState(null); // bench swap selection
   const animTimeoutsRef = React.useRef([]);
   const fieldRef = React.useRef(null);
 
@@ -163,6 +164,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }, []);
 
   const isSwapValid = useCallback((slotA, slotB) => {
+    // Bench slots (≥12): position validation is delegated to the backend
+    if (slotA >= 12 || slotB >= 12) return true;
     const playerA = pickedPlayers[slotA] || null;
     const playerB = pickedPlayers[slotB] || null;
     if (!playerA || !playerB) return true; // not enough data to validate
@@ -175,6 +178,19 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       positionsOf(playerB).includes(slotADef.detailed_position_id)
     );
   }, [pickedPlayers, starterPlacements]);
+
+  const handleBenchCardClick = useCallback((slot) => {
+    const hasPlayer = pickedPlayers[slot] || picksBySlot[slot];
+    if (!hasPlayer) return;
+    if (selectedBenchSlot === null) {
+      setSelectedBenchSlot(slot);
+    } else if (selectedBenchSlot === slot) {
+      setSelectedBenchSlot(null);
+    } else {
+      handleSwap(selectedBenchSlot, slot);
+      setSelectedBenchSlot(null);
+    }
+  }, [selectedBenchSlot, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFieldPointerMove = useCallback((e) => {
     if (draggingSlot === null) return;
@@ -537,24 +553,23 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   ? (DETAILED_LABELS[confirmedPick.detailed_position_id] || '?')
                   : null;
 
-              if (playerObj) {
+              const isSelected = selectedBenchSlot === slot;
+
+              if (playerObj || confirmedPick) {
                 return (
                   <div
                     key={slot}
-                    style={poppingSlot === slot
-                      ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both', flexShrink: 0 }
-                      : { flexShrink: 0 }
-                    }
+                    onClick={() => handleBenchCardClick(slot)}
+                    style={{
+                      ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
+                      flexShrink: 0,
+                      cursor: 'pointer',
+                      outline: isSelected ? '2px solid rgba(110,231,183,0.85)' : selectedBenchSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
+                      borderRadius: '20px',
+                      transition: 'outline 0.1s',
+                    }}
                   >
                     <FieldPlayerPreview player={playerObj} posLabel={posLabel} />
-                  </div>
-                );
-              }
-
-              if (confirmedPick) {
-                return (
-                  <div key={slot} style={{ flexShrink: 0 }}>
-                    <FieldPlayerPreview player={null} posLabel={posLabel} />
                   </div>
                 );
               }
