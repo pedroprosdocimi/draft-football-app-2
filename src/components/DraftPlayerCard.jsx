@@ -1,6 +1,11 @@
 import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
-import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
+import {
+  getDetailedPositionLabel,
+  getPlayerAlternativeDetailedPositionIds,
+  getPlayerPrimaryDetailedPositionId,
+  normalizeDetailedPositionId,
+} from '../utils/positions.js';
 
 // Jersey colors by team short_code: { p: primary, s: secondary }
 const TEAM_COLORS = {
@@ -58,14 +63,15 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const iso2 = nationalityToIso2(player.nationality || '');
   const displayName = player.display_name || player.name;
 
-  const normalizedPlayerPos = normalizeDetailedPositionId(player.detailed_position_id);
+  const primaryPositionId = getPlayerPrimaryDetailedPositionId(player);
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
-  const isNonPrimary = normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos;
-  const displayPositionId = isNonPrimary ? normalizedSlotPos : normalizedPlayerPos;
-
-  const rawAlts = (player.alt_positions || []).map((id) => normalizeDetailedPositionId(id));
-  const altPositions = [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
-    .filter((id) => id !== displayPositionId)
+  const rawAltPositions = getPlayerAlternativeDetailedPositionIds(player, 2);
+  const altPositions = [...new Set(
+    normalizedSlotPos && normalizedSlotPos !== primaryPositionId
+      ? [normalizedSlotPos, ...rawAltPositions]
+      : rawAltPositions
+  )]
+    .filter((id) => id !== primaryPositionId)
     .slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
@@ -276,7 +282,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
               backdropFilter: 'blur(8px)',
             }}
           >
-            {getDetailedPositionLabel(displayPositionId)}
+            {getDetailedPositionLabel(primaryPositionId)}
           </span>
           {altPositions.map((posID) => (
             <span

@@ -46,18 +46,44 @@ export function getDetailedPositionLabel(value) {
   return DETAILED_LABELS[normalizedId] || DETAILED_LABELS[Number(value)] || '?';
 }
 
+export function getPlayerPrimaryDetailedPositionId(player) {
+  const normalizedId = normalizeDetailedPositionId(player?.detailed_position_id);
+  return Number.isNaN(normalizedId) ? null : normalizedId;
+}
+
+export function getPlayerAlternativeDetailedPositionIds(player, limit = 2) {
+  const primaryPositionId = getPlayerPrimaryDetailedPositionId(player);
+  const alternativePositions = [];
+
+  for (const positionId of player?.alt_positions || []) {
+    const normalizedId = normalizeDetailedPositionId(positionId);
+    if (!normalizedId || Number.isNaN(normalizedId)) continue;
+    if (normalizedId === primaryPositionId) continue;
+    if (alternativePositions.includes(normalizedId)) continue;
+
+    alternativePositions.push(normalizedId);
+    if (alternativePositions.length >= limit) break;
+  }
+
+  return alternativePositions;
+}
+
+export function getPlayerEligibleDetailedPositionIds(player, limit = 2) {
+  const primaryPositionId = getPlayerPrimaryDetailedPositionId(player);
+  if (!primaryPositionId) return [];
+
+  return [primaryPositionId, ...getPlayerAlternativeDetailedPositionIds(player, limit)];
+}
+
 export function matchesDetailedPositionSlot(player, slotDetailedPositionId) {
   const normalizedSlotId = normalizeDetailedPositionId(slotDetailedPositionId);
-  const primaryPositionId = Number(player?.detailed_position_id);
+  const primaryPositionId = getPlayerPrimaryDetailedPositionId(player);
 
   if (normalizedSlotId === 6) {
     return primaryPositionId === 6;
   }
 
-  const allPositions = [primaryPositionId, ...(player?.alt_positions || [])]
-    .map((positionId) => normalizeDetailedPositionId(positionId));
-
-  return allPositions.includes(normalizedSlotId);
+  return getPlayerEligibleDetailedPositionIds(player, 2).includes(normalizedSlotId);
 }
 
 export function normalizeDetailedPositionText(text) {

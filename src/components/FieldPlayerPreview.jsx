@@ -1,5 +1,10 @@
 import React from 'react';
-import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
+import {
+  getDetailedPositionLabel,
+  getPlayerAlternativeDetailedPositionIds,
+  getPlayerPrimaryDetailedPositionId,
+  normalizeDetailedPositionId,
+} from '../utils/positions.js';
 import { nationalityToIso2 } from '../utils/nationality.js';
 
 const TEAM_COLORS = {
@@ -48,13 +53,15 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
   };
 
-  const normalizedPlayerPos = normalizeDetailedPositionId(player?.detailed_position_id);
+  const normalizedPlayerPos = getPlayerPrimaryDetailedPositionId(player);
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
-  const isNonPrimary = normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos;
-  const effectivePos = normalizedSlotPos || normalizedPlayerPos;
-  const rawAlts = (player?.alt_positions || []).map((id) => normalizeDetailedPositionId(id));
-  const altPositions = [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
-    .filter((id) => id !== effectivePos)
+  const rawAltPositions = getPlayerAlternativeDetailedPositionIds(player, 2);
+  const altPositions = [...new Set(
+    normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos
+      ? [normalizedSlotPos, ...rawAltPositions]
+      : rawAltPositions
+  )]
+    .filter((id) => id !== normalizedPlayerPos)
     .slice(0, 2);
 
   const iso2 = nationalityToIso2(player?.nationality || '');
@@ -137,7 +144,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                 textTransform: 'uppercase',
               }}
             >
-              {posLabel}
+              {getDetailedPositionLabel(normalizedPlayerPos) || posLabel}
             </div>
             {altPositions.map((id) => (
               <div
