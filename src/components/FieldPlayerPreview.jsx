@@ -74,7 +74,7 @@ export default function FieldPlayerPreview({ player, posLabel }) {
           {altPositions.length > 0 && (
             <div className="flex gap-0.5">
               {altPositions.map((id) => (
-                <div key={id} className="flex-1 rounded-[6px] border border-slate-600 bg-slate-800 px-0.5 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
+                <div key={id} className="rounded-[6px] border border-slate-600 bg-slate-800 px-1 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
                   {DETAILED_LABELS[id] || id}
                 </div>
               ))}
