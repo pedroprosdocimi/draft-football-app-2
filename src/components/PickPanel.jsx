@@ -28,7 +28,16 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
   const normalizedSlotPositionId = Number(slotDetailedPositionId);
   const visibleOptions = isCaptainPick || Number.isNaN(normalizedSlotPositionId)
     ? options
-    : options.filter((player) => Number(player.detailed_position_id) === normalizedSlotPositionId);
+    : options.filter((player) => {
+        const primaryPositionId = Number(player.detailed_position_id);
+        if (normalizedSlotPositionId === 6) {
+          return primaryPositionId === 6;
+        }
+
+        const allPositions = [player.detailed_position_id, ...(player.alt_positions || [])]
+          .map((positionId) => Number(positionId));
+        return allPositions.includes(normalizedSlotPositionId);
+      });
 
   return (
     <div
