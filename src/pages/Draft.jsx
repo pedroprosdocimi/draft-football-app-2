@@ -162,11 +162,27 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     fieldRef.current?.setPointerCapture(e.pointerId);
   }, []);
 
+  const isSwapValid = useCallback((slotA, slotB) => {
+    const playerA = pickedPlayers[slotA] || null;
+    const playerB = pickedPlayers[slotB] || null;
+    if (!playerA || !playerB) return true; // not enough data to validate
+    const slotADef = starterPlacements.find(s => s.position === slotA);
+    const slotBDef = starterPlacements.find(s => s.position === slotB);
+    if (!slotADef || !slotBDef) return true;
+    const positionsOf = (p) => [p.detailed_position_id, ...(p.alt_positions || [])];
+    return (
+      positionsOf(playerA).includes(slotBDef.detailed_position_id) &&
+      positionsOf(playerB).includes(slotADef.detailed_position_id)
+    );
+  }, [pickedPlayers, starterPlacements]);
+
   const handleFieldPointerMove = useCallback((e) => {
     if (draggingSlot === null) return;
     const target = getSlotAtPoint(e.clientX, e.clientY);
-    setDropTargetSlot(target !== draggingSlot ? target : null);
-  }, [draggingSlot, getSlotAtPoint]);
+    if (!target || target === draggingSlot) { setDropTargetSlot(null); return; }
+    const hasPlayer = pickedPlayers[target] || picksBySlot[target];
+    setDropTargetSlot(hasPlayer && isSwapValid(draggingSlot, target) ? target : null);
+  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, isSwapValid]);
 
   const handleFieldPointerUp = useCallback((e) => {
     if (draggingSlot === null) return;
@@ -182,6 +198,12 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     const playerAId = pickedPlayers[slotA]?.id || picksBySlot[slotA]?.player_id;
     const playerBId = pickedPlayers[slotB]?.id || picksBySlot[slotB]?.player_id;
     if (!playerAId || !playerBId) return;
+
+    if (!isSwapValid(slotA, slotB)) {
+      setError('Troca inválida: um ou ambos os jogadores não podem atuar nessa posição.');
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
 
     // Optimistic swap
     setPickedPlayers((prev) => {
