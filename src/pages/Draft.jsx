@@ -73,13 +73,13 @@ function FieldPlayerPreview({ player, posLabel }) {
         <div className="absolute right-1.5 top-1.5 rounded-full border border-white/10 bg-slate-950/65 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-slate-200 sm:right-2 sm:top-2 sm:px-2 sm:text-[9px] sm:tracking-[0.18em]">
           {posLabel}
         </div>
-        <div className="absolute inset-x-0 bottom-0 top-6 flex items-end justify-center px-2 pb-0 sm:top-7 sm:px-3">
-          <div className="relative h-[2.3rem] w-[2.5rem] overflow-hidden sm:h-[3rem] sm:w-[3.375rem]">
+        <div className="absolute inset-x-0 bottom-0 top-5.5 flex items-end justify-center px-2 pb-0 sm:top-6.5 sm:px-3">
+          <div className="relative h-[2.8rem] w-[3rem] overflow-hidden sm:h-[3.6rem] sm:w-[4.1rem]">
             <svg
               viewBox="0 0 120 95"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="absolute left-1/2 top-0 w-[2.5rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[3.375rem]"
+              className="absolute left-1/2 top-0 w-[3rem] -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:w-[4.1rem]"
               aria-label={`Camisa de ${displayName}`}
             >
               <defs>
@@ -94,7 +94,7 @@ function FieldPlayerPreview({ player, posLabel }) {
             </svg>
           </div>
         </div>
-        <div className="absolute left-1/2 top-[2.55rem] z-10 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/72 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/85 shadow-[0_6px_12px_rgba(0,0,0,0.28)] sm:top-[3.2rem] sm:px-2 sm:text-[9px] sm:tracking-[0.16em]">
+        <div className="absolute left-1/2 top-[2.8rem] z-10 -translate-x-1/2 rounded-full border border-white/10 bg-slate-950/72 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/85 shadow-[0_6px_12px_rgba(0,0,0,0.28)] sm:top-[3.55rem] sm:px-2 sm:text-[9px] sm:tracking-[0.16em]">
           {teamLabel}
         </div>
       </div>
