@@ -218,7 +218,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             position: 'absolute',
             bottom: 0,
             right: 0,
-            padding: chipPad,
+            padding: compact ? '3px 5px' : '4px 6px',
             borderRadius: `${chipRadius}px 0 0 0`,
             background: chipBackground,
             border: chipBorder,
@@ -229,14 +229,14 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             textAlign: 'right',
           }}
         >
-          <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
+          <div style={{ fontSize: compact ? 9 : 11, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
             {avgMinutes}'
           </div>
-          <div style={{ fontSize: 8, color: mutedLabelColor }}>med. min.</div>
-          <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1, marginTop: 3 }}>
+          <div style={{ fontSize: 7, color: mutedLabelColor }}>med. min.</div>
+          <div style={{ fontSize: compact ? 9 : 11, fontWeight: 700, color: '#d1d5db', lineHeight: 1, marginTop: 2 }}>
             {player.matches_played ?? 0}
           </div>
-          <div style={{ fontSize: 8, color: mutedLabelColor }}>partidas</div>
+          <div style={{ fontSize: 7, color: mutedLabelColor }}>partidas</div>
         </div>
 
         {/* Top-right: main position + alt positions stacked */}
