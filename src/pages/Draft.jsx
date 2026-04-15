@@ -111,7 +111,7 @@ function FieldPlayerPreview({ player, posLabel }) {
       </div>
 
       <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2">
-        <div className="truncate text-[9px] font-extrabold uppercase tracking-[0.02em] text-white sm:text-[11px] sm:tracking-[0.04em]">
+        <div className="text-[9px] font-extrabold uppercase leading-tight tracking-[0.02em] text-white sm:text-[11px] sm:tracking-[0.04em]">
           {displayName}
         </div>
       </div>
