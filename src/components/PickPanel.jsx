@@ -7,7 +7,7 @@ const DETAILED_TO_BASIC = {
 
 const DETAILED_LABELS = {
   1:'GOL', 2:'ZAG', 3:'LD', 4:'LE', 5:'VOL',
-  6:'MEI', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA'
+  6:'MC', 7:'MEI', 8:'ME', 9:'MD', 10:'CA', 11:'PE', 12:'PD', 13:'SA'
 };
 
 const POS_COLORS = {
@@ -25,6 +25,14 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
   const badgeClass = isCaptainPick
     ? 'border-yellow-500 bg-yellow-900/30 text-yellow-300'
     : (POS_COLORS[basicPos] || POS_COLORS[1]);
+  const normalizedSlotPositionId = Number(slotDetailedPositionId);
+  const visibleOptions = isCaptainPick || Number.isNaN(normalizedSlotPositionId)
+    ? options
+    : options.filter((player) => {
+        const allPositions = [player.detailed_position_id, ...(player.alt_positions || [])]
+          .map((positionId) => Number(positionId));
+        return allPositions.includes(normalizedSlotPositionId);
+      });
 
   return (
     <div
@@ -43,14 +51,20 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
           <p className="text-draft-gold font-semibold mt-2">Escolha um jogador</p>
         </div>
         <div className="flex flex-nowrap gap-3 overflow-x-auto w-full pb-2 sm:flex-wrap sm:justify-center sm:overflow-x-visible">
-          {options.map(player => (
-            <DraftPlayerCard
-              key={player.id}
-              player={player}
-              isMyTurn
-              onClick={() => onPickPlayer(player)}
-            />
-          ))}
+          {visibleOptions.length > 0 ? (
+            visibleOptions.map(player => (
+              <DraftPlayerCard
+                key={player.id}
+                player={player}
+                isMyTurn
+                onClick={() => onPickPlayer(player)}
+              />
+            ))
+          ) : (
+            <div className="w-full rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-6 text-center text-sm text-gray-300">
+              Nenhum jogador disponivel para essa posicao.
+            </div>
+          )}
         </div>
         <button
           onClick={onClose}

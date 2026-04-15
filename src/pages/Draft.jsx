@@ -99,6 +99,16 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     });
   }, [draft?.formation, formationSlots]);
 
+  const activeSlotDetailedPositionId = useMemo(() => {
+    if (!activeSlot || activeSlot > 11) return null;
+
+    return (
+      starterPlacements.find((slot) => slot.position === activeSlot)?.detailed_position_id ??
+      formationSlots.find((slot) => slot.position === activeSlot)?.detailed_position_id ??
+      null
+    );
+  }, [activeSlot, starterPlacements, formationSlots]);
+
   const loadDraft = useCallback(async () => {
     try {
       const res = await authFetch(`${API_URL}/drafts/${draftId}`);
@@ -594,11 +604,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       {options && (
         <PickPanel
           options={options}
-          slotDetailedPositionId={
-            activeSlot > 11
-              ? null
-              : (formationSlots[activeSlot - 1]?.detailed_position_id ?? null)
-          }
+          slotDetailedPositionId={activeSlotDetailedPositionId}
           onPickPlayer={handlePickPlayer}
           onClose={() => { setOptions(null); setActiveSlot(null); }}
           fadingOut={isAnimatingOut}
