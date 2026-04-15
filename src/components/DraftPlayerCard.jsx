@@ -332,29 +332,6 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           </span>
         </div>
 
-        <div
-          style={{
-            position: 'absolute',
-            bottom: compact ? 8 : 10,
-            right: compact ? 9 : 11,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: 'rgba(226,232,240,0.72)',
-              letterSpacing: '0.08em',
-              background: 'rgba(15,23,42,0.68)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 999,
-              padding: '3px 7px',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            {player.team_short_code || '-'}
-          </span>
-        </div>
       </div>
 
       <div
