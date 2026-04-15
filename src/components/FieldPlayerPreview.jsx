@@ -1,5 +1,5 @@
 import React from 'react';
-import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
+import { getDetailedPositionLabel, normalizeDetailedPositionId, filterMirrorAltPositions } from '../utils/positions.js';
 import { nationalityToIso2 } from '../utils/nationality.js';
 
 const TEAM_COLORS = {
@@ -51,10 +51,13 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const normalizedPlayerPos = normalizeDetailedPositionId(player?.detailed_position_id);
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
   const isNonPrimary = normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos;
+  const effectivePos = normalizedSlotPos || normalizedPlayerPos;
   const rawAlts = (player?.alt_positions || []).map((id) => normalizeDetailedPositionId(id));
-  const altPositions = [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
-    .filter((id) => id !== (normalizedSlotPos || normalizedPlayerPos))
-    .slice(0, 2);
+  const altPositions = filterMirrorAltPositions(
+    effectivePos,
+    [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
+      .filter((id) => id !== effectivePos)
+  ).slice(0, 2);
 
   const iso2 = nationalityToIso2(player?.nationality || '');
 

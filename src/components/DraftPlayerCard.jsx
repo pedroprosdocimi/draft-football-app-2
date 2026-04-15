@@ -1,6 +1,6 @@
 import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
-import { getDetailedPositionLabel, normalizeDetailedPositionId } from '../utils/positions.js';
+import { getDetailedPositionLabel, normalizeDetailedPositionId, filterMirrorAltPositions } from '../utils/positions.js';
 
 // Jersey colors by team short_code: { p: primary, s: secondary }
 const TEAM_COLORS = {
@@ -64,9 +64,11 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const displayPositionId = isNonPrimary ? normalizedSlotPos : normalizedPlayerPos;
 
   const rawAlts = (player.alt_positions || []).map((id) => normalizeDetailedPositionId(id));
-  const altPositions = [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
-    .filter((id) => id !== displayPositionId)
-    .slice(0, 2);
+  const altPositions = filterMirrorAltPositions(
+    displayPositionId,
+    [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
+      .filter((id) => id !== displayPositionId)
+  ).slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const jersey = TEAM_COLORS[player.team_short_code] || {

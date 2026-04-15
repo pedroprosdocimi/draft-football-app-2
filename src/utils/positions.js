@@ -32,6 +32,22 @@ export const DETAILED_POSITION_FILTER_OPTIONS = [
   { id: 12, label: 'Ponta Direita' },
 ];
 
+// Positions that are mirror images of each other — should not appear
+// as alternatives for one another (e.g. right back should not list left back as alt).
+const MIRROR_PAIRS = [
+  [3, 4],   // LD ↔ LE
+  [8, 9],   // ME ↔ MD
+  [11, 12], // PE ↔ PD
+];
+
+export function filterMirrorAltPositions(primaryId, altIds) {
+  const primary = Number(primaryId);
+  const mirrorOfPrimary = MIRROR_PAIRS.find((pair) => pair.includes(primary))
+    ?.find((id) => id !== primary) ?? null;
+  if (mirrorOfPrimary === null) return altIds;
+  return altIds.filter((id) => Number(id) !== mirrorOfPrimary);
+}
+
 export function normalizeDetailedPositionId(value) {
   const positionId = Number(value);
   if (positionId === SECOND_STRIKER_POSITION_ID) {
