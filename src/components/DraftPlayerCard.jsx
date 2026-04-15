@@ -51,13 +51,22 @@ const GOALKEEPER_ATTRS = [
   ['FIS', '#22d3ee', 'attr_fis'],
 ];
 
-export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = false }) {
+export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = false, slotPositionId = null }) {
   const isGoalkeeper = player.detailed_position_id === 1;
   const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
   const iso2 = nationalityToIso2(player.nationality || '');
   const displayName = player.display_name || player.name;
-  const altPositions = [...new Set((player.alt_positions || []).map((positionId) => normalizeDetailedPositionId(positionId)))].slice(0, 2);
+
+  const normalizedPlayerPos = normalizeDetailedPositionId(player.detailed_position_id);
+  const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
+  const isNonPrimary = normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos;
+  const displayPositionId = isNonPrimary ? normalizedSlotPos : normalizedPlayerPos;
+
+  const rawAlts = (player.alt_positions || []).map((id) => normalizeDetailedPositionId(id));
+  const altPositions = [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
+    .filter((id) => id !== displayPositionId)
+    .slice(0, 2);
   const avgScore = (player.avg_score || 0).toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const jersey = TEAM_COLORS[player.team_short_code] || {
@@ -267,7 +276,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
               backdropFilter: 'blur(8px)',
             }}
           >
-            {getDetailedPositionLabel(player.detailed_position_id)}
+            {getDetailedPositionLabel(displayPositionId)}
           </span>
           {altPositions.map((posID) => (
             <span

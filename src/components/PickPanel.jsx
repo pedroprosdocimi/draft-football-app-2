@@ -50,6 +50,7 @@ export default function PickPanel({ options, slotDetailedPositionId, isCaptainPi
                 key={player.id}
                 player={player}
                 isMyTurn
+                slotPositionId={slotDetailedPositionId}
                 onClick={() => onPickPlayer(player)}
               />
             ))

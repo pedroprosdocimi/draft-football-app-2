@@ -568,7 +568,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       transition: 'opacity 0.15s, outline 0.1s',
                     }}
                   >
-                    <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
+                    <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} slotPositionId={slot.detailed_position_id} />
                   </div>
                 ) : isLocked ? (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">

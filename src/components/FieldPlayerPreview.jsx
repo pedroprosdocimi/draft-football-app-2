@@ -38,7 +38,7 @@ function formatName(name) {
   return abbreviated;
 }
 
-export default function FieldPlayerPreview({ player, posLabel }) {
+export default function FieldPlayerPreview({ player, posLabel, slotPositionId = null }) {
   const rawName = player?.display_name || player?.name || 'Jogador';
   const displayName = rawName.includes(' ') ? formatName(rawName) : rawName;
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
@@ -47,7 +47,15 @@ export default function FieldPlayerPreview({ player, posLabel }) {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
   };
-  const altPositions = [...new Set((player?.alt_positions || []).map((positionId) => normalizeDetailedPositionId(positionId)))].slice(0, 2);
+
+  const normalizedPlayerPos = normalizeDetailedPositionId(player?.detailed_position_id);
+  const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
+  const isNonPrimary = normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos;
+  const rawAlts = (player?.alt_positions || []).map((id) => normalizeDetailedPositionId(id));
+  const altPositions = [...new Set(isNonPrimary ? [normalizedPlayerPos, ...rawAlts] : rawAlts)]
+    .filter((id) => id !== (normalizedSlotPos || normalizedPlayerPos))
+    .slice(0, 2);
+
   const iso2 = nationalityToIso2(player?.nationality || '');
 
   return (
