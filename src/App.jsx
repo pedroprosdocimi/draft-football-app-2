@@ -3,6 +3,7 @@ import { API_URL } from './config.js';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
+import VerifyEmail from './pages/VerifyEmail.jsx';
 import Home from './pages/Home.jsx';
 import Draft from './pages/Draft.jsx';
 import EndScreen from './pages/EndScreen.jsx';
@@ -10,6 +11,7 @@ import Admin from './pages/Admin.jsx';
 
 export default function App() {
   const [authPage, setAuthPage] = useState('login');
+  const [verifyEmail, setVerifyEmail] = useState(null); // { email, password }
   const [user, setUser] = useState(null);
   const [page, setPage] = useState('home');
   const [draftId, setDraftId] = useState(null);
@@ -60,7 +62,22 @@ export default function App() {
             onGoForgot={() => setAuthPage('forgot')} />
         )}
         {authPage === 'register' && (
-          <Register onLogin={handleLogin} onGoLogin={() => setAuthPage('login')} />
+          <Register
+            onLogin={handleLogin}
+            onGoLogin={() => setAuthPage('login')}
+            onGoVerify={(email, password) => {
+              setVerifyEmail({ email, password });
+              setAuthPage('verify-email');
+            }}
+          />
+        )}
+        {authPage === 'verify-email' && verifyEmail && (
+          <VerifyEmail
+            email={verifyEmail.email}
+            password={verifyEmail.password}
+            onLogin={handleLogin}
+            onGoLogin={() => { setVerifyEmail(null); setAuthPage('login'); }}
+          />
         )}
         {authPage === 'forgot' && (
           <ForgotPassword onGoLogin={() => setAuthPage('login')} />

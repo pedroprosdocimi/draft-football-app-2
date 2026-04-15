@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { API_URL } from '../config.js';
 
-export default function Register({ onLogin, onGoLogin }) {
+export default function Register({ onLogin, onGoLogin, onGoVerify }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,18 +34,7 @@ export default function Register({ onLogin, onGoLogin }) {
         setError(data.error || 'Erro ao criar conta.');
         return;
       }
-      const loginRes = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email.trim(), password: form.password }),
-      });
-      const loginData = await loginRes.json();
-      if (loginRes.ok) {
-        localStorage.setItem('draft_token', loginData.token);
-        onLogin(loginData.user);
-      } else {
-        setError('Conta criada! Verifique seu email para ativar.');
-      }
+      onGoVerify(form.email.trim(), form.password);
     } catch {
       setError('Erro de conexão.');
     } finally {
