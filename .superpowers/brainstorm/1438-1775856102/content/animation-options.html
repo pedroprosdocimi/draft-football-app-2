@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animação da Cartinha — Opções</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 24px 16px 48px;
+  }
+  h1 { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 6px; color: #f0f6fc; }
+  .subtitle { font-size: 13px; color: #7d8590; text-align: center; margin-bottom: 28px; }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  .opt-card {
+    border: 2px solid #30363d;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    background: #161b22;
+  }
+  .opt-card:hover { border-color: #58a6ff; transform: translateY(-2px); }
+  .opt-card.selected { border-color: #3fb950; background: #0d1117; }
+  .opt-card.selected .opt-label { background: #238636; color: #fff; }
+
+  .opt-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; padding: 8px 14px;
+    background: #21262d; color: #7d8590;
+    border-bottom: 1px solid #30363d;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .demo-area {
+    position: relative;
+    height: 240px;
+    overflow: hidden;
+    background: #0d1117;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Mini field */
+  .field {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    background: #14532d;
+    border: 1px solid #166534;
+    border-radius: 8px;
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
+  .field-row { display: flex; gap: 4px; }
+  .slot {
+    width: 36px; height: 28px;
+    border: 1.5px dashed #4ade8066;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; color: #4ade8088; font-weight: 700;
+    transition: all 0.3s;
+    background: transparent;
+  }
+  .slot.target {
+    border-color: #fbbf24;
+    color: #fbbf24;
+    animation: pulse-slot 1.5s infinite;
+  }
+  .slot.filled {
+    border: 1.5px solid #4ade80;
+    background: #166534;
+    color: #4ade80;
+  }
+
+  @keyframes pulse-slot {
+    0%, 100% { box-shadow: 0 0 0 0 #fbbf2440; }
+    50% { box-shadow: 0 0 0 4px #fbbf2440; }
+  }
+
+  /* Mini card */
+  .mini-card {
+    width: 52px; height: 68px;
+    background: linear-gradient(135deg, #1a2234, #0f172a);
+    border: 1.5px solid #22c55e;
+    border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 7px; font-weight: 700;
+    color: #f9fafb;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    position: absolute;
+    cursor: pointer;
+  }
+  .mini-card .card-pos {
+    font-size: 9px; font-weight: 900; color: #4ade80; margin-bottom: 2px;
+  }
+  .mini-card .card-name { font-size: 7px; color: #d1d5db; }
+  .mini-card .card-score { font-size: 10px; font-weight: 800; color: #fbbf24; }
+
+  /* Overlay strip at bottom */
+  .overlay-strip {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    border-top: 1px solid #30363d;
+  }
+
+  /* Play button */
+  .play-btn {
+    position: absolute;
+    bottom: 90px; right: 14px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #7d8590;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .play-btn:hover { background: #30363d; color: #e6edf3; }
+
+  .opt-desc {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.6;
+    border-top: 1px solid #21262d;
+  }
+  .opt-desc strong { color: #e6edf3; }
+
+  /* === OPTION A: flying card === */
+  #demoA .mini-card { transition: all 0.6s cubic-bezier(0.4,0,0.2,1); }
+  #demoA .mini-card.fly {
+    transform: translate(-60px, -120px) scale(0.55);
+    opacity: 0;
+  }
+  #demoA .mini-card.fly ~ .slot-a { border-color: #4ade80 !important; background: #166534 !important; }
+
+  /* === OPTION B: fade + pop === */
+  #demoB .overlay-strip { transition: opacity 0.4s; }
+  #demoB .overlay-strip.hide { opacity: 0; pointer-events: none; }
+  #demoB .slot.pop { animation: slot-pop 0.5s ease 0.3s both; }
+  @keyframes slot-pop {
+    0% { transform: scale(0.4); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  /* === OPTION C: zoom + trail === */
+  #demoC .trail-card {
+    transition: all 0.55s cubic-bezier(0.22,1,0.36,1);
+    opacity: 0;
+  }
+  #demoC .trail-card.active {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+
+  .chosen-badge {
+    position: absolute; top: 8px; right: 10px;
+    background: #238636; color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    display: none;
+  }
+  .opt-card.selected .chosen-badge { display: block; }
+</style>
+</head>
+<body>
+
+<h1>Como a cartinha chega no slot?</h1>
+<p class="subtitle">Clique em "▶ Ver" em cada opção para ver a animação. Clique no card para selecionar.</p>
+
+<div class="options-grid">
+
+  <!-- OPTION A: Flying card -->
+  <div class="opt-card" id="optA" onclick="selectOpt('A')">
+    <div class="opt-label">
+      <span style="background:#fbbf24;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">A</span>
+      Voo real — a cartinha voa até o slot
+    </div>
+    <div class="demo-area" id="demoA">
+      <span class="chosen-badge">✓ Escolhido</span>
+      <!-- Field -->
+      <div class="field" style="top:10px">
+        <div class="field-row">
+          <div class="slot" id="slotA1">PE</div>
+          <div class="slot target" id="slotA2" style="border-color:#fbbf24;color:#fbbf24">CAT</div>
+          <div class="slot" id="slotA3">PD</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">VOL</div>
+          <div class="slot">MEI</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">ZAG</div>
+          <div class="slot">ZAG</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">GOL</div>
+        </div>
+      </div>
+      <!-- Overlay strip -->
+      <div class="overlay-strip" id="overlayA">
+        <!-- Selecionada -->
+        <div class="mini-card" id="cardA" style="left:50%;transform:translateX(-50%)">
+          <div class="card-score">8.4</div>
+          <div class="card-pos">CA</div>
+          <div class="card-name">Hulk</div>
+        </div>
+      </div>
+      <button class="play-btn" onclick="playA(event)">▶ Ver</button>
+    </div>
+    <div class="opt-desc">
+      A cartinha selecionada <strong>voa literalmente</strong> da barra de opções até o slot vazio no campo. O overlay fecha conforme a animação termina.<br><br>
+      Requer capturar posição DOM de ambos (card e slot). Mais complexo, mas muito satisfatório visualmente.
+    </div>
+  </div>
+
+  <!-- OPTION B: Fade overlay + slot pops in -->
+  <div class="opt-card" id="optB" onclick="selectOpt('B')">
+    <div class="opt-label">
+      <span style="background:#60a5fa;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">B</span>
+      Fade + Pop — overlay some, slot aparece
+    </div>
+    <div class="demo-area" id="demoB">
+      <span class="chosen-badge">✓ Escolhido</span>
+      <div class="field" style="top:10px">
+        <div class="field-row">
+          <div class="slot">PE</div>
+          <div class="slot target" id="slotB" style="border-color:#fbbf24;color:#fbbf24">CA</div>
+          <div class="slot">PD</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">VOL</div>
+          <div class="slot">MEI</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">ZAG</div>
+          <div class="slot">ZAG</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">GOL</div>
+        </div>
+      </div>
+      <div class="overlay-strip" id="overlayB">
+        <div class="mini-card" style="position:relative;left:auto;transform:none">
+          <div class="card-score">8.4</div>
+          <div class="card-pos">CA</div>
+          <div class="card-name">Hulk</div>
+        </div>
+      </div>
+      <button class="play-btn" onclick="playB(event)">▶ Ver</button>
+    </div>
+    <div class="opt-desc">
+      Ao escolher, o <strong>overlay faz fade-out rápido</strong>. Quando some, o slot no campo ganha um <strong>pop de escala</strong> (aparece de pequeno para o tamanho normal). Simples e limpo.<br><br>
+      Implementação mais fácil — sem cálculo de posição DOM.
+    </div>
+  </div>
+
+  <!-- OPTION C: Card shrinks and zooms to slot -->
+  <div class="opt-card" id="optC" onclick="selectOpt('C')">
+    <div class="opt-label">
+      <span style="background:#a78bfa;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">C</span>
+      Zoom — cartinha encolhe em direção ao campo
+    </div>
+    <div class="demo-area" id="demoC">
+      <span class="chosen-badge">✓ Escolhido</span>
+      <div class="field" style="top:10px">
+        <div class="field-row">
+          <div class="slot">PE</div>
+          <div class="slot target" id="slotC" style="border-color:#fbbf24;color:#fbbf24">CA</div>
+          <div class="slot">PD</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">VOL</div>
+          <div class="slot">MEI</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">ZAG</div>
+          <div class="slot">ZAG</div>
+        </div>
+        <div class="field-row">
+          <div class="slot">GOL</div>
+        </div>
+      </div>
+      <div class="overlay-strip" id="overlayC">
+        <div class="mini-card" id="cardC" style="position:relative;left:auto;transform:none;transition:all 0.5s cubic-bezier(0.4,0,0.2,1)">
+          <div class="card-score">8.4</div>
+          <div class="card-pos">CA</div>
+          <div class="card-name">Hulk</div>
+        </div>
+      </div>
+      <button class="play-btn" onclick="playC(event)">▶ Ver</button>
+    </div>
+    <div class="opt-desc">
+      A cartinha escolhida <strong>encolhe e sobe</strong> em direção ao slot, enquanto as outras cartas fazem fade-out. O overlay some depois. Sensação de "colocar no campo".<br><br>
+      Dificuldade média — requer animar o elemento relativo ao overlay.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let selectedOpt = null;
+
+  function selectOpt(opt) {
+    ['A','B','C'].forEach(o => document.getElementById('opt'+o).classList.remove('selected'));
+    document.getElementById('opt'+opt).classList.add('selected');
+    selectedOpt = opt;
+    // Report to server
+    if (window.__reportChoice) window.__reportChoice(opt, 'Option ' + opt);
+  }
+
+  // --- DEMO A: Flying card ---
+  let demoAPlaying = false;
+  function playA(e) {
+    e.stopPropagation();
+    if (demoAPlaying) return;
+    demoAPlaying = true;
+
+    const card = document.getElementById('cardA');
+    const slot = document.getElementById('slotA2');
+    const overlay = document.getElementById('overlayA');
+
+    // Get positions
+    const cardRect = card.getBoundingClientRect();
+    const slotRect = slot.getBoundingClientRect();
+
+    // Calculate delta
+    const dx = slotRect.left + slotRect.width/2 - (cardRect.left + cardRect.width/2);
+    const dy = slotRect.top + slotRect.height/2 - (cardRect.top + cardRect.height/2);
+
+    card.style.transition = 'all 0.55s cubic-bezier(0.4,0,0.2,1)';
+    card.style.transform = `translateX(calc(-50% + ${dx}px)) translateY(${dy}px) scale(0.5)`;
+    card.style.opacity = '0';
+
+    setTimeout(() => {
+      overlay.style.transition = 'opacity 0.25s';
+      overlay.style.opacity = '0';
+      slot.style.borderColor = '#4ade80';
+      slot.style.background = '#166534';
+      slot.style.color = '#4ade80';
+      slot.textContent = 'CA ✓';
+    }, 400);
+
+    setTimeout(() => {
+      // Reset
+      card.style.transition = 'none';
+      card.style.transform = 'translateX(-50%)';
+      card.style.opacity = '1';
+      overlay.style.opacity = '1';
+      slot.style.borderColor = '#fbbf24';
+      slot.style.background = 'transparent';
+      slot.style.color = '#fbbf24';
+      slot.textContent = 'CAT';
+      demoAPlaying = false;
+    }, 2200);
+  }
+
+  // --- DEMO B: Fade + Pop ---
+  let demoBPlaying = false;
+  function playB(e) {
+    e.stopPropagation();
+    if (demoBPlaying) return;
+    demoBPlaying = true;
+
+    const overlay = document.getElementById('overlayB');
+    const slot = document.getElementById('slotB');
+
+    overlay.style.transition = 'opacity 0.3s';
+    overlay.style.opacity = '0';
+
+    setTimeout(() => {
+      slot.style.borderColor = '#4ade80';
+      slot.style.background = '#166534';
+      slot.style.color = '#4ade80';
+      slot.textContent = '✓';
+      slot.style.animation = 'none';
+      slot.style.transform = 'scale(0.3)';
+      slot.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1), background 0.2s';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          slot.style.transform = 'scale(1)';
+        });
+      });
+    }, 280);
+
+    setTimeout(() => {
+      overlay.style.opacity = '1';
+      slot.style.borderColor = '#fbbf24';
+      slot.style.background = 'transparent';
+      slot.style.color = '#fbbf24';
+      slot.style.transform = 'scale(1)';
+      slot.style.transition = '';
+      slot.style.animation = '';
+      slot.textContent = 'CA';
+      demoBPlaying = false;
+    }, 2000);
+  }
+
+  // --- DEMO C: Zoom ---
+  let demoCPlaying = false;
+  function playC(e) {
+    e.stopPropagation();
+    if (demoCPlaying) return;
+    demoCPlaying = true;
+
+    const card = document.getElementById('cardC');
+    const overlay = document.getElementById('overlayC');
+    const slot = document.getElementById('slotC');
+
+    card.style.transition = 'all 0.45s cubic-bezier(0.4,0,0.2,1)';
+    card.style.transform = 'scale(0.1) translateY(-80px)';
+    card.style.opacity = '0';
+
+    setTimeout(() => {
+      overlay.style.transition = 'opacity 0.2s';
+      overlay.style.opacity = '0';
+      slot.style.borderColor = '#4ade80';
+      slot.style.background = '#166534';
+      slot.style.color = '#4ade80';
+      slot.style.transform = 'scale(0.4)';
+      slot.style.transition = 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        slot.style.transform = 'scale(1)';
+        slot.textContent = '✓';
+      }));
+    }, 380);
+
+    setTimeout(() => {
+      card.style.transition = 'none';
+      card.style.transform = 'none';
+      card.style.opacity = '1';
+      overlay.style.opacity = '1';
+      slot.style.borderColor = '#fbbf24';
+      slot.style.background = 'transparent';
+      slot.style.color = '#fbbf24';
+      slot.style.transform = '';
+      slot.style.transition = '';
+      slot.textContent = 'CA';
+      demoCPlaying = false;
+    }, 2200);
+  }
+</script>
+</body>
+</html>

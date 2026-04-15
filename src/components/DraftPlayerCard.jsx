@@ -31,7 +31,7 @@ const DETAILED_LABELS = {
   3: 'LD',
   4: 'LE',
   5: 'VOL',
-  6: 'MEI',
+  6: 'MC',
   7: 'MEI',
   8: 'ME',
   9: 'MD',

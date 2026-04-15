@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Card v20</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111827; color: #f9fafb;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; padding: 32px 16px; gap: 24px;
+  }
+  h1 { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #6b7280; }
+
+  .cards-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .col-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #4b5563; }
+
+  .card { width: 210px; border-radius: 14px; overflow: hidden; border: 1.5px solid; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+  .card.ata { border-color: #ef4444; }
+  .card.gol { border-color: #3b82f6; }
+  .card.def { border-color: #22c55e; }
+
+  .card-top {
+    height: 130px;
+    background: #1a2234;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .jersey-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .jersey-center svg {
+    width: 108px;
+    height: auto;
+    filter: drop-shadow(0 4px 14px rgba(0,0,0,0.7));
+  }
+
+  .overlay-tl {
+    position: absolute;
+    top: 9px; left: 11px;
+  }
+  .score-val   { font-size: 26px; font-weight: 800; color: #fbbf24; line-height: 1.05; }
+  .score-label { font-size: 8px; color: #6b7280; }
+
+  .overlay-tr {
+    position: absolute;
+    top: 9px; right: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .minutes-wrap { text-align: right; }
+  .minutes-val { font-size: 14px; font-weight: 700; color: #d1d5db; line-height: 1; }
+  .minutes-lbl { font-size: 8px; color: #6b7280; }
+  .flag { display: inline-block; width: 28px; height: 20px; border-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+
+  /* bottom-left: alt positions on top, main position below */
+  .overlay-bl {
+    position: absolute;
+    bottom: 9px; left: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+  .alt-pos-row { display: flex; gap: 3px; }
+  .alt-pos-tag { font-size: 9px; font-weight: 600; color: #9ca3af; background: rgba(255,255,255,0.08); border-radius: 3px; padding: 1px 5px; line-height: 1.5; }
+  .main-pos { font-size: 20px; font-weight: 900; color: #f9fafb; line-height: 1; letter-spacing: 0.5px; }
+
+  .overlay-br {
+    position: absolute;
+    bottom: 9px; right: 11px;
+  }
+  .team { font-size: 11px; font-weight: 700; color: #6b7280; letter-spacing: 0.5px; }
+
+  .card-bottom { background: #111827; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .player-name { font-size: 13px; font-weight: 800; color: #f9fafb; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-bottom: 7px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; }
+  .attr { display: flex; align-items: center; gap: 4px; }
+  .a-label { font-size: 11px; font-weight: 800; text-transform: uppercase; width: 30px; flex-shrink: 0; }
+  .a-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .a-fill { height: 100%; border-radius: 2px; }
+  .a-val { font-size: 11px; font-weight: 900; width: 28px; text-align: right; }
+
+  .a-ata .a-label, .a-ata .a-val { color: #f87171; } .a-ata .a-fill { background: #f87171; }
+  .a-gol .a-label, .a-gol .a-val { color: #3b82f6; } .a-gol .a-fill { background: #3b82f6; }
+  .a-com .a-label, .a-com .a-val { color: #fbbf24; } .a-com .a-fill { background: #fbbf24; }
+  .a-cri .a-label, .a-cri .a-val { color: #a78bfa; } .a-cri .a-fill { background: #a78bfa; }
+  .a-def .a-label, .a-def .a-val { color: #4ade80; } .a-def .a-fill { background: #4ade80; }
+  .a-pas .a-label, .a-pas .a-val { color: #60a5fa; } .a-pas .a-fill { background: #60a5fa; }
+  .a-fis .a-label, .a-fis .a-val { color: #22d3ee; } .a-fis .a-fill { background: #22d3ee; }
+</style>
+</head>
+<body>
+
+<h1>Carta do Jogador — v20</h1>
+
+<div class="cards-row">
+
+  <!-- ATLETICO MG — atacante -->
+  <div class="col">
+    <span class="col-label">Atletico MG</span>
+    <div class="card ata">
+      <div class="card-top">
+        <div class="jersey-center">
+          <svg viewBox="0 0 120 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><clipPath id="c-atm">
+              <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z"/>
+            </clipPath></defs>
+            <g clip-path="url(#c-atm)">
+              <rect x="0" y="0" width="120" height="95" fill="#1a1a1a"/>
+              <rect x="9"  y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="23" y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="37" y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="51" y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="65" y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="79" y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="93" y="0" width="7" height="95" fill="#e8e8e8"/>
+              <rect x="107" y="0" width="7" height="95" fill="#e8e8e8"/>
+            </g>
+          </svg>
+        </div>
+        <div class="overlay-tl">
+          <div class="score-val">8.4</div>
+          <div class="score-label">score méd.</div>
+        </div>
+        <div class="overlay-tr">
+          <div class="minutes-wrap">
+            <div class="minutes-val">73'</div>
+            <div class="minutes-lbl">méd. min.</div>
+          </div>
+          <span class="fi fi-br flag"></span>
+        </div>
+        <div class="overlay-bl">
+          <div class="alt-pos-row">
+            <span class="alt-pos-tag">PE</span>
+            <span class="alt-pos-tag">2AT</span>
+          </div>
+          <span class="main-pos">CA</span>
+        </div>
+        <div class="overlay-br"><div class="team">ATM</div></div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Pedro Ramirez</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:85%"></div></div><span class="a-val">8.5</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:72%"></div></div><span class="a-val">7.2</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:60%"></div></div><span class="a-val">6.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:15%"></div></div><span class="a-val">1.5</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:55%"></div></div><span class="a-val">5.5</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:68%"></div></div><span class="a-val">6.8</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLAMENGO — goleiro (sem posições auxiliares) -->
+  <div class="col">
+    <span class="col-label">Flamengo</span>
+    <div class="card gol">
+      <div class="card-top">
+        <div class="jersey-center">
+          <svg viewBox="0 0 120 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><clipPath id="c-fla">
+              <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z"/>
+            </clipPath></defs>
+            <g clip-path="url(#c-fla)">
+              <rect x="0" y="0" width="120" height="95" fill="#111111"/>
+              <rect x="0" y="18" width="120" height="10" fill="#cc1a1a"/>
+              <rect x="0" y="34" width="120" height="10" fill="#cc1a1a"/>
+              <rect x="0" y="50" width="120" height="10" fill="#cc1a1a"/>
+              <rect x="0" y="66" width="120" height="10" fill="#cc1a1a"/>
+              <rect x="0" y="82" width="120" height="10" fill="#cc1a1a"/>
+            </g>
+          </svg>
+        </div>
+        <div class="overlay-tl">
+          <div class="score-val">6.1</div>
+          <div class="score-label">score méd.</div>
+        </div>
+        <div class="overlay-tr">
+          <div class="minutes-wrap">
+            <div class="minutes-val">90'</div>
+            <div class="minutes-lbl">méd. min.</div>
+          </div>
+          <span class="fi fi-ar flag"></span>
+        </div>
+        <div class="overlay-bl">
+          <!-- sem auxiliares -->
+          <span class="main-pos">GOL</span>
+        </div>
+        <div class="overlay-br"><div class="team">FLA</div></div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Agustín Rossi</div>
+        <div class="attrs">
+          <div class="attr a-gol"><span class="a-label">GOL</span><div class="a-bar"><div class="a-fill" style="width:88%"></div></div><span class="a-val">8.8</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:60%"></div></div><span class="a-val">6.0</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:20%"></div></div><span class="a-val">2.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:90%"></div></div><span class="a-val">9.0</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:40%"></div></div><span class="a-val">4.0</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:50%"></div></div><span class="a-val">5.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PALMEIRAS — zagueiro -->
+  <div class="col">
+    <span class="col-label">Palmeiras</span>
+    <div class="card def">
+      <div class="card-top">
+        <div class="jersey-center">
+          <svg viewBox="0 0 120 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs><clipPath id="c-pal">
+              <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z"/>
+            </clipPath></defs>
+            <g clip-path="url(#c-pal)">
+              <rect x="0" y="0" width="120" height="95" fill="#1a6b2e"/>
+            </g>
+          </svg>
+        </div>
+        <div class="overlay-tl">
+          <div class="score-val">7.7</div>
+          <div class="score-label">score méd.</div>
+        </div>
+        <div class="overlay-tr">
+          <div class="minutes-wrap">
+            <div class="minutes-val">82'</div>
+            <div class="minutes-lbl">méd. min.</div>
+          </div>
+          <span class="fi fi-uy flag"></span>
+        </div>
+        <div class="overlay-bl">
+          <div class="alt-pos-row">
+            <span class="alt-pos-tag">VOL</span>
+          </div>
+          <span class="main-pos">ZAG</span>
+        </div>
+        <div class="overlay-br"><div class="team">PAL</div></div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">José Giménez</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:10%"></div></div><span class="a-val">1.0</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:78%"></div></div><span class="a-val">7.8</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:30%"></div></div><span class="a-val">3.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:92%"></div></div><span class="a-val">9.2</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:45%"></div></div><span class="a-val">4.5</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:80%"></div></div><span class="a-val">8.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campo com Cartas — Tamanho</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 20px 12px 48px;
+}
+h1 { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+.subtitle { font-size: 12px; color: #7d8590; text-align: center; margin-bottom: 24px; }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.opt-card {
+  border: 2px solid #30363d;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  background: #161b22;
+}
+.opt-card:hover { border-color: #58a6ff; }
+.opt-card.selected { border-color: #3fb950; }
+
+.opt-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 8px 14px;
+  background: #21262d; color: #7d8590;
+  border-bottom: 1px solid #30363d;
+  display: flex; align-items: center; gap: 6px;
+}
+.opt-card.selected .opt-label { background: #0d4429; color: #3fb950; }
+
+.demo-area {
+  overflow-x: auto;
+  background: #0a3020;
+  padding: 12px 8px;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.field-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* ===== CARD SIZES ===== */
+
+/* A: Full-size (210px) — scrollable */
+.card-full {
+  width: 210px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid #22c55e;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.card-full .card-top {
+  height: 120px;
+  background: #1a2234;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+}
+.card-full .card-bottom {
+  background: #111827;
+  padding: 8px 12px 12px;
+}
+.card-full .name { font-size: 13px; font-weight: 800; text-transform: uppercase; text-align: center; color: #f9fafb; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px; margin-bottom: 6px; }
+.card-full .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
+.card-full .attr { font-size: 11px; font-weight: 700; }
+
+/* B: Medium (140px) — fits 3 per row on mobile */
+.card-med {
+  width: 140px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid #22c55e;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.card-med .card-top {
+  height: 80px;
+  background: #1a2234;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+}
+.card-med .card-bottom {
+  background: #111827;
+  padding: 5px 8px 8px;
+}
+.card-med .name { font-size: 10px; font-weight: 800; text-transform: uppercase; text-align: center; color: #f9fafb; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px; margin-bottom: 4px; }
+.card-med .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 4px; }
+.card-med .attr { font-size: 9px; font-weight: 700; }
+
+/* C: Compact (90px) — fits many per row */
+.card-sm {
+  width: 90px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #22c55e;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+}
+.card-sm .card-top {
+  height: 56px;
+  background: #1a2234;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+}
+.card-sm .card-bottom {
+  background: #111827;
+  padding: 4px 6px 6px;
+}
+.card-sm .name { font-size: 8px; font-weight: 800; text-transform: uppercase; text-align: center; color: #f9fafb; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 3px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-sm .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 2px; }
+.card-sm .attr { font-size: 7px; font-weight: 700; }
+
+/* Jersey mini */
+.jersey { font-size: 20px; margin-bottom: 2px; }
+.jersey-med { font-size: 14px; margin-bottom: 1px; }
+.jersey-sm { font-size: 10px; margin-bottom: 1px; }
+.score { font-size: 16px; font-weight: 800; color: #fbbf24; }
+.score-med { font-size: 12px; font-weight: 800; color: #fbbf24; }
+.score-sm { font-size: 9px; font-weight: 800; color: #fbbf24; }
+.pos-badge { position: absolute; bottom: 6px; left: 6px; font-size: 9px; font-weight: 900; color: #f9fafb; }
+.pos-badge-med { position: absolute; bottom: 4px; left: 4px; font-size: 8px; font-weight: 900; color: #f9fafb; }
+.pos-badge-sm { position: absolute; bottom: 3px; left: 3px; font-size: 6px; font-weight: 900; color: #f9fafb; }
+
+/* empty slot */
+.slot-empty {
+  border: 2px dashed #4ade8050;
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: #4ade8060; font-weight: 700; font-size: 10px;
+}
+
+.opt-desc {
+  padding: 10px 14px;
+  font-size: 12px; color: #8b949e; line-height: 1.6;
+  border-top: 1px solid #21262d;
+}
+.opt-desc strong { color: #e6edf3; }
+
+.scroll-note {
+  font-size: 10px; color: #6b7280; text-align: center; padding: 4px 0 0;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+
+<h1>Qual tamanho de carta no campo?</h1>
+<p class="subtitle">Formação 4-3-3 como exemplo. Clique para selecionar.</p>
+
+<div class="options-grid">
+
+  <!-- A: Full 210px — scrollable field -->
+  <div class="opt-card" id="optA" onclick="selectOpt('A')">
+    <div class="opt-label">
+      <span style="background:#fbbf24;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">A</span>
+      Carta completa (210px) — campo rolável
+    </div>
+    <div class="demo-area" style="overflow-x:auto; justify-content:flex-start; padding: 12px;">
+      <div class="field-col">
+        <!-- Atacantes -->
+        <div class="field-row">
+          <div class="card-full">
+            <div class="card-top" style="background:#1a2234">
+              <div class="score">8.4</div>
+              <div style="font-size:8px;color:#6b7280">CA</div>
+              <span class="pos-badge">CA</span>
+            </div>
+            <div class="card-bottom">
+              <div class="name">Hulk</div>
+              <div class="attrs">
+                <span class="attr" style="color:#f87171">ATA 9.2</span>
+                <span class="attr" style="color:#fbbf24">COM 7.1</span>
+                <span class="attr" style="color:#a78bfa">CRI 6.8</span>
+                <span class="attr" style="color:#4ade80">DEF 2.1</span>
+                <span class="attr" style="color:#60a5fa">PAS 7.4</span>
+                <span class="attr" style="color:#22d3ee">FIS 8.0</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-full slot-empty" style="height:190px;width:210px">PE<br>+</div>
+          <div class="card-full slot-empty" style="height:190px;width:210px">PD<br>+</div>
+        </div>
+        <!-- Meias -->
+        <div class="field-row">
+          <div class="card-full slot-empty" style="height:190px;width:210px">VOL<br>+</div>
+          <div class="card-full slot-empty" style="height:190px;width:210px">MEI<br>+</div>
+          <div class="card-full slot-empty" style="height:190px;width:210px">MAT<br>+</div>
+        </div>
+      </div>
+    </div>
+    <p class="scroll-note">→ role para ver os outros slots</p>
+    <div class="opt-desc">
+      Campo rola horizontalmente. Mostra a <strong>carta completa</strong> com todos os atributos. Visual idêntico ao PickPanel. Boa para desktops, ruim no celular.
+    </div>
+  </div>
+
+  <!-- B: Medium 140px -->
+  <div class="opt-card" id="optB" onclick="selectOpt('B')">
+    <div class="opt-label">
+      <span style="background:#60a5fa;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">B</span>
+      Carta média (140px) — cabe no mobile
+    </div>
+    <div class="demo-area" style="padding: 10px 6px;">
+      <div class="field-col">
+        <div class="field-row">
+          <div class="card-med">
+            <div class="card-top">
+              <div class="score-med">8.4</div>
+              <div style="font-size:7px;color:#6b7280">CA</div>
+              <span class="pos-badge-med">CA</span>
+            </div>
+            <div class="card-bottom">
+              <div class="name">Hulk</div>
+              <div class="attrs">
+                <span class="attr" style="color:#f87171">ATA 9.2</span>
+                <span class="attr" style="color:#fbbf24">COM 7.1</span>
+                <span class="attr" style="color:#a78bfa">CRI 6.8</span>
+                <span class="attr" style="color:#4ade80">DEF 2.1</span>
+                <span class="attr" style="color:#60a5fa">PAS 7.4</span>
+                <span class="attr" style="color:#22d3ee">FIS 8.0</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-med slot-empty" style="height:130px">PE<br>+</div>
+          <div class="card-med slot-empty" style="height:130px">PD<br>+</div>
+        </div>
+        <div class="field-row">
+          <div class="card-med slot-empty" style="height:130px">VOL<br>+</div>
+          <div class="card-med slot-empty" style="height:130px">MEI<br>+</div>
+          <div class="card-med slot-empty" style="height:130px">MAT<br>+</div>
+        </div>
+        <div class="field-row">
+          <div class="card-med slot-empty" style="height:130px">ZAG<br>+</div>
+          <div class="card-med slot-empty" style="height:130px">ZAG<br>+</div>
+          <div class="card-med slot-empty" style="height:130px">ZAG<br>+</div>
+          <div class="card-med slot-empty" style="height:130px">ZAG<br>+</div>
+        </div>
+        <div class="field-row">
+          <div class="card-med slot-empty" style="height:130px">GOL<br>+</div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-desc">
+      Campo encaixa na tela sem rolar. Todos os <strong>atributos visíveis</strong>. Visual de "campo de cartas" bem legível. Recomendada.
+    </div>
+  </div>
+
+  <!-- C: Small 90px -->
+  <div class="opt-card" id="optC" onclick="selectOpt('C')">
+    <div class="opt-label">
+      <span style="background:#a78bfa;color:#000;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px">C</span>
+      Carta compacta (90px) — campo vira mini-mapa
+    </div>
+    <div class="demo-area" style="padding: 10px 4px;">
+      <div class="field-col">
+        <div class="field-row">
+          <div class="card-sm">
+            <div class="card-top">
+              <div class="score-sm">8.4</div>
+              <span class="pos-badge-sm">CA</span>
+            </div>
+            <div class="card-bottom">
+              <div class="name">Hulk</div>
+              <div class="attrs">
+                <span class="attr" style="color:#f87171">ATA 9.2</span>
+                <span class="attr" style="color:#fbbf24">COM 7.1</span>
+                <span class="attr" style="color:#a78bfa">CRI 6.8</span>
+                <span class="attr" style="color:#4ade80">DEF 2.1</span>
+                <span class="attr" style="color:#60a5fa">PAS 7.4</span>
+                <span class="attr" style="color:#22d3ee">FIS 8.0</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-sm slot-empty" style="height:92px">PE +</div>
+          <div class="card-sm slot-empty" style="height:92px">PD +</div>
+        </div>
+        <div class="field-row">
+          <div class="card-sm slot-empty" style="height:92px">VOL+</div>
+          <div class="card-sm slot-empty" style="height:92px">MEI+</div>
+          <div class="card-sm slot-empty" style="height:92px">MAT+</div>
+        </div>
+        <div class="field-row">
+          <div class="card-sm slot-empty" style="height:92px">ZAG+</div>
+          <div class="card-sm slot-empty" style="height:92px">ZAG+</div>
+          <div class="card-sm slot-empty" style="height:92px">ZAG+</div>
+          <div class="card-sm slot-empty" style="height:92px">ZAG+</div>
+        </div>
+        <div class="field-row">
+          <div class="card-sm slot-empty" style="height:92px">GOL+</div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-desc">
+      Cabe tudo na tela. Texto pequeno, difícil de ler atributos. Boa como <strong>overview rápido</strong>, mas perde o charme das cartas. Parece mais um mini-mapa.
+    </div>
+  </div>
+
+</div>
+
+<script>
+function selectOpt(opt) {
+  ['A','B','C'].forEach(o => document.getElementById('opt'+o).classList.remove('selected'));
+  document.getElementById('opt'+opt).classList.add('selected');
+  if (window.__reportChoice) window.__reportChoice(opt, 'Card size option ' + opt);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Card Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111827;
+    color: #f9fafb;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 32px 16px;
+    gap: 24px;
+  }
+  h1 { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #6b7280; }
+  p.sub { font-size: 12px; color: #6b7280; text-align: center; max-width: 500px; line-height: 1.6; }
+
+  .cards-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .col-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #4b5563; }
+
+  /* CARD */
+  .card {
+    width: 200px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .card.ata { border-color: #ef4444; }
+  .card.gol { border-color: #3b82f6; }
+  .card.mei { border-color: #eab308; }
+
+  /* TOP HALF */
+  .card-top {
+    display: flex;
+    height: 160px;
+    background: #1f2937;
+  }
+
+  /* LEFT */
+  .card-left {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    gap: 3px;
+    border-right: 1px solid rgba(255,255,255,0.07);
+  }
+  .score-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; }
+  .score-val { font-size: 24px; font-weight: 800; color: #fbbf24; line-height: 1.1; }
+  .main-pos { font-size: 12px; font-weight: 700; color: #f9fafb; margin-top: 6px; line-height: 1.3; }
+  .alt-pos { font-size: 9px; color: #9ca3af; line-height: 1.4; }
+  .spacer { flex: 1; }
+  .nationality { font-size: 9px; color: #9ca3af; }
+  .team { font-size: 11px; font-weight: 700; color: #d1d5db; letter-spacing: 0.5px; }
+
+  /* RIGHT */
+  .card-right {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: relative;
+    overflow: hidden;
+  }
+  .minutes {
+    padding: 6px 8px;
+    text-align: right;
+    z-index: 2;
+    position: relative;
+  }
+  .minutes .val { font-size: 13px; font-weight: 700; color: #d1d5db; line-height: 1; }
+  .minutes .lbl { font-size: 8px; color: #6b7280; }
+  .photo-area {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-placeholder {
+    width: 70px;
+    height: 85px;
+    background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+    border-radius: 8px 8px 0 0;
+    margin-top: 20px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .photo-placeholder svg { opacity: 0.3; }
+
+  /* BOTTOM */
+  .card-bottom {
+    background: #111827;
+    padding: 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .player-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: #e5e7eb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .attrs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px 8px;
+  }
+  .attr {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .a-label {
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6b7280;
+    width: 24px;
+    flex-shrink: 0;
+  }
+  .a-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .a-fill { height: 100%; border-radius: 2px; }
+  .a-val {
+    font-size: 11px;
+    font-weight: 800;
+    width: 26px;
+    text-align: right;
+  }
+
+  /* attr colors */
+  .a-ata .a-val { color: #f87171; } .a-ata .a-fill { background: #f87171; }
+  .a-com .a-val { color: #fbbf24; } .a-com .a-fill { background: #fbbf24; }
+  .a-cri .a-val { color: #a78bfa; } .a-cri .a-fill { background: #a78bfa; }
+  .a-def .a-val { color: #4ade80; } .a-def .a-fill { background: #4ade80; }
+  .a-pas .a-val { color: #60a5fa; } .a-pas .a-fill { background: #60a5fa; }
+  .a-fis .a-val { color: #22d3ee; } .a-fis .a-fill { background: #22d3ee; }
+
+  .note {
+    font-size: 11px;
+    color: #6b7280;
+    text-align: center;
+    max-width: 540px;
+    line-height: 1.9;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .note strong { color: #9ca3af; }
+</style>
+</head>
+<body>
+
+<h1>Carta do Jogador — Draft</h1>
+<p class="sub">Layout com divisão vertical no topo. Valores são exemplos ilustrativos. O layout da barra ao lado do atributo é opcional — pode ser removida.</p>
+
+<div class="cards-row">
+
+  <!-- ATACANTE -->
+  <div class="col">
+    <span class="col-label">Atacante</span>
+    <div class="card ata">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="score-label">Score méd.</div>
+          <div class="score-val">8.4</div>
+          <div class="main-pos">Centro-Avante</div>
+          <div class="alt-pos">Ponta Esq. / 2º Ata.</div>
+          <div class="spacer"></div>
+          <div class="nationality">🇧🇷 Brasileiro</div>
+          <div class="team">ATM</div>
+        </div>
+        <div class="card-right">
+          <div class="minutes"><div class="val">73'</div><div class="lbl">méd. min.</div></div>
+          <div class="photo-area">
+            <div class="photo-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="#9ca3af"><circle cx="12" cy="7" r="4.5"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Pedro Ramirez</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:85%"></div></div><span class="a-val">8.5</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:72%"></div></div><span class="a-val">7.2</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:60%"></div></div><span class="a-val">6.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:15%"></div></div><span class="a-val">1.5</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:55%"></div></div><span class="a-val">5.5</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:68%"></div></div><span class="a-val">6.8</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOLEIRO -->
+  <div class="col">
+    <span class="col-label">Goleiro</span>
+    <div class="card gol">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="score-label">Score méd.</div>
+          <div class="score-val">6.1</div>
+          <div class="main-pos">Goleiro</div>
+          <div class="alt-pos">—</div>
+          <div class="spacer"></div>
+          <div class="nationality">🇦🇷 Argentino</div>
+          <div class="team">FLA</div>
+        </div>
+        <div class="card-right">
+          <div class="minutes"><div class="val">90'</div><div class="lbl">méd. min.</div></div>
+          <div class="photo-area">
+            <div class="photo-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="#9ca3af"><circle cx="12" cy="7" r="4.5"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Agustín Rossi</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:5%"></div></div><span class="a-val">0.5</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:60%"></div></div><span class="a-val">6.0</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:20%"></div></div><span class="a-val">2.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:90%"></div></div><span class="a-val">9.0</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:40%"></div></div><span class="a-val">4.0</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:50%"></div></div><span class="a-val">5.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEIA -->
+  <div class="col">
+    <span class="col-label">Meia</span>
+    <div class="card mei">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="score-label">Score méd.</div>
+          <div class="score-val">7.7</div>
+          <div class="main-pos">Meia Central</div>
+          <div class="alt-pos">Volante / Meia Esq.</div>
+          <div class="spacer"></div>
+          <div class="nationality">🇧🇷 Brasileiro</div>
+          <div class="team">PAL</div>
+        </div>
+        <div class="card-right">
+          <div class="minutes"><div class="val">82'</div><div class="lbl">méd. min.</div></div>
+          <div class="photo-area">
+            <div class="photo-placeholder">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="#9ca3af"><circle cx="12" cy="7" r="4.5"/><path d="M3 21c0-4.5 4-8 9-8s9 3.5 9 8"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Raphael Veiga</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:50%"></div></div><span class="a-val">5.0</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:78%"></div></div><span class="a-val">7.8</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:88%"></div></div><span class="a-val">8.8</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:35%"></div></div><span class="a-val">3.5</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:80%"></div></div><span class="a-val">8.0</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:55%"></div></div><span class="a-val">5.5</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="note">
+  <strong>Score méd.</strong> = pontuação média ponderada das rodadas anteriores &nbsp;|&nbsp;
+  <strong>Méd. min.</strong> = média de minutos por rodada<br>
+  <strong>Posição alt.</strong> = top-2 do histórico de posições<br>
+  <strong>Atributos (0–10)</strong> = média das stats ativas da categoria, ponderadas pelo peso da posição
+</p>
+
+</body>
+</html>

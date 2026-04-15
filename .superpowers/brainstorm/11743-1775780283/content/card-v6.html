@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Card v6</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111827;
+    color: #f9fafb;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    gap: 24px;
+  }
+  h1 { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #6b7280; }
+
+  .cards-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .col-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #4b5563; }
+
+  .card {
+    width: 210px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1.5px solid;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .card.ata { border-color: #ef4444; }
+  .card.gol { border-color: #3b82f6; }
+  .card.def { border-color: #22c55e; }
+  .card.mei { border-color: #eab308; }
+
+  .card-top { display: flex; height: 126px; background: #1f2937; }
+
+  .card-left {
+    width: 50%;
+    display: flex; flex-direction: column;
+    padding: 8px 10px; gap: 2px;
+    border-right: 1px solid rgba(255,255,255,0.07);
+  }
+  .score-label { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; }
+  .score-val { font-size: 24px; font-weight: 800; color: #fbbf24; line-height: 1.1; }
+  .pos-row { display: flex; align-items: baseline; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+  .main-pos { font-size: 14px; font-weight: 800; color: #f9fafb; line-height: 1.2; }
+  .alt-pos-tag {
+    font-size: 9px; font-weight: 600; color: #6b7280;
+    background: rgba(255,255,255,0.07);
+    border-radius: 3px; padding: 1px 4px; line-height: 1.4;
+  }
+  .spacer { flex: 1; }
+  .flag { display: inline-block; width: 28px; height: 20px; border-radius: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+  .team { font-size: 12px; font-weight: 700; color: #d1d5db; letter-spacing: 0.5px; }
+
+  .card-right {
+    width: 50%;
+    display: flex; flex-direction: column; align-items: flex-end;
+    position: relative; overflow: hidden;
+    background: #1a2234;
+  }
+  .minutes { padding: 6px 8px; text-align: right; z-index: 2; position: relative; }
+  .minutes .val { font-size: 13px; font-weight: 700; color: #d1d5db; line-height: 1; }
+  .minutes .lbl { font-size: 8px; color: #6b7280; }
+
+  /* Jersey container — centered in right panel */
+  .jersey-area {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 0;
+  }
+  .jersey-area svg {
+    width: 80px;
+    height: auto;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  }
+
+  .card-bottom { background: #111827; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .player-name {
+    font-size: 13px; font-weight: 800; color: #f9fafb;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; }
+  .attr { display: flex; align-items: center; gap: 4px; }
+  .a-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; width: 28px; flex-shrink: 0; }
+  .a-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+  .a-fill { height: 100%; border-radius: 2px; }
+  .a-val { font-size: 13px; font-weight: 900; width: 30px; text-align: right; }
+
+  .a-ata .a-val { color: #f87171; } .a-ata .a-fill { background: #f87171; }
+  .a-com .a-val { color: #fbbf24; } .a-com .a-fill { background: #fbbf24; }
+  .a-cri .a-val { color: #a78bfa; } .a-cri .a-fill { background: #a78bfa; }
+  .a-def .a-val { color: #4ade80; } .a-def .a-fill { background: #4ade80; }
+  .a-pas .a-val { color: #60a5fa; } .a-pas .a-fill { background: #60a5fa; }
+  .a-fis .a-val { color: #22d3ee; } .a-fis .a-fill { background: #22d3ee; }
+</style>
+</head>
+<body>
+
+<h1>Carta do Jogador — v6 (camiseta)</h1>
+
+<div class="cards-row">
+
+  <!-- ATACANTE — Atletico MG (preto e branco) -->
+  <div class="col">
+    <span class="col-label">Atletico MG</span>
+    <div class="card ata">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="score-label">Score méd.</div>
+          <div class="score-val">8.4</div>
+          <div class="pos-row">
+            <span class="main-pos">CA</span>
+            <span class="alt-pos-tag">PE</span>
+            <span class="alt-pos-tag">2AT</span>
+          </div>
+          <div class="spacer"></div>
+          <span class="fi fi-br flag"></span>
+          <div class="team">ATM</div>
+        </div>
+        <div class="card-right">
+          <div class="minutes"><div class="val">73'</div><div class="lbl">méd. min.</div></div>
+          <div class="jersey-area">
+            <!-- Atletico MG: listras preto/branco -->
+            <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="jersey-clip-atm">
+                  <path d="M30 8 C30 8 22 10 8 20 L14 38 C20 34 24 32 28 32 L28 105 L72 105 L72 32 C76 32 80 34 86 38 L92 20 C78 10 70 8 70 8 C68 4 62 2 50 2 C38 2 32 4 30 8Z"/>
+                </clipPath>
+              </defs>
+              <!-- stripes -->
+              <g clip-path="url(#jersey-clip-atm)">
+                <rect x="0" y="0" width="100" height="110" fill="#1a1a1a"/>
+                <rect x="20" y="0" width="16" height="110" fill="#f0f0f0"/>
+                <rect x="52" y="0" width="16" height="110" fill="#f0f0f0"/>
+              </g>
+              <!-- outline -->
+              <path d="M30 8 C30 8 22 10 8 20 L14 38 C20 34 24 32 28 32 L28 105 L72 105 L72 32 C76 32 80 34 86 38 L92 20 C78 10 70 8 70 8 C68 4 62 2 50 2 C38 2 32 4 30 8Z"
+                    stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/>
+              <!-- collar -->
+              <path d="M42 8 Q50 14 58 8" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Pedro Ramirez</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:85%"></div></div><span class="a-val">8.5</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:72%"></div></div><span class="a-val">7.2</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:60%"></div></div><span class="a-val">6.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:15%"></div></div><span class="a-val">1.5</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:55%"></div></div><span class="a-val">5.5</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:68%"></div></div><span class="a-val">6.8</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOLEIRO — Flamengo (vermelho e preto) -->
+  <div class="col">
+    <span class="col-label">Flamengo</span>
+    <div class="card gol">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="score-label">Score méd.</div>
+          <div class="score-val">6.1</div>
+          <div class="pos-row">
+            <span class="main-pos">GOL</span>
+          </div>
+          <div class="spacer"></div>
+          <span class="fi fi-ar flag"></span>
+          <div class="team">FLA</div>
+        </div>
+        <div class="card-right">
+          <div class="minutes"><div class="val">90'</div><div class="lbl">méd. min.</div></div>
+          <div class="jersey-area">
+            <!-- Flamengo: horizontal preto/vermelho -->
+            <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="jersey-clip-fla">
+                  <path d="M30 8 C30 8 22 10 8 20 L14 38 C20 34 24 32 28 32 L28 105 L72 105 L72 32 C76 32 80 34 86 38 L92 20 C78 10 70 8 70 8 C68 4 62 2 50 2 C38 2 32 4 30 8Z"/>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#jersey-clip-fla)">
+                <rect x="0" y="0" width="100" height="110" fill="#1a1a1a"/>
+                <rect x="0" y="28" width="100" height="22" fill="#cc1a1a"/>
+                <rect x="0" y="62" width="100" height="22" fill="#cc1a1a"/>
+              </g>
+              <path d="M30 8 C30 8 22 10 8 20 L14 38 C20 34 24 32 28 32 L28 105 L72 105 L72 32 C76 32 80 34 86 38 L92 20 C78 10 70 8 70 8 C68 4 62 2 50 2 C38 2 32 4 30 8Z"
+                    stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/>
+              <path d="M42 8 Q50 14 58 8" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">Agustín Rossi</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:5%"></div></div><span class="a-val">0.5</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:60%"></div></div><span class="a-val">6.0</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:20%"></div></div><span class="a-val">2.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:90%"></div></div><span class="a-val">9.0</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:40%"></div></div><span class="a-val">4.0</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:50%"></div></div><span class="a-val">5.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZAGUEIRO — Palmeiras (verde) -->
+  <div class="col">
+    <span class="col-label">Palmeiras</span>
+    <div class="card def">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="score-label">Score méd.</div>
+          <div class="score-val">7.7</div>
+          <div class="pos-row">
+            <span class="main-pos">ZAG</span>
+            <span class="alt-pos-tag">VOL</span>
+          </div>
+          <div class="spacer"></div>
+          <span class="fi fi-uy flag"></span>
+          <div class="team">PAL</div>
+        </div>
+        <div class="card-right">
+          <div class="minutes"><div class="val">82'</div><div class="lbl">méd. min.</div></div>
+          <div class="jersey-area">
+            <!-- Palmeiras: verde sólido -->
+            <svg viewBox="0 0 100 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <clipPath id="jersey-clip-pal">
+                  <path d="M30 8 C30 8 22 10 8 20 L14 38 C20 34 24 32 28 32 L28 105 L72 105 L72 32 C76 32 80 34 86 38 L92 20 C78 10 70 8 70 8 C68 4 62 2 50 2 C38 2 32 4 30 8Z"/>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#jersey-clip-pal)">
+                <rect x="0" y="0" width="100" height="110" fill="#1a6b2e"/>
+              </g>
+              <path d="M30 8 C30 8 22 10 8 20 L14 38 C20 34 24 32 28 32 L28 105 L72 105 L72 32 C76 32 80 34 86 38 L92 20 C78 10 70 8 70 8 C68 4 62 2 50 2 C38 2 32 4 30 8Z"
+                    stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/>
+              <path d="M42 8 Q50 14 58 8" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="player-name">José Giménez</div>
+        <div class="attrs">
+          <div class="attr a-ata"><span class="a-label">ATA</span><div class="a-bar"><div class="a-fill" style="width:10%"></div></div><span class="a-val">1.0</span></div>
+          <div class="attr a-com"><span class="a-label">COM</span><div class="a-bar"><div class="a-fill" style="width:78%"></div></div><span class="a-val">7.8</span></div>
+          <div class="attr a-cri"><span class="a-label">CRI</span><div class="a-bar"><div class="a-fill" style="width:30%"></div></div><span class="a-val">3.0</span></div>
+          <div class="attr a-def"><span class="a-label">DEF</span><div class="a-bar"><div class="a-fill" style="width:92%"></div></div><span class="a-val">9.2</span></div>
+          <div class="attr a-pas"><span class="a-label">PAS</span><div class="a-bar"><div class="a-fill" style="width:45%"></div></div><span class="a-val">4.5</span></div>
+          <div class="attr a-fis"><span class="a-label">FIS</span><div class="a-bar"><div class="a-fill" style="width:80%"></div></div><span class="a-val">8.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
