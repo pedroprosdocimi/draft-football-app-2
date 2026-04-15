@@ -26,17 +26,23 @@ const TEAM_COLORS = {
 };
 
 function formatName(name) {
-  if (name.length <= 11) return name;
-  const parts = name.split(' ');
+  const parts = name.trim().split(/\s+/);
   if (parts.length < 2) return name;
-  return `${parts[0][0]}. ${parts.slice(1).join(' ')}`;
+  // Always abbreviate first name, keep rest
+  const abbreviated = `${parts[0][0]}. ${parts.slice(1).join(' ')}`;
+  // If still long, abbreviate all but last word
+  if (abbreviated.length > 12) {
+    const last = parts[parts.length - 1];
+    return `${parts[0][0]}. ${last}`;
+  }
+  return abbreviated;
 }
 
 export default function FieldPlayerPreview({ player, posLabel }) {
   const rawName = player?.display_name || player?.name || 'Jogador';
-  const displayName = formatName(rawName);
+  const displayName = rawName.includes(' ') ? formatName(rawName) : rawName;
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
-  const nameFontSize = displayName.length > 14 ? 7 : displayName.length > 10 ? 8 : 9;
+  const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
   const jerseyColors = {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
@@ -173,7 +179,6 @@ export default function FieldPlayerPreview({ player, posLabel }) {
             color: '#ffffff',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
-            textOverflow: 'ellipsis',
             lineHeight: 1.2,
           }}
         >
