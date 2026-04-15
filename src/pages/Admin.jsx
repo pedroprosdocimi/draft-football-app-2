@@ -251,57 +251,6 @@ function RoundsHeader({ recentRounds, sort, onSort }) {
   );
 }
 
-function normalizeDetailedPositionId(positionId) {
-  const normalized = Number(positionId);
-  if (Number.isNaN(normalized)) return null;
-
-  switch (normalized) {
-    case 24: return 1;
-    case 148: return 2;
-    case 154: return 3;
-    case 155: return 4;
-    case 149: return 5;
-    case 153: return 6;
-    case 150: return 7;
-    case 157: return 8;
-    case 158: return 9;
-    case 151: return 10;
-    case 152: return 11;
-    case 156: return 12;
-    case 163: return 13;
-    default: return normalized;
-  }
-}
-
-function normalizeAltPositions(altPositions) {
-  if (Array.isArray(altPositions)) {
-    return altPositions
-      .map((positionId) => normalizeDetailedPositionId(positionId))
-      .filter((positionId) => positionId != null);
-  }
-
-  if (typeof altPositions === 'string') {
-    return altPositions
-      .split(',')
-      .map((positionId) => normalizeDetailedPositionId(positionId.trim()))
-      .filter((positionId) => positionId != null);
-  }
-
-  return [];
-}
-
-function matchesDetailedPosition(player, detailedPositionId) {
-  const targetPositionId = normalizeDetailedPositionId(detailedPositionId);
-  if (targetPositionId == null) return true;
-
-  const allPositions = [
-    normalizeDetailedPositionId(player.detailed_position_id),
-    ...normalizeAltPositions(player.alt_positions),
-  ].filter((positionId) => positionId != null);
-
-  return allPositions.includes(targetPositionId);
-}
-
 function PlayerRow({ player, match, action, recentRounds = [] }) {
   const posColor = POS_COLORS[player.position_id] || 'bg-gray-600';
   return (
@@ -953,15 +902,12 @@ export default function Admin({ onBack }) {
     const token = localStorage.getItem('draft_token');
     const params = new URLSearchParams();
     if (cardsTeamId) params.set('team_id', cardsTeamId);
+    if (cardsPosId) params.set('detailed_position_id', cardsPosId);
     const res = await fetch(`${API_URL}/admin/player-cards?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
-    const allCards = data.data || [];
-    const filteredCards = cardsPosId
-      ? allCards.filter((player) => matchesDetailedPosition(player, cardsPosId))
-      : allCards;
-    setCards(filteredCards);
+    setCards(data.data || []);
     setLoadingCards(false);
   };
 
