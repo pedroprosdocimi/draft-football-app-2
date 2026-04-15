@@ -190,7 +190,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           )}
         </div>
 
-        {/* Top-left: score + minutes + matches */}
+        {/* Top-left: score */}
         <div
           style={{
             position: 'absolute',
@@ -209,7 +209,23 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             {avgScore}
           </div>
           <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>score med.</div>
-          <div style={{ height: compact ? 4 : 5 }} />
+        </div>
+
+        {/* Left: minutes + matches — below score */}
+        <div
+          style={{
+            position: 'absolute',
+            top: compact ? 44 : 58,
+            left: 0,
+            padding: chipPad,
+            borderRadius: `0 ${chipRadius}px ${chipRadius}px 0`,
+            background: chipBackground,
+            border: chipBorder,
+            borderLeft: 'none',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
           <div style={{ fontSize: minutesFz, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
             {avgMinutes}'
           </div>
