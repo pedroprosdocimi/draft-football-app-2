@@ -85,14 +85,14 @@ function FieldPlayerPreview({ player, posLabel }) {
               <img
                 src={player.team_jersey_url}
                 alt={player.team_short_code}
-                className="absolute bottom-0 right-[-10%] w-[115%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:right-[-12%] sm:w-[120%]"
+                className="absolute bottom-0 right-[-15%] w-[150%] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:right-[-18%] sm:w-[158%]"
               />
             ) : (
               <svg
                 viewBox="0 0 120 95"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="absolute bottom-0 right-[-10%] w-[115%] drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:right-[-12%] sm:w-[120%]"
+                className="absolute bottom-0 right-[-15%] w-[150%] drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:right-[-18%] sm:w-[158%]"
                 aria-label={`Camisa de ${displayName}`}
               >
                 <defs>
