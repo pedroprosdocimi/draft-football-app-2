@@ -65,20 +65,74 @@ export default function FieldPlayerPreview({ player, posLabel }) {
         )}
 
         <div className="relative min-h-[4.6rem] sm:min-h-[5.7rem]">
-          {/* Score — upper left */}
-          <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2">
-            <div className="rounded-[10px] border border-amber-700 bg-amber-800 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
+          {/* Score — flush top-left corner */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              padding: '4px 6px',
+              borderRadius: '0 0 10px 0',
+              background: 'rgba(2,6,23,0.62)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              borderLeft: 'none',
+              borderTop: 'none',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 900, color: '#fbbf24', lineHeight: 1 }}>
               {avgScore}
             </div>
           </div>
 
-          {/* Main position + alt positions — upper right */}
-          <div className="absolute right-1.5 top-1.5 flex flex-col items-end gap-0.5 sm:right-2 sm:top-2">
-            <div className="rounded-[10px] border border-slate-500 bg-slate-700 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-white sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
+          {/* Main position + alt positions — flush top-right corner */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+            }}
+          >
+            <div
+              style={{
+                padding: '4px 6px',
+                borderRadius: '0 0 0 10px',
+                background: 'rgba(2,6,23,0.62)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                borderRight: 'none',
+                borderTop: 'none',
+                backdropFilter: 'blur(8px)',
+                fontSize: 9,
+                fontWeight: 900,
+                color: '#f9fafb',
+                lineHeight: 1,
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+              }}
+            >
               {posLabel}
             </div>
             {altPositions.map((id) => (
-              <div key={id} className="rounded-[6px] border border-slate-600 bg-slate-800 px-1 py-0.5 text-center text-[6px] font-semibold uppercase tracking-[0.06em] text-slate-500 sm:text-[7px]">
+              <div
+                key={id}
+                style={{
+                  padding: '2px 6px 2px 4px',
+                  borderRadius: '8px 0 0 8px',
+                  background: 'rgba(2,6,23,0.62)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  borderRight: 'none',
+                  borderTop: 'none',
+                  backdropFilter: 'blur(8px)',
+                  fontSize: 7,
+                  fontWeight: 600,
+                  color: '#9ca3af',
+                  lineHeight: 1,
+                  textTransform: 'uppercase',
+                }}
+              >
                 {getDetailedPositionLabel(id)}
               </div>
             ))}
