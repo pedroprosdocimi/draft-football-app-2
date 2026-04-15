@@ -67,45 +67,43 @@ function FieldPlayerPreview({ player, posLabel }) {
     <div className="w-[4.75rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[6.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
       <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_42%)]" />
-        <div className="relative grid min-h-[4.6rem] grid-cols-[1fr_1fr] gap-1.5 px-1.5 py-1.5 sm:min-h-[5.7rem] sm:gap-2 sm:px-2 sm:py-2">
-          <div className="flex min-w-0 flex-col justify-between">
-            <div className="rounded-[10px] border border-amber-300/25 bg-amber-400/10 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
-              {avgScore}
-            </div>
-            <div className="rounded-[10px] border border-white/10 bg-slate-950/65 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-slate-100 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
-              {posLabel}
-            </div>
-            <div className="rounded-[10px] border border-emerald-200/10 bg-emerald-400/10 px-1.5 py-1 text-center text-[8px] font-bold uppercase tracking-[0.08em] text-emerald-100/85 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.12em]">
-              {teamLabel}
-            </div>
-          </div>
 
-          <div className="relative overflow-hidden">
-            {player?.team_jersey_url ? (
-              <img
-                src={player.team_jersey_url}
-                alt={player.team_short_code}
-                className="absolute bottom-0 right-[-18%] h-[4.6rem] w-auto object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:h-[5.7rem]"
-              />
-            ) : (
-              <svg
-                viewBox="0 0 120 95"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="absolute bottom-0 right-[-18%] h-[4.6rem] w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] sm:h-[5.7rem]"
-                aria-label={`Camisa de ${displayName}`}
-              >
-                <defs>
-                  <clipPath id={`field-jersey-${player?.id || displayName}`}>
-                    <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
-                  </clipPath>
-                </defs>
-                <g clipPath={`url(#field-jersey-${player?.id || displayName})`}>
-                  <rect x="0" y="0" width="120" height="95" fill={jerseyColors.p} />
-                  <rect x="45" y="0" width="30" height="95" fill={jerseyColors.s} opacity="0.85" />
-                </g>
-              </svg>
-            )}
+        {/* jersey — absolute dentro da seção, usa altura real do bloco */}
+        {player?.team_jersey_url ? (
+          <img
+            src={player.team_jersey_url}
+            alt={player.team_short_code}
+            className="absolute bottom-0 right-[-14%] h-full w-auto object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+          />
+        ) : (
+          <svg
+            viewBox="0 0 120 95"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="absolute bottom-0 right-[-14%] h-full w-auto drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            aria-label={`Camisa de ${displayName}`}
+          >
+            <defs>
+              <clipPath id={`field-jersey-${player?.id || displayName}`}>
+                <path d="M38 6 C36 6 24 9 6 20 L13 46 C19 40 25 38 30 38 L30 95 L90 95 L90 38 C95 38 101 40 107 46 L114 20 C96 9 84 6 82 6 C80 1 74 0 74 3 Q60 13 46 3 C46 0 40 1 38 6 Z" />
+              </clipPath>
+            </defs>
+            <g clipPath={`url(#field-jersey-${player?.id || displayName})`}>
+              <rect x="0" y="0" width="120" height="95" fill={jerseyColors.p} />
+              <rect x="45" y="0" width="30" height="95" fill={jerseyColors.s} opacity="0.85" />
+            </g>
+          </svg>
+        )}
+
+        <div className="relative flex min-h-[4.6rem] flex-col justify-between px-1.5 py-1.5 sm:min-h-[5.7rem] sm:px-2 sm:py-2" style={{ width: '55%' }}>
+          <div className="rounded-[10px] border border-amber-300/25 bg-amber-400/10 px-1.5 py-1 text-center text-[9px] font-black tracking-[0.12em] text-amber-200 sm:rounded-[12px] sm:px-2 sm:text-[10px] sm:tracking-[0.18em]">
+            {avgScore}
+          </div>
+          <div className="rounded-[10px] border border-white/10 bg-slate-950/65 px-1.5 py-1 text-center text-[8px] font-black uppercase tracking-[0.1em] text-slate-100 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.14em]">
+            {posLabel}
+          </div>
+          <div className="rounded-[10px] border border-emerald-200/10 bg-emerald-400/10 px-1.5 py-1 text-center text-[8px] font-bold uppercase tracking-[0.08em] text-emerald-100/85 sm:rounded-[12px] sm:px-2 sm:text-[9px] sm:tracking-[0.12em]">
+            {teamLabel}
           </div>
         </div>
       </div>
