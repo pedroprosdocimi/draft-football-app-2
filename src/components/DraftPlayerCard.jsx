@@ -194,13 +194,14 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
         <div
           style={{
             position: 'absolute',
-            top: compact ? 8 : 10,
+            top: 0,
             left: 0,
             padding: chipPad,
-            borderRadius: `0 ${chipRadius}px ${chipRadius}px 0`,
+            borderRadius: `0 0 ${chipRadius}px 0`,
             background: chipBackground,
             border: chipBorder,
             borderLeft: 'none',
+            borderTop: 'none',
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
             backdropFilter: 'blur(8px)',
           }}
