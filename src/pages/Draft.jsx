@@ -29,13 +29,13 @@ const SLOT_TONE_CLASSES = {
 
 // Bench slot definitions
 const BENCH_SLOTS = [
-  { slot: 12, label: 'GOL RES',   sub: 'Goleiro' },
-  { slot: 13, label: 'DEF RES 1', sub: 'Defensor' },
-  { slot: 14, label: 'DEF RES 2', sub: 'Defensor' },
-  { slot: 15, label: 'M/A RES 1', sub: 'Meia ou Atacante' },
-  { slot: 16, label: 'M/A RES 2', sub: 'Meia ou Atacante' },
-  { slot: 17, label: 'M/A RES 3', sub: 'Meia ou Atacante' },
-  { slot: 18, label: 'M/A RES 4', sub: 'Meia ou Atacante' },
+  { slot: 12, label: 'RES 1', sub: 'Goleiro' },
+  { slot: 13, label: 'RES 2', sub: 'Defensor' },
+  { slot: 14, label: 'RES 3', sub: 'Defensor' },
+  { slot: 15, label: 'RES 4', sub: 'Meia ou Atacante' },
+  { slot: 16, label: 'RES 5', sub: 'Meia ou Atacante' },
+  { slot: 17, label: 'RES 6', sub: 'Meia ou Atacante' },
+  { slot: 18, label: 'RES 7', sub: 'Meia ou Atacante' },
 ];
 
 function authFetch(url, options = {}) {
@@ -934,7 +934,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           <aside
             className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 sm:w-[12rem] ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
           >
-              <div className="mb-3 flex justify-end">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300/70">Reservas</span>
                 <button
                   type="button"
                   onClick={() => setIsBenchDrawerOpen(false)}

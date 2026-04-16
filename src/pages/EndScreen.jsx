@@ -6,13 +6,13 @@ import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import { getDetailedPositionLabel } from '../utils/positions.js';
 
 const BENCH_SLOTS = [
-  { slot: 12, label: 'GOL RES' },
-  { slot: 13, label: 'DEF RES 1' },
-  { slot: 14, label: 'DEF RES 2' },
-  { slot: 15, label: 'M/A RES 1' },
-  { slot: 16, label: 'M/A RES 2' },
-  { slot: 17, label: 'M/A RES 3' },
-  { slot: 18, label: 'M/A RES 4' },
+  { slot: 12, label: 'RES 1' },
+  { slot: 13, label: 'RES 2' },
+  { slot: 14, label: 'RES 3' },
+  { slot: 15, label: 'RES 4' },
+  { slot: 16, label: 'RES 5' },
+  { slot: 17, label: 'RES 6' },
+  { slot: 18, label: 'RES 7' },
 ];
 
 function normalizePlayer(pick) {
