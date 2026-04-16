@@ -94,6 +94,7 @@ function FormationCard({ formation, chosen, onPick }) {
 export default function FormationPickerPhase({ onPick }) {
   const [formations, setFormations] = useState([]);
   const [chosen, setChosen] = useState(null);
+  const [pendingFormation, setPendingFormation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -114,8 +115,16 @@ export default function FormationPickerPhase({ onPick }) {
 
   const handlePick = (name) => {
     if (chosen) return;
-    setChosen(name);
-    onPick(name);
+    setPendingFormation(name);
+  };
+
+  const handleConfirmPick = async () => {
+    if (!pendingFormation || chosen) return;
+
+    const formationName = pendingFormation;
+    setChosen(formationName);
+    setPendingFormation(null);
+    await onPick(formationName);
   };
 
   if (loading) {
@@ -162,6 +171,39 @@ export default function FormationPickerPhase({ onPick }) {
             </div>
           ))}
         </div>
+
+        {pendingFormation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+            <div className="w-full max-w-md rounded-[28px] border border-emerald-400/25 bg-gray-950 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+              <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-300/70">
+                Confirmacao
+              </p>
+              <h2 className="mt-3 text-2xl font-black text-white">
+                Confirmar formacao {pendingFormation}?
+              </h2>
+              <p className="mt-3 text-sm text-gray-400">
+                Ao confirmar, essa sera a formacao do seu draft e a escolha dos jogadores comeca em seguida.
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPendingFormation(null)}
+                  className="rounded-2xl border border-gray-700 px-4 py-3 text-sm font-semibold text-gray-200 transition hover:border-gray-500 hover:bg-white/5"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmPick}
+                  className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-gray-950 transition hover:bg-emerald-400"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
