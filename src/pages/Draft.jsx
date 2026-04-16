@@ -65,6 +65,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [activeSlot, setActiveSlot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [swapError, setSwapError] = useState(null);
 
   const [pendingPick, setPendingPick] = useState(null);
   // { player: PlayerObject, slotPosition: number }
@@ -79,6 +80,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const animTimeoutsRef = React.useRef([]);
   const fieldRef = React.useRef(null);
   const fieldGestureRef = React.useRef(null);
+  const swapErrorTimeoutRef = React.useRef(null);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -140,7 +142,19 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     loadFormations();
   }, [loadDraft, loadFormations]);
 
-  useEffect(() => () => animTimeoutsRef.current.forEach(clearTimeout), []);
+  useEffect(() => () => {
+    animTimeoutsRef.current.forEach(clearTimeout);
+    if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
+  }, []);
+
+  const showSwapError = useCallback((message) => {
+    if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
+    setSwapError(message);
+    swapErrorTimeoutRef.current = setTimeout(() => {
+      setSwapError(null);
+      swapErrorTimeoutRef.current = null;
+    }, 5000);
+  }, []);
 
   const handleSetFormation = async (formationName) => {
     setLoading(true);
@@ -306,8 +320,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (!playerAId || !playerBId) return;
 
     if (!isSwapValid(slotA, slotB)) {
-      setError('Troca inválida: um ou ambos os jogadores não podem atuar nessa posição.');
-      setTimeout(() => setError(null), 3000);
+      showSwapError('Troca inválida: um ou ambos os jogadores não podem atuar nessa posição.');
       return;
     }
 
@@ -339,7 +352,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
       await loadDraft();
     } catch (e) {
-      setError(e.message);
+      showSwapError(e.message);
       // Revert
       setPickedPlayers((prev) => {
         const next = { ...prev };
@@ -515,6 +528,19 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       {error && (
         <div className="mb-4 bg-red-900/30 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-2">
           {error}
+        </div>
+      )}
+
+      {swapError && (
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-5 sm:hidden">
+          <div className="w-full max-w-sm rounded-2xl border border-red-400/35 bg-slate-950/96 px-5 py-4 text-center shadow-[0_24px_60px_rgba(0,0,0,0.5)] ring-1 ring-red-300/15 backdrop-blur-md">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-red-300/80">
+              Erro
+            </div>
+            <p className="mt-2 text-sm font-medium leading-5 text-red-100">
+              {swapError}
+            </p>
+          </div>
         </div>
       )}
 
