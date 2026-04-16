@@ -149,6 +149,12 @@ export default function FormationPickerPhase({ onPick }) {
   return (
     <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl font-black text-white sm:text-3xl">
+            Escolha uma formação:
+          </h1>
+        </div>
+
         <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3">
           {formations.map((formation) => (
             <div key={formation.name} className="w-[calc(100vw-2rem)] max-w-[380px] flex-none snap-center md:w-auto md:max-w-none">
