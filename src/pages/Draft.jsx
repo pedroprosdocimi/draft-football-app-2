@@ -374,6 +374,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const handleFieldPointerDown = useCallback((e, slotPosition, player) => {
     if (!normalizeDraftPlayer(player)?.id) return;
     const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen';
+    const isBenchSlot = slotPosition >= 12;
     if (!isTouchPointer) {
       e.preventDefault();
     }
@@ -387,6 +388,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       dragReady: !isTouchPointer,
     };
     if (!isTouchPointer) {
+      if (isBenchSlot) {
+        setIsBenchDrawerOpen(false);
+      }
       setDraggingSlot(slotPosition);
     } else {
       clearLongPressTimeout();
@@ -400,6 +404,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             ...fieldGestureRef.current,
             dragReady: true,
           };
+          if (isBenchSlot) {
+            setIsBenchDrawerOpen(false);
+          }
           setDraggingSlot(slotPosition);
         }
         longPressTimeoutRef.current = null;
