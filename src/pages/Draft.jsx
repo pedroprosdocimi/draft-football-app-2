@@ -730,9 +730,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col p-4 max-w-2xl mx-auto">
+    <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">← Sair</button>
         <span className="text-xs text-gray-500 font-mono uppercase">
           {isBenchPhase ? 'Reservas' : 'Titulares'} · {draft.formation}
@@ -741,7 +741,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-900/30 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-2">
+        <div className="mb-3 bg-red-900/30 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-2">
           {error}
         </div>
       )}
@@ -797,10 +797,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           100% { transform: scale(1);   opacity: 1; }
         }
       `}</style>
-      <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
+      <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
         <div
           ref={fieldRef}
-          className="relative mx-auto h-full min-h-[30rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)]"
+          className="relative mx-auto h-full min-h-0 w-full overflow-hidden rounded-[26px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:rounded-[30px]"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
