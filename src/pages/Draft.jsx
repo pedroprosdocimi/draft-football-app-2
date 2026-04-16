@@ -76,6 +76,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [poppingSlot, setPoppingSlot] = useState(null);
   const [draggingSlot, setDraggingSlot] = useState(null); // slot being drag-swapped
   const [dropTargetSlot, setDropTargetSlot] = useState(null); // highlighted drop target
+  const [dragPointer, setDragPointer] = useState(null); // pointer position for drag preview
   const [selectedSwapSlot, setSelectedSwapSlot] = useState(null); // tap-to-swap selection
   const [selectedCard, setSelectedCard] = useState(null);
   const animTimeoutsRef = React.useRef([]);
@@ -119,6 +120,30 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       null
     );
   }, [activeSlot, starterPlacements, formationSlots]);
+
+  const draggingPlayer = useMemo(() => {
+    if (draggingSlot === null) return null;
+    return normalizeDraftPlayer(pickedPlayers[draggingSlot] ?? picksBySlot[draggingSlot] ?? null);
+  }, [draggingSlot, pickedPlayers, picksBySlot]);
+
+  const draggingSlotDetails = useMemo(() => {
+    if (draggingSlot === null) return { posLabel: null, slotPositionId: null };
+
+    if (draggingSlot <= 11) {
+      const slotDef = starterPlacements.find((slot) => slot.position === draggingSlot)
+        ?? formationSlots.find((slot) => slot.position === draggingSlot);
+      const slotPositionId = slotDef?.detailed_position_id ?? null;
+      return {
+        posLabel: getDetailedPositionLabel(slotPositionId) || getDetailedPositionLabel(draggingPlayer?.detailed_position_id) || null,
+        slotPositionId,
+      };
+    }
+
+    return {
+      posLabel: getDetailedPositionLabel(draggingPlayer?.detailed_position_id) || null,
+      slotPositionId: null,
+    };
+  }, [draggingPlayer?.detailed_position_id, draggingSlot, formationSlots, starterPlacements]);
 
   const loadDraft = useCallback(async () => {
     try {
@@ -170,6 +195,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       root.style.overflow = prevRootOverflow;
       body.style.touchAction = prevBodyTouchAction;
     };
+  }, [draggingSlot]);
+
+  useEffect(() => {
+    if (draggingSlot !== null) return;
+    setDragPointer(null);
   }, [draggingSlot]);
 
   useEffect(() => {
@@ -300,6 +330,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       if (isBenchSlot) {
         setIsBenchDrawerOpen(false);
       }
+      setDragPointer({ x: e.clientX, y: e.clientY });
       setDraggingSlot(slotPosition);
     } else {
       clearLongPressTimeout();
@@ -316,6 +347,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           if (isBenchSlot) {
             setIsBenchDrawerOpen(false);
           }
+          setDragPointer({
+            x: fieldGestureRef.current.startX,
+            y: fieldGestureRef.current.startY,
+          });
           setDraggingSlot(slotPosition);
         }
         longPressTimeoutRef.current = null;
@@ -376,9 +411,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       }
     }
     if (!fieldGestureRef.current?.moved) {
+      setDragPointer({ x: e.clientX, y: e.clientY });
       setDropTargetSlot(null);
       return;
     }
+    setDragPointer({ x: e.clientX, y: e.clientY });
     const target = getSlotAtPoint(e.clientX, e.clientY);
     if (!target || target === draggingSlot) { setDropTargetSlot(null); return; }
     const hasPlayer = pickedPlayers[target] || picksBySlot[target];
@@ -408,6 +445,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       }
       fieldGestureRef.current = null;
       setDraggingSlot(null);
+      setDragPointer(null);
       setDropTargetSlot(null);
       return;
     }
@@ -417,6 +455,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }
     fieldGestureRef.current = null;
     setDraggingSlot(null);
+    setDragPointer(null);
     setDropTargetSlot(null);
   }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, handleOccupiedSlotTap, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -435,6 +474,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       clearLongPressTimeout();
       fieldGestureRef.current = null;
       setDraggingSlot(null);
+      setDragPointer(null);
       setDropTargetSlot(null);
     };
 
@@ -898,6 +938,28 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           onClose={() => { setOptions(null); setActiveSlot(null); }}
           fadingOut={isAnimatingOut}
         />
+      )}
+
+      {draggingPlayer && dragPointer && (
+        <div
+          className="pointer-events-none fixed left-0 top-0 z-[70]"
+          style={{
+            transform: `translate(${dragPointer.x}px, ${dragPointer.y}px)`,
+          }}
+        >
+          <div
+            className="origin-center -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
+            style={{
+              transform: 'translate(-50%, -50%) scale(1.03) rotate(-4deg)',
+            }}
+          >
+            <FieldPlayerPreview
+              player={draggingPlayer}
+              posLabel={draggingSlotDetails.posLabel}
+              slotPositionId={draggingSlotDetails.slotPositionId}
+            />
+          </div>
+        </div>
       )}
 
       {selectedCard && (
