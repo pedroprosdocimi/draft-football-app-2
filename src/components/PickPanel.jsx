@@ -169,7 +169,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
           }
         }
       `}</style>
-      <div className="flex flex-col items-center min-h-full px-3 pt-12 pb-8 sm:px-4 sm:pt-14 sm:pb-10 gap-5 sm:gap-7">
+      <div className="flex min-h-full flex-col items-center justify-center px-3 py-8 sm:px-4 sm:py-10 gap-5 sm:gap-7">
         <div
           className="text-center"
           style={{
