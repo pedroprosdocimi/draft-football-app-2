@@ -58,6 +58,10 @@ function normalizeDraftPlayer(player) {
   };
 }
 
+function getPlayerDisplayName(player) {
+  return player?.display_name || player?.name || 'Este jogador';
+}
+
 export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [draft, setDraft] = useState(null);
   const [formations, setFormations] = useState(null);
@@ -376,6 +380,28 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     );
   }, [pickedPlayers, starterPlacements]);
 
+  const getSwapInvalidReason = useCallback((slotA, slotB) => {
+    if (slotA >= 12 || slotB >= 12) return null;
+
+    const playerA = normalizeDraftPlayer(pickedPlayers[slotA] || picksBySlot[slotA]);
+    const playerB = normalizeDraftPlayer(pickedPlayers[slotB] || picksBySlot[slotB]);
+    if (!playerA || !playerB) return null;
+
+    const slotADef = starterPlacements.find((slot) => slot.position === slotA);
+    const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
+    if (!slotADef || !slotBDef) return null;
+
+    if (!matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id)) {
+      return `O jogador ${getPlayerDisplayName(playerA)} não pode jogar na posição ${getDetailedPositionLabel(slotBDef.detailed_position_id)}.`;
+    }
+
+    if (!matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)) {
+      return `O jogador ${getPlayerDisplayName(playerB)} não pode jogar na posição ${getDetailedPositionLabel(slotADef.detailed_position_id)}.`;
+    }
+
+    return null;
+  }, [pickedPlayers, picksBySlot, starterPlacements]);
+
   const handleOccupiedSlotClick = useCallback((slot) => {
     const hasPlayer = pickedPlayers[slot] || picksBySlot[slot];
     if (!hasPlayer) return;
@@ -495,7 +521,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (!playerAId || !playerBId) return;
 
     if (!isSwapValid(slotA, slotB)) {
-      showSwapError('Troca invÃ¡lida: um ou ambos os jogadores nÃ£o podem atuar nessa posiÃ§Ã£o.');
+      showSwapError(getSwapInvalidReason(slotA, slotB) || 'Troca inválida.');
       return;
     }
 
