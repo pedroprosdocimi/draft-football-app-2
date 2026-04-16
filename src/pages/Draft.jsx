@@ -857,7 +857,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 {showFieldCard || confirmedPick ? (
                   <div
                     onPointerDown={isCaptainPhase ? undefined : (e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
-                    onClick={isCaptainPhase ? () => handleCaptainFieldClick(slot.position, cardPlayer) : undefined}
+                    onClick={isCaptainPhase ? () => handleCaptainFieldClick(slot.position, cardPlayer) : () => { if (!fieldGestureRef.current?.moved) handleOpenPlayerStats(cardPlayer); }}
                     style={{
                       ...cardAnimationStyle,
                       touchAction: isCaptainPhase ? 'manipulation' : 'none',
@@ -962,7 +962,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       <div
                         key={slot}
                         onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
-                        onClick={() => handleOccupiedSlotClick(slot)}
+                        onClick={() => { if (!fieldGestureRef.current?.moved) handleOpenPlayerStats(cardPlayer); }}
                         style={{
                           ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
                           flexShrink: 0,
