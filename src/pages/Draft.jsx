@@ -82,6 +82,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const fieldGestureRef = React.useRef(null);
   const swapErrorTimeoutRef = React.useRef(null);
   const longPressTimeoutRef = React.useRef(null);
+  const isBenchPhase = draft?.status === 'bench_drafting';
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -582,7 +583,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }
 
   // Main drafting / bench drafting
-  const isBenchPhase = draft.status === 'bench_drafting';
   const starterSlots = formationSlots;
 
   return (
