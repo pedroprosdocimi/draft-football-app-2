@@ -96,8 +96,11 @@ export default function FormationPickerPhase({ onPick }) {
   const [chosen, setChosen] = useState(null);
   const [pendingFormation, setPendingFormation] = useState(null);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const scrollerRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
@@ -113,6 +116,34 @@ export default function FormationPickerPhase({ onPick }) {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    const updateScrollIndicators = () => {
+      const element = scrollerRef.current;
+      if (!element) {
+        setCanScrollLeft(false);
+        setCanScrollRight(false);
+        return;
+      }
+
+      const maxScrollLeft = element.scrollWidth - element.clientWidth;
+      setCanScrollLeft(element.scrollLeft > 8);
+      setCanScrollRight(maxScrollLeft - element.scrollLeft > 8);
+    };
+
+    updateScrollIndicators();
+
+    const element = scrollerRef.current;
+    if (!element) return undefined;
+
+    element.addEventListener('scroll', updateScrollIndicators, { passive: true });
+    window.addEventListener('resize', updateScrollIndicators);
+
+    return () => {
+      element.removeEventListener('scroll', updateScrollIndicators);
+      window.removeEventListener('resize', updateScrollIndicators);
+    };
+  }, [formations]);
 
   const handlePick = (name) => {
     if (chosen) return;
@@ -155,16 +186,37 @@ export default function FormationPickerPhase({ onPick }) {
           </h1>
         </div>
 
-        <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3">
-          {formations.map((formation) => (
-            <div key={formation.name} className="w-[calc(100vw-2rem)] max-w-[380px] flex-none snap-center md:w-auto md:max-w-none">
-              <FormationCard
-                formation={formation}
-                chosen={chosen}
-                onPick={handlePick}
-              />
+        <div className="relative">
+          <div
+            ref={scrollerRef}
+            className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3"
+          >
+            {formations.map((formation) => (
+              <div key={formation.name} className="w-[calc(100vw-2rem)] max-w-[380px] flex-none snap-center md:w-auto md:max-w-none">
+                <FormationCard
+                  formation={formation}
+                  chosen={chosen}
+                  onPick={handlePick}
+                />
+              </div>
+            ))}
+          </div>
+
+          {canScrollLeft && (
+            <div className="pointer-events-none absolute left-0 top-1/2 z-10 -translate-y-1/2 md:hidden">
+              <div className="rounded-full border border-white/15 bg-black/65 px-3 py-2 text-lg font-black text-white shadow-lg">
+                ←
+              </div>
             </div>
-          ))}
+          )}
+
+          {canScrollRight && (
+            <div className="pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 md:hidden">
+              <div className="rounded-full border border-white/15 bg-black/65 px-3 py-2 text-lg font-black text-white shadow-lg">
+                →
+              </div>
+            </div>
+          )}
         </div>
 
         {showInstructions && (
