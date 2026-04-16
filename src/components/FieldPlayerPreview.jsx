@@ -223,7 +223,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             lineHeight: 1.2,
-            paddingBottom: 4,
+            paddingBottom: 3,
             borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}
         >
@@ -231,11 +231,11 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
         </div>
 
         <div
-          className="mt-1.5"
+          className="mt-1"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '2px 6px',
+            gap: '1px 5px',
           }}
         >
           {attrs.map(([label, color, key]) => (
@@ -254,7 +254,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                   color,
                   fontWeight: 800,
                   lineHeight: 1,
-                  fontSize: 7,
+                  fontSize: 6.5,
                   textTransform: 'uppercase',
                 }}
               >
@@ -265,7 +265,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                   color,
                   fontWeight: 900,
                   lineHeight: 1,
-                  fontSize: 8,
+                  fontSize: 7.5,
                   textAlign: 'right',
                 }}
               >
