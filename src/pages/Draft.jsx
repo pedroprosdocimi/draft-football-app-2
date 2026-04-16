@@ -81,6 +81,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const fieldRef = React.useRef(null);
   const fieldGestureRef = React.useRef(null);
   const swapErrorTimeoutRef = React.useRef(null);
+  const longPressTimeoutRef = React.useRef(null);
 
   // Map slotPosition → pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -145,6 +146,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   useEffect(() => () => {
     animTimeoutsRef.current.forEach(clearTimeout);
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
+    if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
   }, []);
 
   const showSwapError = useCallback((message) => {
@@ -154,6 +156,12 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       setSwapError(null);
       swapErrorTimeoutRef.current = null;
     }, 5000);
+  }, []);
+
+  const clearLongPressTimeout = useCallback(() => {
+    if (!longPressTimeoutRef.current) return;
+    clearTimeout(longPressTimeoutRef.current);
+    longPressTimeoutRef.current = null;
   }, []);
 
   const handleSetFormation = async (formationName) => {
@@ -193,21 +201,66 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     setSelectedCard(normalizedPlayer);
   }, []);
 
+  const handleOccupiedSlotTap = useCallback((slotPosition, player) => {
+    const normalizedPlayer = normalizeDraftPlayer(player);
+    if (!normalizedPlayer?.id) return;
+
+    if (selectedSwapSlot !== null) {
+      if (selectedSwapSlot === slotPosition) {
+        setSelectedSwapSlot(null);
+      } else {
+        handleSwap(selectedSwapSlot, slotPosition);
+        setSelectedSwapSlot(null);
+      }
+      return;
+    }
+
+    if (isBenchPhase) {
+      setSelectedSwapSlot(slotPosition);
+      return;
+    }
+
+    handleOpenPlayerStats(normalizedPlayer);
+  }, [handleOpenPlayerStats, isBenchPhase, selectedSwapSlot]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFieldPointerDown = useCallback((e, slotPosition, player) => {
     if (!normalizeDraftPlayer(player)?.id) return;
-    e.preventDefault();
+    const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen';
+    if (!isTouchPointer) {
+      e.preventDefault();
+    }
     fieldGestureRef.current = {
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       moved: false,
       slotPosition,
+      pointerType: e.pointerType,
+      dragReady: !isTouchPointer,
     };
-    setDraggingSlot(slotPosition);
-    if (typeof e.currentTarget?.setPointerCapture === 'function') {
+    if (!isTouchPointer) {
+      setDraggingSlot(slotPosition);
+    } else {
+      clearLongPressTimeout();
+      longPressTimeoutRef.current = setTimeout(() => {
+        if (
+          fieldGestureRef.current?.pointerId === e.pointerId &&
+          fieldGestureRef.current?.slotPosition === slotPosition &&
+          !fieldGestureRef.current?.moved
+        ) {
+          fieldGestureRef.current = {
+            ...fieldGestureRef.current,
+            dragReady: true,
+          };
+          setDraggingSlot(slotPosition);
+        }
+        longPressTimeoutRef.current = null;
+      }, 220);
+    }
+    if (!isTouchPointer && typeof e.currentTarget?.setPointerCapture === 'function') {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
-  }, []);
+  }, [clearLongPressTimeout]);
 
   const isSwapValid = useCallback((slotA, slotB) => {
     // Bench slots (≥12): position validation is delegated to the backend
@@ -238,8 +291,19 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }, [selectedSwapSlot, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFieldPointerMove = useCallback((e) => {
-    if (draggingSlot === null) return;
     if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
+    if (!fieldGestureRef.current) return;
+
+    if (draggingSlot === null) {
+      const deltaX = e.clientX - fieldGestureRef.current.startX;
+      const deltaY = e.clientY - fieldGestureRef.current.startY;
+      if (Math.hypot(deltaX, deltaY) > 8) {
+        fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
+        clearLongPressTimeout();
+      }
+      return;
+    }
+
     if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
       const deltaX = e.clientX - fieldGestureRef.current.startX;
       const deltaY = e.clientY - fieldGestureRef.current.startY;
@@ -255,24 +319,28 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (!target || target === draggingSlot) { setDropTargetSlot(null); return; }
     const hasPlayer = pickedPlayers[target] || picksBySlot[target];
     setDropTargetSlot(hasPlayer && isSwapValid(draggingSlot, target) ? target : null);
-  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, isSwapValid]);
+  }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, isSwapValid]);
 
   const handleFieldPointerUp = useCallback((e) => {
-    if (draggingSlot === null) return;
     if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
+    const gesture = fieldGestureRef.current;
+    if (!gesture) return;
+    clearLongPressTimeout();
+
     const activePlayer = normalizeDraftPlayer(pickedPlayers[draggingSlot] || picksBySlot[draggingSlot]);
+    if (draggingSlot === null) {
+      if (!gesture.moved) {
+        const tappedPlayer = normalizeDraftPlayer(pickedPlayers[gesture.slotPosition] || picksBySlot[gesture.slotPosition]);
+        handleOccupiedSlotTap(gesture.slotPosition, tappedPlayer);
+      }
+      fieldGestureRef.current = null;
+      setDropTargetSlot(null);
+      return;
+    }
+
     if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
-      if (selectedSwapSlot !== null) {
-        if (selectedSwapSlot === draggingSlot) {
-          setSelectedSwapSlot(null);
-        } else {
-          handleSwap(selectedSwapSlot, draggingSlot);
-          setSelectedSwapSlot(null);
-        }
-      } else if (isBenchPhase && activePlayer) {
-        setSelectedSwapSlot(draggingSlot);
-      } else if (activePlayer) {
-        handleOpenPlayerStats(activePlayer);
+      if (gesture.pointerType === 'mouse') {
+        handleOccupiedSlotTap(draggingSlot, activePlayer);
       }
       fieldGestureRef.current = null;
       setDraggingSlot(null);
@@ -286,7 +354,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     fieldGestureRef.current = null;
     setDraggingSlot(null);
     setDropTargetSlot(null);
-  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats, selectedSwapSlot, isBenchPhase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, handleOccupiedSlotTap, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (draggingSlot === null) return undefined;
@@ -300,6 +368,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     };
 
     const handleWindowPointerCancel = () => {
+      clearLongPressTimeout();
       fieldGestureRef.current = null;
       setDraggingSlot(null);
       setDropTargetSlot(null);
@@ -314,7 +383,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       window.removeEventListener('pointerup', handleWindowPointerUp);
       window.removeEventListener('pointercancel', handleWindowPointerCancel);
     };
-  }, [draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
+  }, [clearLongPressTimeout, draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
 
   const handleSwap = async (slotA, slotB) => {
     const playerAId = pickedPlayers[slotA]?.id || picksBySlot[slotA]?.player_id;
