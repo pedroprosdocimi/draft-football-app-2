@@ -163,8 +163,10 @@ export default function FormationPickerPhase({ onPick }) {
     const element = scrollerRef.current;
     if (!element) return;
 
+    const firstCard = element.firstElementChild;
+    const cardWidth = firstCard ? firstCard.getBoundingClientRect().width + 16 : element.clientWidth;
     element.scrollBy({
-      left: direction * element.clientWidth,
+      left: direction * cardWidth,
       behavior: 'smooth',
     });
   };
@@ -199,7 +201,7 @@ export default function FormationPickerPhase({ onPick }) {
         <div className="relative">
           <div
             ref={scrollerRef}
-            className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3"
+            className="-mx-4 flex gap-4 overflow-x-auto px-4 pt-3 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pt-0 xl:grid-cols-3"
           >
             {formations.map((formation) => (
               <div key={formation.name} className="w-[calc(100vw-2rem)] max-w-[380px] flex-none snap-center md:w-auto md:max-w-none">

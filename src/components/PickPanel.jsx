@@ -246,12 +246,6 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
             </button>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="text-xs text-gray-600 hover:text-gray-400 border border-gray-700 px-4 py-2 rounded-lg"
-        >
-          Voltar
-        </button>
       </div>
     </div>
   );
