@@ -353,7 +353,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       if (isBenchSlot) {
         setIsBenchDrawerOpen(false);
       }
-      setDragPointer({ x: e.clientX, y: e.clientY });
       setDraggingSlot(slotPosition);
     } else {
       clearLongPressTimeout();
@@ -456,7 +455,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       }
     }
     if (!fieldGestureRef.current?.moved) {
-      setDragPointer({ x: e.clientX, y: e.clientY });
       setDropTargetSlot(null);
       return;
     }
@@ -859,7 +857,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 {showFieldCard || confirmedPick ? (
                   <div
                     onPointerDown={isCaptainPhase ? undefined : (e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
-                    onClick={isCaptainPhase ? () => handleCaptainFieldClick(slot.position, cardPlayer) : () => { if (!fieldGestureRef.current?.moved) handleOpenPlayerStats(cardPlayer); }}
+                    onClick={isCaptainPhase ? () => handleCaptainFieldClick(slot.position, cardPlayer) : () => { if (!fieldGestureRef.current?.moved) { clearLongPressTimeout(); fieldGestureRef.current = null; setDraggingSlot(null); setDragPointer(null); handleOpenPlayerStats(cardPlayer); } }}
                     style={{
                       ...cardAnimationStyle,
                       touchAction: isCaptainPhase ? 'manipulation' : 'none',
@@ -964,7 +962,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       <div
                         key={slot}
                         onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
-                        onClick={() => { if (!fieldGestureRef.current?.moved) handleOpenPlayerStats(cardPlayer); }}
+                        onClick={() => { if (!fieldGestureRef.current?.moved) { clearLongPressTimeout(); fieldGestureRef.current = null; setDraggingSlot(null); setDragPointer(null); handleOpenPlayerStats(cardPlayer); } }}
                         style={{
                           ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
                           flexShrink: 0,
