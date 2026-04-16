@@ -238,6 +238,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       return;
     }
 
+    setIsBenchDrawerOpen(true);
+
     if (draggingSlot !== null && draggingSlot >= 12) {
       setIsBenchDrawerOpen(false);
     }
@@ -932,19 +934,13 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           <aside
             className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 sm:w-[12rem] ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
           >
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-white">Reservas</p>
-                  <p className="text-xs text-slate-300/60">
-                    Toque para escolher ou arraste para o campo
-                  </p>
-                </div>
+              <div className="mb-3 flex justify-end">
                 <button
                   type="button"
                   onClick={() => setIsBenchDrawerOpen(false)}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-200"
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-sm font-black text-red-400 transition hover:bg-red-500/30"
                 >
-                  Fechar
+                  ✕
                 </button>
               </div>
 
@@ -990,8 +986,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                     <button
                       key={slot}
                       onClick={() => handleSlotClick(slot)}
-                      className="flex w-full flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 py-5 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10"
-                      style={{ flexShrink: 0 }}
+                      className="flex flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10"
+                      style={{ flexShrink: 0, width: '5rem', height: '6.6rem' }}
                     >
                       <span className="text-[11px] font-bold text-gray-300">{label}</span>
                       <span className="text-[9px] text-gray-500">{sub}</span>
