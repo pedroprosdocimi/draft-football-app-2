@@ -892,7 +892,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             />
           )}
 
-          <div className="pointer-events-none fixed inset-y-0 right-0 z-40 flex items-center">
+          <div className="pointer-events-none fixed right-0 top-24 z-40 flex items-start">
             <button
               type="button"
               onClick={() => setIsBenchDrawerOpen((open) => !open)}
@@ -904,7 +904,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             </button>
 
             <aside
-              className={`pointer-events-auto h-full w-[min(88vw,22rem)] border-l border-white/10 bg-slate-950/96 px-4 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+              className={`pointer-events-auto h-[calc(100svh-7rem)] w-[min(88vw,22rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-4 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
