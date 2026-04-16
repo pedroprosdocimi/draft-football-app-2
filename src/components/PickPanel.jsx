@@ -34,6 +34,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [confirmPlayer, setConfirmPlayer] = useState(null);
   const safeOptions = options || [];
 
   const benchMeta = slotPosition ? BENCH_SLOT_META[slotPosition] : null;
@@ -220,15 +221,8 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
                       isMyTurn
                       large
                       slotPositionId={slotDetailedPositionId}
-                      onClick={() => setSelectedCard(player)}
+                      onClick={() => setConfirmPlayer(player)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => onPickPlayer(player)}
-                      className="rounded-2xl border border-emerald-300/35 bg-emerald-500/15 px-5 py-2 text-sm font-semibold text-emerald-100 shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:border-emerald-200/45 hover:bg-emerald-400/20"
-                    >
-                      Draftar
-                    </button>
                   </div>
                 </div>
               ))
@@ -268,6 +262,33 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
           player={selectedCard}
           onClose={() => setSelectedCard(null)}
         />
+      )}
+
+      {confirmPlayer && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="w-full max-w-xs rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+            <p className="text-center text-base font-semibold text-white leading-snug mb-6">
+              Confirmar escolha de{' '}
+              <span className="text-draft-gold">{confirmPlayer.display_name || confirmPlayer.name}</span>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmPlayer(null)}
+                className="flex-1 rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-white/10"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => { onPickPlayer(confirmPlayer); setConfirmPlayer(null); }}
+                className="flex-1 rounded-xl border border-emerald-400/40 bg-emerald-500/20 py-2.5 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/35"
+              >
+                Sim
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
