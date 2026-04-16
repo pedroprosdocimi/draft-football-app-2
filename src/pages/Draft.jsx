@@ -844,7 +844,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           )}
 
           {!isBenchDrawerOpen && (
-            <div className="pointer-events-none fixed right-0 top-1/2 z-40 -translate-y-1/2">
+            <div className="pointer-events-none fixed bottom-6 right-0 z-40">
               <button
                 type="button"
                 onClick={() => setIsBenchDrawerOpen(true)}
