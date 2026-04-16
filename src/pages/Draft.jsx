@@ -7,7 +7,7 @@ import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
 
-// Maps detailed_position_id â†’ basic position_id
+// Maps detailed_position_id to basic position_id
 const DETAILED_TO_BASIC = {
   1:1, 2:2, 3:2, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:4, 11:4, 12:4, 13:4
 };
@@ -75,7 +75,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [pendingPick, setPendingPick] = useState(null);
   // { player: PlayerObject, slotPosition: number }
   const [pickedPlayers, setPickedPlayers] = useState({});
-  // { [slotPosition]: PlayerObject } â€” persists cards for rendering after API confirms
+  // { [slotPosition]: PlayerObject } - persists cards for rendering after API confirms
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [poppingSlot, setPoppingSlot] = useState(null);
   const [draggingSlot, setDraggingSlot] = useState(null); // slot being drag-swapped
@@ -90,7 +90,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const longPressTimeoutRef = React.useRef(null);
   const isBenchPhase = draft?.status === 'bench_drafting';
 
-  // Map slotPosition â†’ pick for quick lookup
+  // Map slotPosition to pick for quick lookup
   const picksBySlot = useMemo(() => {
     const map = {};
     for (const p of draft?.picks || []) {
@@ -366,7 +366,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }, [clearLongPressTimeout]);
 
   const isSwapValid = useCallback((slotA, slotB) => {
-    // Bench slots (â‰¥12): position validation is delegated to the backend
+    // Bench slots (>=12): position validation is delegated to the backend
     if (slotA >= 12 || slotB >= 12) return true;
     const playerA = pickedPlayers[slotA] || null;
     const playerB = pickedPlayers[slotB] || null;
@@ -670,7 +670,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin text-4xl mb-4">âš½</div>
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-gray-700 border-t-draft-gold" />
           <p className="text-gray-400">Carregando draft...</p>
         </div>
       </div>
@@ -682,15 +682,15 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     return <FormationPickerPhase onPick={handleSetFormation} />;
   }
 
-  // Captain pick phase â€” show starters as selectable cards
+  // Captain pick phase - show starters as selectable cards
   if (draft.status === 'captain_pick') {
     const starterPicks = (draft.picks || []).filter(p => p.slot_position <= 11);
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-2xl">
-          <h2 className="text-xl font-bold text-white text-center mb-2">Escolha seu CapitÃ£o</h2>
+          <h2 className="text-xl font-bold text-white text-center mb-2">Escolha seu Capitão</h2>
           <p className="text-gray-400 text-sm text-center mb-6">
-            O capitÃ£o multiplica sua pontuaÃ§Ã£o
+            O capitão multiplica sua pontuação
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {starterPicks.map(pick => {
@@ -699,8 +699,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 <button key={pick.slot_position}
                   onClick={() => handleCaptain(pick.player_id)}
                   className="bg-gray-800 border border-gray-700 hover:border-draft-gold hover:bg-gray-700 rounded-xl p-3 text-left transition-all">
-                  <div className="text-xs text-gray-500 mb-1">Slot {pick.slot_position} Â· {posLabel}</div>
-                  <div className="text-sm font-semibold text-white truncate">{pick.player_id.slice(0,8)}â€¦</div>
+                  <div className="text-xs text-gray-500 mb-1">Slot {pick.slot_position} - {posLabel}</div>
+                  <div className="text-sm font-semibold text-white truncate">{pick.player_id.slice(0,8)}...</div>
                 </button>
               );
             })}
@@ -715,9 +715,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">â† Sair</button>
+        <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Sair</button>
         <span className="text-xs text-gray-500 font-mono uppercase">
-          {isBenchPhase ? 'Reservas' : 'Titulares'} Â· {draft.formation}
+          {isBenchPhase ? 'Reservas' : 'Titulares'} - {draft.formation}
         </span>
         <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
       </div>
@@ -743,7 +743,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
 
 
-      {/* Field â€” always visible during starter and bench drafting */}
+      {/* Field - always visible during starter and bench drafting */}
       <style>{`
         @keyframes card-pop {
           0%   { transform: scale(0.3); opacity: 0; }
@@ -857,7 +857,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
       </div>
 
-      {/* Bench slots â€” lateral drawer during bench phase */}
+      {/* Bench slots - lateral drawer during bench phase */}
       {isBenchPhase && (
         <>
           {isBenchDrawerOpen && (
