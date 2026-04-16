@@ -15,14 +15,6 @@ export default function Register({ onLogin, onGoLogin, onGoVerify }) {
 
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const normalizePhone = (raw) => {
-    const digits = raw.replace(/\D/g, '');
-    if (raw.startsWith('+')) return raw.trim();
-    if (digits.length === 11) return `+55${digits}`;
-    if (digits.length === 13 && digits.startsWith('55')) return `+${digits}`;
-    return raw.trim();
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -30,10 +22,13 @@ export default function Register({ onLogin, onGoLogin, onGoVerify }) {
     if (!form.name.trim() || !form.teamName.trim() || !form.email.trim() || !form.phone.trim() || !form.password) {
       return setError('Nome, nome do time, email, telefone e senha sao obrigatorios.');
     }
+    if (!/^\d{11}$/.test(form.phone.trim())) {
+      return setError('Telefone invalido. Use o formato DDD + 9 digitos. Ex: 31999999999');
+    }
     if (form.password !== form.confirm) return setError('As senhas nao coincidem.');
     if (form.password.length < 8) return setError('Senha deve ter pelo menos 8 caracteres.');
 
-    const phone = normalizePhone(form.phone);
+    const phone = `+55${form.phone.trim()}`;
 
     setLoading(true);
     try {
@@ -106,7 +101,7 @@ export default function Register({ onLogin, onGoLogin, onGoVerify }) {
               <input
                 type="tel"
                 className="input-field"
-                placeholder="31999999999 ou +5531999999999"
+                placeholder="31999999999"
                 value={form.phone}
                 onChange={set('phone')}
               />
