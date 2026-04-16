@@ -883,14 +883,17 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 return (
                   <div
                     key={slot}
+                    onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
                     onClick={() => handleOccupiedSlotClick(slot)}
                     style={{
                       ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
                       flexShrink: 0,
-                      cursor: 'pointer',
+                      cursor: draggingSlot === slot ? 'grabbing' : 'pointer',
+                      opacity: draggingSlot === slot ? 0.5 : 1,
                       outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : selectedSwapSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
                       borderRadius: '20px',
-                      transition: 'outline 0.1s',
+                      transition: 'outline 0.1s, opacity 0.15s',
+                      touchAction: draggingSlot === slot ? 'none' : 'manipulation',
                     }}
                   >
                     <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
