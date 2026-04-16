@@ -74,7 +74,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [poppingSlot, setPoppingSlot] = useState(null);
   const [draggingSlot, setDraggingSlot] = useState(null); // slot being drag-swapped
   const [dropTargetSlot, setDropTargetSlot] = useState(null); // highlighted drop target
-  const [selectedBenchSlot, setSelectedBenchSlot] = useState(null); // bench swap selection
+  const [selectedSwapSlot, setSelectedSwapSlot] = useState(null); // tap-to-swap selection
   const [selectedCard, setSelectedCard] = useState(null);
   const animTimeoutsRef = React.useRef([]);
   const fieldRef = React.useRef(null);
@@ -210,18 +210,18 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     );
   }, [pickedPlayers, starterPlacements]);
 
-  const handleBenchCardClick = useCallback((slot) => {
+  const handleOccupiedSlotClick = useCallback((slot) => {
     const hasPlayer = pickedPlayers[slot] || picksBySlot[slot];
     if (!hasPlayer) return;
-    if (selectedBenchSlot === null) {
-      setSelectedBenchSlot(slot);
-    } else if (selectedBenchSlot === slot) {
-      setSelectedBenchSlot(null);
+    if (selectedSwapSlot === null) {
+      setSelectedSwapSlot(slot);
+    } else if (selectedSwapSlot === slot) {
+      setSelectedSwapSlot(null);
     } else {
-      handleSwap(selectedBenchSlot, slot);
-      setSelectedBenchSlot(null);
+      handleSwap(selectedSwapSlot, slot);
+      setSelectedSwapSlot(null);
     }
-  }, [selectedBenchSlot, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedSwapSlot, pickedPlayers, picksBySlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFieldPointerMove = useCallback((e) => {
     if (draggingSlot === null) return;
@@ -248,7 +248,16 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
     const activePlayer = normalizeDraftPlayer(pickedPlayers[draggingSlot] || picksBySlot[draggingSlot]);
     if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
-      if (activePlayer) handleOpenPlayerStats(activePlayer);
+      if (selectedSwapSlot !== null) {
+        if (selectedSwapSlot === draggingSlot) {
+          setSelectedSwapSlot(null);
+        } else {
+          handleSwap(selectedSwapSlot, draggingSlot);
+          setSelectedSwapSlot(null);
+        }
+      } else if (activePlayer) {
+        handleOpenPlayerStats(activePlayer);
+      }
       fieldGestureRef.current = null;
       setDraggingSlot(null);
       setDropTargetSlot(null);
@@ -261,7 +270,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     fieldGestureRef.current = null;
     setDraggingSlot(null);
     setDropTargetSlot(null);
-  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats, selectedSwapSlot]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (draggingSlot === null) return undefined;
@@ -606,7 +615,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                       touchAction: 'none',
                       cursor: draggingSlot === slot.position ? 'grabbing' : 'grab',
                       opacity: draggingSlot === slot.position ? 0.5 : 1,
-                      outline: dropTargetSlot === slot.position ? '2px solid rgba(110,231,183,0.8)' : 'none',
+                      outline: selectedSwapSlot === slot.position
+                        ? '2px solid rgba(250,204,21,0.95)'
+                        : dropTargetSlot === slot.position
+                          ? '2px solid rgba(110,231,183,0.8)'
+                          : 'none',
                       borderRadius: '20px',
                       transition: 'opacity 0.15s, outline 0.1s',
                     }}
@@ -647,18 +660,18 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   ? getDetailedPositionLabel(confirmedPick.detailed_position_id)
                   : null;
 
-              const isSelected = selectedBenchSlot === slot;
+              const isSelected = selectedSwapSlot === slot;
 
               if (playerObj || confirmedPick) {
                 return (
                   <div
                     key={slot}
-                    onClick={() => handleBenchCardClick(slot)}
+                    onClick={() => handleOccupiedSlotClick(slot)}
                     style={{
                       ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
                       flexShrink: 0,
                       cursor: 'pointer',
-                      outline: isSelected ? '2px solid rgba(110,231,183,0.85)' : selectedBenchSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
+                      outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : selectedSwapSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
                       borderRadius: '20px',
                       transition: 'outline 0.1s',
                     }}
