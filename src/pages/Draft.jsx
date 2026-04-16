@@ -915,20 +915,23 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             />
           )}
 
-          <div className="pointer-events-none fixed right-0 top-24 z-40 flex items-start">
-            <button
-              type="button"
-              onClick={() => setIsBenchDrawerOpen((open) => !open)}
-              className={`pointer-events-auto mr-[-1px] flex h-36 w-12 items-center justify-center rounded-l-2xl border border-r-0 border-white/10 bg-slate-950/96 px-2 shadow-[0_20px_45px_rgba(0,0,0,0.35)] transition-all ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-0'}`}
-            >
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-100/80">
-                Reservas
-              </span>
-            </button>
+          {!isBenchDrawerOpen && (
+            <div className="pointer-events-none fixed inset-y-0 right-0 z-40 flex items-stretch">
+              <button
+                type="button"
+                onClick={() => setIsBenchDrawerOpen(true)}
+                className="pointer-events-auto flex h-full w-12 items-center justify-center rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-2 shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
+              >
+                <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-100/80">
+                  Reservas
+                </span>
+              </button>
+            </div>
+          )}
 
-            <aside
-              className={`pointer-events-auto h-[calc(100svh-7rem)] w-[min(88vw,22rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-4 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
+          <aside
+            className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(88vw,22rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-4 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-white">Reservas</p>
@@ -993,8 +996,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   );
                 })}
               </div>
-            </aside>
-          </div>
+          </aside>
         </>
       )}
 
