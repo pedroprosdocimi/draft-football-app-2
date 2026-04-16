@@ -31,6 +31,24 @@ const TEAM_COLORS = {
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },
 };
 
+const OUTFIELD_ATTRS = [
+  ['ATA', '#f87171', 'attr_ata'],
+  ['COM', '#fbbf24', 'attr_com'],
+  ['CRI', '#a78bfa', 'attr_cri'],
+  ['DEF', '#4ade80', 'attr_def'],
+  ['PAS', '#60a5fa', 'attr_pas'],
+  ['FIS', '#22d3ee', 'attr_fis'],
+];
+
+const GOALKEEPER_ATTRS = [
+  ['GOL', '#3b82f6', 'attr_gol'],
+  ['COM', '#fbbf24', 'attr_com'],
+  ['CRI', '#a78bfa', 'attr_cri'],
+  ['DEF', '#4ade80', 'attr_def'],
+  ['PAS', '#60a5fa', 'attr_pas'],
+  ['FIS', '#22d3ee', 'attr_fis'],
+];
+
 function formatName(name) {
   const parts = name.trim().split(/\s+/);
   if (parts.length < 2) return name;
@@ -45,10 +63,12 @@ function formatName(name) {
 }
 
 export default function FieldPlayerPreview({ player, posLabel, slotPositionId = null }) {
+  const isGoalkeeper = player?.detailed_position_id === 1;
   const rawName = player?.display_name || player?.name || 'Jogador';
   const displayName = rawName.includes(' ') ? formatName(rawName) : rawName;
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
   const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
+  const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const jerseyColors = {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
@@ -206,6 +226,35 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           }}
         >
           {displayName}
+        </div>
+
+        <div className="mt-1.5 grid grid-cols-3 gap-1 text-[7px] sm:text-[8px]">
+          {attrs.map(([label, color, key]) => (
+            <div
+              key={key}
+              className="rounded-md border border-white/10 bg-white/5 px-1 py-0.5"
+            >
+              <div
+                style={{
+                  color,
+                  fontWeight: 800,
+                  lineHeight: 1,
+                }}
+              >
+                {label}
+              </div>
+              <div
+                style={{
+                  color: '#f8fafc',
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  marginTop: 2,
+                }}
+              >
+                {Number(player?.[key] ?? 0).toFixed(1)}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
