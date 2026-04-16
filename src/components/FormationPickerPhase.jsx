@@ -159,6 +159,17 @@ export default function FormationPickerPhase({ onPick }) {
     await onPick(formationName);
   };
 
+  const handleScrollArrow = (direction) => {
+    const element = scrollerRef.current;
+    if (!element) return;
+
+    const scrollAmount = Math.max(element.clientWidth * 0.75, 260);
+    element.scrollBy({
+      left: direction * scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -203,19 +214,25 @@ export default function FormationPickerPhase({ onPick }) {
           </div>
 
           {canScrollLeft && (
-            <div className="pointer-events-none absolute left-0 top-1/2 z-10 -translate-y-1/2 md:hidden">
-              <div className="rounded-full border border-white/15 bg-black/65 px-3 py-2 text-lg font-black text-white shadow-lg">
-                ←
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => handleScrollArrow(-1)}
+              className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/15 bg-black/65 px-3 py-2 text-lg font-black text-white shadow-lg transition hover:bg-black/80 md:hidden"
+              aria-label="Ver formações anteriores"
+            >
+              {'<'}
+            </button>
           )}
 
           {canScrollRight && (
-            <div className="pointer-events-none absolute right-0 top-1/2 z-10 -translate-y-1/2 md:hidden">
-              <div className="rounded-full border border-white/15 bg-black/65 px-3 py-2 text-lg font-black text-white shadow-lg">
-                →
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => handleScrollArrow(1)}
+              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/15 bg-black/65 px-3 py-2 text-lg font-black text-white shadow-lg transition hover:bg-black/80 md:hidden"
+              aria-label="Ver próximas formações"
+            >
+              {'>'}
+            </button>
           )}
         </div>
 
