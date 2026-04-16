@@ -179,7 +179,7 @@ export default function FormationPickerPhase({ onPick }) {
                 Confirmacao
               </p>
               <h2 className="mt-3 text-2xl font-black text-white">
-                Confirmar formacao {pendingFormation}?
+                Confirmar {pendingFormation}?
               </h2>
               <p className="mt-3 text-sm text-gray-400">
                 Ao confirmar, essa sera a formacao do seu draft e a escolha dos jogadores comeca em seguida.
@@ -188,17 +188,17 @@ export default function FormationPickerPhase({ onPick }) {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setPendingFormation(null)}
-                  className="rounded-2xl border border-gray-700 px-4 py-3 text-sm font-semibold text-gray-200 transition hover:border-gray-500 hover:bg-white/5"
-                >
-                  Voltar
-                </button>
-                <button
-                  type="button"
                   onClick={handleConfirmPick}
                   className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-gray-950 transition hover:bg-emerald-400"
                 >
                   Confirmar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPendingFormation(null)}
+                  className="rounded-2xl border border-gray-700 px-4 py-3 text-sm font-semibold text-gray-200 transition hover:border-gray-500 hover:bg-white/5"
+                >
+                  Voltar
                 </button>
               </div>
             </div>
