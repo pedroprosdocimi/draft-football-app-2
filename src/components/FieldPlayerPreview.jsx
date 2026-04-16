@@ -80,14 +80,14 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           <img
             src={player.team_jersey_url}
             alt={player.team_short_code}
-            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-1%] left-1/2 h-[78%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           />
         ) : (
           <svg
             viewBox="0 0 120 95"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-1%] left-1/2 h-[78%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           >
             <defs>
               <clipPath id={`field-jersey-${player?.id || displayName}`}>
