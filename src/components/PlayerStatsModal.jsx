@@ -177,7 +177,7 @@ function CategoryBlock({ catKey, stats, roundData }) {
   );
 }
 
-export default function PlayerStatsModal({ player, onClose }) {
+export default function PlayerStatsModal({ player, onClose, lockedRoundNumber = null }) {
   const [data, setData] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedRound, setSelectedRound] = React.useState(null);
@@ -191,17 +191,20 @@ export default function PlayerStatsModal({ player, onClose }) {
       .then(d => {
         const rows = d.data || [];
         setData(rows);
-        if (rows.length > 0) {
+        if (lockedRoundNumber != null) {
+          setSelectedRound(lockedRoundNumber);
+        } else if (rows.length > 0) {
           setSelectedRound(Math.max(...rows.map(r => r.round_number)));
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [player.id]);
+  }, [lockedRoundNumber, player.id]);
 
   const rounds = React.useMemo(() => groupByRound(data), [data]);
   const roundNumbers = Object.keys(rounds).map(Number).sort((a, b) => a - b);
-  const currentRound = rounds[selectedRound];
+  const effectiveRound = lockedRoundNumber ?? selectedRound;
+  const currentRound = rounds[effectiveRound];
 
   return (
     <div
@@ -245,27 +248,41 @@ export default function PlayerStatsModal({ player, onClose }) {
             <DraftPlayerCard player={player} isMyTurn={false} />
           </div>
 
-          {/* Round dropdown */}
-          <select
-            value={selectedRound ?? ''}
-            onChange={e => setSelectedRound(Number(e.target.value))}
-            style={{
+          {lockedRoundNumber == null ? (
+            <select
+              value={selectedRound ?? ''}
+              onChange={e => setSelectedRound(Number(e.target.value))}
+              style={{
+                width: '100%',
+                background: '#1f2937', color: '#f9fafb',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 10, padding: '10px 14px',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7L0 2h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 14px center',
+                paddingRight: 38,
+              }}
+            >
+              {roundNumbers.map(rn => (
+                <option key={rn} value={rn}>{rounds[rn].round_name || `Rodada ${rn}`}</option>
+              ))}
+            </select>
+          ) : (
+            <div style={{
               width: '100%',
-              background: '#1f2937', color: '#f9fafb',
+              background: '#1f2937',
+              color: '#f9fafb',
               border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 10, padding: '10px 14px',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer',
-              appearance: 'none',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7L0 2h10z'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'right 14px center',
-              paddingRight: 38,
-            }}
-          >
-            {roundNumbers.map(rn => (
-              <option key={rn} value={rn}>{rounds[rn].round_name || `Rodada ${rn}`}</option>
-            ))}
-          </select>
+              borderRadius: 10,
+              padding: '10px 14px',
+              fontSize: 14,
+              fontWeight: 700,
+            }}>
+              {currentRound?.round_name || `Rodada ${lockedRoundNumber}`}
+            </div>
+          )}
 
           {/* Breakdown */}
           {loading ? (
@@ -306,6 +323,10 @@ export default function PlayerStatsModal({ player, onClose }) {
                   return <CategoryBlock key={cat} catKey={cat} stats={stats} roundData={currentRound} />;
                 })}
               </div>
+            </div>
+          ) : lockedRoundNumber != null ? (
+            <div style={{ color: '#4b5563', textAlign: 'center', padding: 24 }}>
+              Sem dados desta rodada por enquanto.
             </div>
           ) : null}
         </div>

@@ -75,7 +75,11 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
     .filter((id) => id !== primaryPositionId)
     .slice(0, 2);
   const primaryPositionPalette = getDetailedPositionPalette(primaryPositionId);
-  const avgScore = (player.avg_score || 0).toFixed(1);
+  const scoreValue = Number.isFinite(player.score_value)
+    ? player.score_value
+    : (player.avg_score || 0);
+  const scoreLabel = player.score_label || 'score med.';
+  const avgScore = scoreValue.toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const jersey = TEAM_COLORS[player.team_short_code] || {
     p: BORDER_COLORS[player.position_id] || '#3b82f6',
@@ -226,7 +230,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           <div style={{ fontSize: scoreFz, fontWeight: 900, color: '#fbbf24', lineHeight: 1.02 }}>
             {avgScore}
           </div>
-          <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>score med.</div>
+          <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>{scoreLabel}</div>
         </div>
 
         {/* Bottom-right: minutes + matches */}

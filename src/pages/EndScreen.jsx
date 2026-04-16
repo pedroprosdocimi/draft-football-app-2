@@ -17,7 +17,13 @@ const BENCH_SLOTS = [
 
 function normalizePlayer(pick) {
   if (!pick) return null;
-  return { ...pick, id: pick.id ?? pick.player_id ?? null };
+  const roundScore = Number.isFinite(pick.round_score) ? pick.round_score : null;
+  return {
+    ...pick,
+    id: pick.id ?? pick.player_id ?? null,
+    score_value: roundScore ?? pick.avg_score ?? 0,
+    score_label: 'rodada',
+  };
 }
 
 export default function EndScreen({ draftId, onGoHome }) {
@@ -214,7 +220,11 @@ export default function EndScreen({ draftId, onGoHome }) {
       </aside>
 
       {selectedCard && (
-        <PlayerStatsModal player={selectedCard} onClose={() => setSelectedCard(null)} />
+        <PlayerStatsModal
+          player={selectedCard}
+          lockedRoundNumber={draft?.round?.number ?? null}
+          onClose={() => setSelectedCard(null)}
+        />
       )}
     </div>
   );

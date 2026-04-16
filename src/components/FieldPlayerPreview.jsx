@@ -47,7 +47,12 @@ function formatName(name) {
 export default function FieldPlayerPreview({ player, posLabel, slotPositionId = null }) {
   const rawName = player?.display_name || player?.name || 'Jogador';
   const displayName = rawName.includes(' ') ? formatName(rawName) : rawName;
-  const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
+  const displayScoreValue = Number.isFinite(player?.score_value)
+    ? player.score_value
+    : Number.isFinite(player?.avg_score)
+      ? player.avg_score
+      : 0;
+  const avgScore = displayScoreValue.toFixed(1);
   const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
   const jerseyColors = {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
