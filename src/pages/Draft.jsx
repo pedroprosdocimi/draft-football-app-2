@@ -233,7 +233,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }, []);
 
   useEffect(() => {
-    if (!isBenchPhase) {
+    if (!isBenchPhase && !isCaptainPhase) {
       setIsBenchDrawerOpen(false);
       return;
     }
@@ -243,7 +243,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (draggingSlot !== null && draggingSlot >= 12) {
       setIsBenchDrawerOpen(false);
     }
-  }, [draggingSlot, isBenchPhase]);
+  }, [draggingSlot, isBenchPhase, isCaptainPhase]);
 
   useEffect(() => {
     if (!isCaptainPhase) {
@@ -921,8 +921,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
       </div>
 
-      {/* Bench slots - lateral drawer during bench phase */}
-      {isBenchPhase && (
+      {/* Bench slots - lateral drawer during bench and captain phases */}
+      {(isBenchPhase || isCaptainPhase) && (
         <>
           {isBenchDrawerOpen && (
             <button
