@@ -134,18 +134,33 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
         @keyframes pick-panel-card-in {
           0% {
             opacity: 0;
-            transform: translateY(42px) scale(0.88) rotate(var(--card-tilt, 0deg));
-            filter: blur(10px);
+            transform: translate(var(--burst-x, 0px), var(--burst-y, 0px)) scale(0.2) rotate(var(--card-tilt, 0deg));
+            filter: blur(14px);
           }
-          62% {
+          58% {
             opacity: 1;
-            transform: translateY(-6px) scale(1.02) rotate(calc(var(--card-tilt, 0deg) * 0.35));
+            transform: translate(calc(var(--burst-x, 0px) * -0.08), calc(var(--burst-y, 0px) * -0.08)) scale(1.04) rotate(calc(var(--card-tilt, 0deg) * 0.32));
             filter: blur(0);
           }
           100% {
             opacity: 1;
-            transform: translateY(0) scale(1) rotate(0deg);
+            transform: translate(0, 0) scale(1) rotate(0deg);
             filter: blur(0);
+          }
+        }
+
+        @keyframes pick-panel-core-burst {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.2);
+          }
+          42% {
+            opacity: 0.42;
+            transform: translate(-50%, -50%) scale(1.18);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1.85);
           }
         }
       `}</style>
@@ -162,9 +177,17 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
           <p className="mt-2 text-draft-gold font-semibold">Escolha um jogador</p>
         </div>
         <div className="relative w-full">
+          {visibleOptions.length > 0 && (
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(250,204,21,0.4)_0%,rgba(251,191,36,0.18)_28%,rgba(250,204,21,0.08)_48%,transparent_72%)]"
+              style={{
+                animation: isEntering ? 'pick-panel-core-burst 0.62s cubic-bezier(0.22, 1, 0.36, 1) both' : 'none',
+              }}
+            />
+          )}
           <div
             ref={scrollerRef}
-            className="flex flex-nowrap gap-3 overflow-x-auto w-full pb-2 snap-x snap-mandatory sm:flex-wrap sm:justify-center sm:overflow-x-visible"
+            className="relative z-10 flex flex-nowrap gap-3 overflow-x-auto w-full pb-2 snap-x snap-mandatory sm:flex-wrap sm:justify-center sm:overflow-x-visible"
             style={{
               paddingLeft: sidePadding,
               paddingRight: sidePadding,
@@ -180,8 +203,10 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
                     animation: isEntering
                       ? `pick-panel-card-in 0.56s cubic-bezier(0.22, 1, 0.36, 1) both`
                       : 'none',
-                    animationDelay: `${index * 70}ms`,
+                    animationDelay: `${index * 72}ms`,
                     ['--card-tilt']: `${(index - Math.floor(visibleOptions.length / 2)) * 2.5}deg`,
+                    ['--burst-x']: `${(index - Math.floor(visibleOptions.length / 2)) * 54}px`,
+                    ['--burst-y']: `${Math.abs(index - Math.floor(visibleOptions.length / 2)) % 2 === 0 ? 24 : -24}px`,
                   }}
                 >
                   <DraftPlayerCard
