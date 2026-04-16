@@ -23,8 +23,8 @@ const BENCH_SLOT_META = {
   18: { label: 'M/A RES', basicPos: 3 },
 };
 
-const CARD_WIDTH = 210;
-const CARD_GAP = 12;
+const CARD_WIDTH = 248;
+const CARD_GAP = 16;
 
 export default function PickPanel({ options, slotDetailedPositionId, slotPosition = null, isCaptainPick = false, onPickPlayer, onClose, fadingOut = false }) {
   const scrollerRef = useRef(null);
@@ -99,7 +99,10 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
     const element = scrollerRef.current;
     if (!element) return;
 
-    const scrollAmount = Math.max(element.clientWidth * 0.75, CARD_WIDTH + CARD_GAP);
+    const firstCard = element.querySelector('.snap-center');
+    const scrollAmount = firstCard
+      ? firstCard.getBoundingClientRect().width + CARD_GAP
+      : CARD_WIDTH + CARD_GAP;
     element.scrollBy({
       left: direction * scrollAmount,
       behavior: 'smooth',
@@ -164,7 +167,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
           }
         }
       `}</style>
-      <div className="flex flex-col items-center justify-center min-h-full p-3 sm:p-4 gap-4 sm:gap-6">
+      <div className="flex flex-col items-center min-h-full px-3 pt-12 pb-8 sm:px-4 sm:pt-14 sm:pb-10 gap-5 sm:gap-7">
         <div
           className="text-center"
           style={{
@@ -212,6 +215,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
                   <DraftPlayerCard
                     player={player}
                     isMyTurn
+                    large
                     slotPositionId={slotDetailedPositionId}
                     onClick={() => onPickPlayer(player)}
                   />

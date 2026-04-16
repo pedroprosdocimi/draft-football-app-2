@@ -57,7 +57,7 @@ const GOALKEEPER_ATTRS = [
   ['FIS', '#22d3ee', 'attr_fis'],
 ];
 
-export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = false, slotPositionId = null }) {
+export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = false, large = false, slotPositionId = null }) {
   const isGoalkeeper = player.detailed_position_id === 1;
   const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
@@ -82,25 +82,25 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
     s: '#FFFFFF',
   };
 
-  const W = compact ? 140 : 210;
-  const topH = compact ? 84 : 126;
-  const jerseyW = compact ? 72 : 108;
-  const scoreFz = compact ? 18 : 26;
-  const minutesFz = compact ? 10 : 14;
-  const posFz = compact ? 14 : 20;
-  const nameFz = compact ? 11 : 15;
-  const namePb = compact ? 6 : 9;
-  const attrLabelFz = compact ? 10 : 14;
-  const attrValFz = compact ? 11 : 15;
-  const attrLabelW = compact ? 24 : 34;
-  const attrValW = compact ? 26 : 36;
-  const flagW = compact ? 20 : 28;
-  const flagH = compact ? 14 : 20;
-  const bottomPad = compact ? '8px 9px 12px' : '10px 12px 17px';
-  const gap = compact ? 7 : 9;
-  const radius = compact ? 18 : 22;
-  const chipPad = compact ? '5px 7px' : '6px 8px';
-  const chipRadius = compact ? 12 : 14;
+  const W = compact ? 140 : large ? 248 : 210;
+  const topH = compact ? 84 : large ? 150 : 126;
+  const jerseyW = compact ? 72 : large ? 128 : 108;
+  const scoreFz = compact ? 18 : large ? 30 : 26;
+  const minutesFz = compact ? 10 : large ? 16 : 14;
+  const posFz = compact ? 14 : large ? 24 : 20;
+  const nameFz = compact ? 11 : large ? 17 : 15;
+  const namePb = compact ? 6 : large ? 11 : 9;
+  const attrLabelFz = compact ? 10 : large ? 16 : 14;
+  const attrValFz = compact ? 11 : large ? 17 : 15;
+  const attrLabelW = compact ? 24 : large ? 40 : 34;
+  const attrValW = compact ? 26 : large ? 42 : 36;
+  const flagW = compact ? 20 : large ? 32 : 28;
+  const flagH = compact ? 14 : large ? 22 : 20;
+  const bottomPad = compact ? '8px 9px 12px' : large ? '12px 15px 20px' : '10px 12px 17px';
+  const gap = compact ? 7 : large ? 11 : 9;
+  const radius = compact ? 18 : large ? 26 : 22;
+  const chipPad = compact ? '5px 7px' : large ? '8px 11px' : '6px 8px';
+  const chipRadius = compact ? 12 : large ? 16 : 14;
   const mutedLabelColor = 'rgba(203,213,225,0.56)';
   const shellBackground = 'linear-gradient(180deg, rgba(7,12,21,0.98) 0%, rgba(3,7,16,1) 100%)';
   const topBackground = `radial-gradient(circle at top, ${borderColor}22 0%, transparent 34%), linear-gradient(180deg, rgba(21,31,51,0.97) 0%, rgba(12,20,36,0.98) 52%, rgba(6,12,24,1) 100%)`;
