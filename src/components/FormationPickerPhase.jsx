@@ -163,9 +163,8 @@ export default function FormationPickerPhase({ onPick }) {
     const element = scrollerRef.current;
     if (!element) return;
 
-    const scrollAmount = Math.max(element.clientWidth * 0.75, 260);
     element.scrollBy({
-      left: direction * scrollAmount,
+      left: direction * element.clientWidth,
       behavior: 'smooth',
     });
   };
@@ -189,7 +188,7 @@ export default function FormationPickerPhase({ onPick }) {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen px-4 pt-12 pb-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-black text-white sm:text-3xl">
