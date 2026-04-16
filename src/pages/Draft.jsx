@@ -264,6 +264,29 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }, [draggingSlot]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehaviorY;
+    const prevRootOverscroll = root.style.overscrollBehaviorY;
+
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    body.style.overscrollBehaviorY = 'none';
+    root.style.overscrollBehaviorY = 'none';
+
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+      body.style.overscrollBehaviorY = prevBodyOverscroll;
+      root.style.overscrollBehaviorY = prevRootOverscroll;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isBenchPhase) {
       setIsBenchDrawerOpen(false);
       return;
@@ -707,7 +730,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto">
+    <div className="h-screen overflow-hidden flex flex-col p-4 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">← Sair</button>
@@ -774,10 +797,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           100% { transform: scale(1);   opacity: 1; }
         }
       `}</style>
-      <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
+      <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
         <div
           ref={fieldRef}
-          className="relative mx-auto h-[40rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[44rem]"
+          className="relative mx-auto h-full min-h-[30rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)]"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
