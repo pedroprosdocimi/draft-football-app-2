@@ -916,11 +916,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           )}
 
           {!isBenchDrawerOpen && (
-            <div className="pointer-events-none fixed inset-y-0 right-0 z-40 flex items-stretch">
+            <div className="pointer-events-none fixed right-0 top-1/2 z-40 -translate-y-1/2">
               <button
                 type="button"
                 onClick={() => setIsBenchDrawerOpen(true)}
-                className="pointer-events-auto flex h-full w-12 items-center justify-center rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-2 shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
+                className="pointer-events-auto flex h-36 w-12 items-center justify-center rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-2 shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
               >
                 <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-100/80">
                   Reservas
