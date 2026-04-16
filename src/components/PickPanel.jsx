@@ -31,6 +31,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
   const [sidePadding, setSidePadding] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
   const safeOptions = options || [];
 
   const benchMeta = slotPosition ? BENCH_SLOT_META[slotPosition] : null;
@@ -82,6 +83,18 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
     };
   }, [visibleOptions.length]);
 
+  useEffect(() => {
+    setIsEntering(false);
+
+    const rafId = window.requestAnimationFrame(() => {
+      setIsEntering(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [options, slotDetailedPositionId, slotPosition, isCaptainPick]);
+
   const handleScrollArrow = (direction) => {
     const element = scrollerRef.current;
     if (!element) return;
@@ -102,14 +115,51 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
         opacity: fadingOut ? 0 : 1,
         pointerEvents: fadingOut ? 'none' : 'auto',
         transition: 'opacity 0.3s ease',
+        background:
+          'radial-gradient(circle at top, rgba(250,204,21,0.08), transparent 28%), rgba(2,6,23,0.88)',
       }}
     >
+      <style>{`
+        @keyframes pick-panel-title-in {
+          0% {
+            opacity: 0;
+            transform: translateY(18px) scale(0.96);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes pick-panel-card-in {
+          0% {
+            opacity: 0;
+            transform: translateY(42px) scale(0.88) rotate(var(--card-tilt, 0deg));
+            filter: blur(10px);
+          }
+          62% {
+            opacity: 1;
+            transform: translateY(-6px) scale(1.02) rotate(calc(var(--card-tilt, 0deg) * 0.35));
+            filter: blur(0);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1) rotate(0deg);
+            filter: blur(0);
+          }
+        }
+      `}</style>
       <div className="flex flex-col items-center justify-center min-h-full p-3 sm:p-4 gap-4 sm:gap-6">
-        <div className="text-center">
-          <span className={`border text-sm font-bold px-4 py-1.5 rounded-lg ${badgeClass}`}>
+        <div
+          className="text-center"
+          style={{
+            animation: isEntering ? 'pick-panel-title-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both' : 'none',
+          }}
+        >
+          <span className={`border text-sm font-bold px-4 py-1.5 rounded-lg shadow-[0_12px_32px_rgba(0,0,0,0.22)] ${badgeClass}`}>
             {isCaptainPick ? 'CAPITAO' : posLabel}
           </span>
-          <p className="text-draft-gold font-semibold mt-2">Escolha um jogador</p>
+          <p className="mt-2 text-draft-gold font-semibold">Escolha um jogador</p>
         </div>
         <div className="relative w-full">
           <div
@@ -121,8 +171,19 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
             }}
           >
             {visibleOptions.length > 0 ? (
-              visibleOptions.map((player) => (
-                <div key={player.id} className="snap-center">
+              visibleOptions.map((player, index) => (
+                <div
+                  key={player.id}
+                  className="snap-center"
+                  style={{
+                    opacity: isEntering ? 1 : 0,
+                    animation: isEntering
+                      ? `pick-panel-card-in 0.56s cubic-bezier(0.22, 1, 0.36, 1) both`
+                      : 'none',
+                    animationDelay: `${index * 70}ms`,
+                    ['--card-tilt']: `${(index - Math.floor(visibleOptions.length / 2)) * 2.5}deg`,
+                  }}
+                >
                   <DraftPlayerCard
                     player={player}
                     isMyTurn
