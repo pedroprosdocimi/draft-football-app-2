@@ -67,8 +67,6 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const primaryPositionPalette = getDetailedPositionPalette(normalizedPlayerPos);
 
   const iso2 = nationalityToIso2(player?.nationality || '');
-  const flagBottom = 9;
-  const nameBlockMarginTop = '-0.7rem';
 
   return (
     <div className="w-[5rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[6.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
@@ -80,14 +78,14 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           <img
             src={player.team_jersey_url}
             alt={player.team_short_code}
-            className="absolute bottom-[-1%] left-1/2 h-[78%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           />
         ) : (
           <svg
             viewBox="0 0 120 95"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute bottom-[-1%] left-1/2 h-[78%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
           >
             <defs>
               <clipPath id={`field-jersey-${player?.id || displayName}`}>
@@ -101,7 +99,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           </svg>
         )}
 
-        <div className="relative min-h-[4rem] sm:min-h-[4.95rem]">
+        <div className="relative min-h-[4.6rem] sm:min-h-[5.7rem]">
           {/* Score — left edge, slightly below top */}
           <div
             style={{
@@ -175,7 +173,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
 
           {/* Flag — bottom-left */}
           {iso2 && (
-            <div style={{ position: 'absolute', bottom: flagBottom, left: 4 }}>
+            <div style={{ position: 'absolute', bottom: 2, left: 4 }}>
               <span
                 className={`fi fi-${iso2}`}
                 style={{
@@ -189,10 +187,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
         </div>
       </div>
 
-      <div
-        className="relative z-10 border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2"
-        style={{ marginTop: nameBlockMarginTop }}
-      >
+      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2">
         <div
           style={{
             fontSize: nameFontSize,
