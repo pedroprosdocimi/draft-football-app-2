@@ -884,7 +884,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           )}
 
           <aside
-            className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(88vw,22rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-4 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-950/96 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 sm:w-[12rem] ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
           >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
@@ -902,7 +902,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 </button>
               </div>
 
-              <div className="flex h-[calc(100%-4.5rem)] flex-wrap content-start gap-2 overflow-y-auto pr-1">
+              <div className="flex h-[calc(100%-4.5rem)] flex-col items-center gap-2 overflow-y-auto pr-1">
                 {BENCH_SLOTS.map(({ slot, label, sub }) => {
                   const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
                   const confirmedPick = picksBySlot[slot];
@@ -924,6 +924,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                         style={{
                           ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
                           flexShrink: 0,
+                          width: '100%',
+                          display: 'flex',
+                          justifyContent: 'center',
                           cursor: draggingSlot === slot ? 'grabbing' : 'pointer',
                           opacity: draggingSlot === slot ? 0.5 : 1,
                           outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : selectedSwapSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
@@ -941,7 +944,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                     <button
                       key={slot}
                       onClick={() => handleSlotClick(slot)}
-                      className="flex w-[5.75rem] flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 py-6 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10 sm:w-[7.5rem] sm:rounded-[24px]"
+                      className="flex w-full flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 py-5 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10"
                       style={{ flexShrink: 0 }}
                     >
                       <span className="text-[11px] font-bold text-gray-300">{label}</span>
