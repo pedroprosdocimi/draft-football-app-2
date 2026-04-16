@@ -184,7 +184,7 @@ export default function PlayerStatsModal({ player, onClose }) {
 
   React.useEffect(() => {
     const token = localStorage.getItem('draft_token');
-    fetch(`${API_URL}/admin/players/${player.id}/stats`, {
+    fetch(`${API_URL}/drafts/players/${player.id}/stats`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
