@@ -13,23 +13,39 @@ const POS_COLORS = {
   4: 'border-red-500 bg-red-900/60 text-red-300',
 };
 
+const BENCH_SLOT_META = {
+  12: { label: 'GOL RES', basicPos: 1 },
+  13: { label: 'DEF RES', basicPos: 2 },
+  14: { label: 'DEF RES', basicPos: 2 },
+  15: { label: 'M/A RES', basicPos: 3 },
+  16: { label: 'M/A RES', basicPos: 3 },
+  17: { label: 'M/A RES', basicPos: 3 },
+  18: { label: 'M/A RES', basicPos: 3 },
+};
+
 const CARD_WIDTH = 210;
 const CARD_GAP = 12;
 
-export default function PickPanel({ options, slotDetailedPositionId, isCaptainPick = false, onPickPlayer, onClose, fadingOut = false }) {
+export default function PickPanel({ options, slotDetailedPositionId, slotPosition = null, isCaptainPick = false, onPickPlayer, onClose, fadingOut = false }) {
   const scrollerRef = useRef(null);
   const [sidePadding, setSidePadding] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const safeOptions = options || [];
 
-  const basicPos = DETAILED_TO_BASIC[slotDetailedPositionId] || 1;
-  const posLabel = isCaptainPick ? 'CAPITAO' : getDetailedPositionLabel(slotDetailedPositionId);
+  const benchMeta = slotPosition ? BENCH_SLOT_META[slotPosition] : null;
+  const isBenchSlot = Boolean(benchMeta);
+  const basicPos = isBenchSlot ? benchMeta.basicPos : (DETAILED_TO_BASIC[slotDetailedPositionId] || 1);
+  const posLabel = isCaptainPick
+    ? 'CAPITAO'
+    : isBenchSlot
+      ? benchMeta.label
+      : getDetailedPositionLabel(slotDetailedPositionId);
   const badgeClass = isCaptainPick
     ? 'border-yellow-500 bg-yellow-900/30 text-yellow-300'
     : (POS_COLORS[basicPos] || POS_COLORS[1]);
   const normalizedSlotPositionId = Number(slotDetailedPositionId);
-  const visibleOptions = isCaptainPick || Number.isNaN(normalizedSlotPositionId)
+  const visibleOptions = isCaptainPick || isBenchSlot || Number.isNaN(normalizedSlotPositionId) || normalizedSlotPositionId <= 0
     ? safeOptions
     : safeOptions.filter((player) => matchesDetailedPositionSlot(player, normalizedSlotPositionId));
 

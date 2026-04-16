@@ -662,6 +662,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         <PickPanel
           options={options}
           slotDetailedPositionId={activeSlotDetailedPositionId}
+          slotPosition={activeSlot}
           onPickPlayer={handlePickPlayer}
           onClose={() => { setOptions(null); setActiveSlot(null); }}
           fadingOut={isAnimatingOut}
