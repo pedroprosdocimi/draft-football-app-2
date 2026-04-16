@@ -8,6 +8,7 @@ import Home from './pages/Home.jsx';
 import Draft from './pages/Draft.jsx';
 import EndScreen from './pages/EndScreen.jsx';
 import Admin from './pages/Admin.jsx';
+import Partidas from './pages/Partidas.jsx';
 
 export default function App() {
   const [authPage, setAuthPage] = useState('login');
@@ -91,6 +92,8 @@ export default function App() {
     );
   }
 
+  const showPartidasTab = ['home', 'partidas'].includes(page);
+
   return (
     <div className="min-h-screen">
       {error && (
@@ -98,12 +101,29 @@ export default function App() {
           {error}
         </div>
       )}
+
+      {/* Partidas tab — top-left, visible on home and partidas pages */}
+      {showPartidasTab && (
+        <button
+          type="button"
+          onClick={() => setPage(page === 'partidas' ? 'home' : 'partidas')}
+          className={`fixed top-4 left-4 z-40 flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            page === 'partidas'
+              ? 'border-draft-gold/50 bg-draft-gold/15 text-draft-gold'
+              : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:text-white'
+          }`}
+        >
+          🏟 Partidas
+        </button>
+      )}
+
       {page === 'home' && (
         <Home user={user} onLogout={handleLogout}
           onGoAdmin={() => setPage('admin')}
           onStartDraft={handleStartDraft}
           onViewDraft={handleViewDraft} />
       )}
+      {page === 'partidas' && <Partidas onBack={() => setPage('home')} />}
       {page === 'admin' && <Admin onBack={() => setPage('home')} />}
       {page === 'draft' && draftId && (
         <Draft draftId={draftId} user={user}
