@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DraftPlayerCard from './DraftPlayerCard.jsx';
+import PlayerStatsModal from './PlayerStatsModal.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
 
 const DETAILED_TO_BASIC = {
@@ -32,6 +33,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
   const safeOptions = options || [];
 
   const benchMeta = slotPosition ? BENCH_SLOT_META[slotPosition] : null;
@@ -212,13 +214,22 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
                     ['--burst-y']: `${Math.abs(index - Math.floor(visibleOptions.length / 2)) % 2 === 0 ? 24 : -24}px`,
                   }}
                 >
-                  <DraftPlayerCard
-                    player={player}
-                    isMyTurn
-                    large
-                    slotPositionId={slotDetailedPositionId}
-                    onClick={() => onPickPlayer(player)}
-                  />
+                  <div className="flex flex-col items-center gap-3">
+                    <DraftPlayerCard
+                      player={player}
+                      isMyTurn
+                      large
+                      slotPositionId={slotDetailedPositionId}
+                      onClick={() => setSelectedCard(player)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onPickPlayer(player)}
+                      className="rounded-2xl border border-emerald-300/35 bg-emerald-500/15 px-5 py-2 text-sm font-semibold text-emerald-100 shadow-[0_10px_24px_rgba(0,0,0,0.28)] transition hover:border-emerald-200/45 hover:bg-emerald-400/20"
+                    >
+                      Draftar
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -251,6 +262,13 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
           )}
         </div>
       </div>
+
+      {selectedCard && (
+        <PlayerStatsModal
+          player={selectedCard}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
     </div>
   );
 }
