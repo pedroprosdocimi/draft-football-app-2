@@ -241,6 +241,27 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     };
   }, [showRefreshPrompt]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    if (draggingSlot === null) return undefined;
+
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [draggingSlot]);
+
   const showSwapError = useCallback((message) => {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
     setSwapError(message);
@@ -347,7 +368,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           setDraggingSlot(slotPosition);
         }
         longPressTimeoutRef.current = null;
-      }, 220);
+      }, 150);
     }
     if (!isTouchPointer && typeof e.currentTarget?.setPointerCapture === 'function') {
       e.currentTarget.setPointerCapture(e.pointerId);
