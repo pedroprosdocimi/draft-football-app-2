@@ -57,14 +57,15 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const normalizedPlayerPos = getPlayerPrimaryDetailedPositionId(player);
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
   const rawAltPositions = getPlayerAlternativeDetailedPositionIds(player, 2);
+  const displayedPrimaryPositionId = normalizedSlotPos || normalizedPlayerPos;
   const altPositions = [...new Set(
-    normalizedSlotPos && normalizedSlotPos !== normalizedPlayerPos
-      ? [normalizedSlotPos, ...rawAltPositions]
+    displayedPrimaryPositionId !== normalizedPlayerPos
+      ? [normalizedPlayerPos, ...rawAltPositions]
       : rawAltPositions
   )]
-    .filter((id) => id !== normalizedPlayerPos)
+    .filter((id) => id !== displayedPrimaryPositionId)
     .slice(0, 2);
-  const primaryPositionPalette = getDetailedPositionPalette(normalizedPlayerPos);
+  const primaryPositionPalette = getDetailedPositionPalette(displayedPrimaryPositionId);
 
   const iso2 = nationalityToIso2(player?.nationality || '');
 
@@ -146,7 +147,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                 textTransform: 'uppercase',
               }}
             >
-              {getDetailedPositionLabel(normalizedPlayerPos) || posLabel}
+              {getDetailedPositionLabel(displayedPrimaryPositionId) || posLabel}
             </div>
             {altPositions.map((id) => (
               <div
