@@ -765,6 +765,17 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           60%  { transform: scale(1.08); opacity: 1; }
           100% { transform: scale(1);   opacity: 1; }
         }
+
+        @keyframes captain-cta-pulse {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(252, 211, 77, 0.18);
+            opacity: 1;
+          }
+          50% {
+            box-shadow: 0 0 0 10px rgba(252, 211, 77, 0);
+            opacity: 0.78;
+          }
+        }
       `}</style>
       {isCaptainPhase && (
         <div className="mb-3 flex justify-end">
@@ -777,6 +788,11 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 ? 'border-amber-300/50 bg-amber-400/20 text-amber-100'
                 : 'border-white/10 bg-white/5 text-slate-100'
             } ${loading || (isCaptainSelectionMode && !captainCandidateId) ? 'opacity-60' : 'hover:border-amber-300/40 hover:bg-amber-300/10'}`}
+            style={{
+              animation: !isCaptainSelectionMode && !captainCandidateId
+                ? 'captain-cta-pulse 1.15s ease-in-out infinite'
+                : 'none',
+            }}
           >
             {captainCandidateId ? 'Confirmar capitão' : 'Escolher capitão'}
           </button>
