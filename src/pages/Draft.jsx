@@ -306,8 +306,10 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const handleOpenPlayerStats = useCallback((player) => {
     const normalizedPlayer = normalizeDraftPlayer(player);
     if (!normalizedPlayer?.id) return;
+    clearLongPressTimeout();
+    fieldGestureRef.current = null;
     setSelectedCard(normalizedPlayer);
-  }, []);
+  }, [clearLongPressTimeout]);
 
   const handleOccupiedSlotTap = useCallback((slotPosition, player) => {
     const normalizedPlayer = normalizeDraftPlayer(player);
