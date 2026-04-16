@@ -694,9 +694,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     );
   }
 
-  // Main drafting / bench drafting
-  const starterSlots = formationSlots;
-
   return (
     <div className="min-h-screen flex flex-col p-4 max-w-2xl mx-auto">
       {/* Header */}
@@ -766,18 +763,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         }
       `}</style>
       <div className="bg-green-950/40 border border-green-900/30 rounded-2xl p-3 mb-4">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-white">Campo titular</p>
-            <p className="text-xs text-emerald-100/60">
-              Escolha as cartas diretamente na distribuicao da formacao
-            </p>
-          </div>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-emerald-100/70">
-            {starterSlots.length}/11 slots
-          </span>
-        </div>
-
         <div
           ref={fieldRef}
           className="relative mx-auto h-[40rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[44rem]"
