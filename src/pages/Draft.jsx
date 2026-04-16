@@ -67,6 +67,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [error, setError] = useState(null);
   const [swapError, setSwapError] = useState(null);
   const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
+  const [isBenchDrawerOpen, setIsBenchDrawerOpen] = useState(false);
 
   const [pendingPick, setPendingPick] = useState(null);
   // { player: PlayerObject, slotPosition: number }
@@ -261,6 +262,17 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       body.style.touchAction = prevBodyTouchAction;
     };
   }, [draggingSlot]);
+
+  useEffect(() => {
+    if (!isBenchPhase) {
+      setIsBenchDrawerOpen(false);
+      return;
+    }
+
+    if (draggingSlot !== null && draggingSlot >= 12) {
+      setIsBenchDrawerOpen(false);
+    }
+  }, [draggingSlot, isBenchPhase]);
 
   const showSwapError = useCallback((message) => {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
@@ -868,59 +880,99 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
       </div>
 
-      {/* Bench slots — only during bench phase */}
+      {/* Bench slots — lateral drawer during bench phase */}
       {isBenchPhase && (
-        <div className="mb-4">
-          <p className="text-sm font-semibold text-white mb-3">Reservas</p>
-          <div className="flex flex-wrap gap-2">
-            {BENCH_SLOTS.map(({ slot, label, sub }) => {
-              const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
-              const confirmedPick = picksBySlot[slot];
-              const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
-              const posLabel = playerObj
-                ? getDetailedPositionLabel(playerObj.detailed_position_id)
-                : confirmedPick
-                  ? getDetailedPositionLabel(confirmedPick.detailed_position_id)
-                  : null;
+        <>
+          {isBenchDrawerOpen && (
+            <button
+              type="button"
+              aria-label="Fechar reservas"
+              onClick={() => setIsBenchDrawerOpen(false)}
+              className="fixed inset-0 z-30 bg-black/45 backdrop-blur-[1px]"
+            />
+          )}
 
-              const isSelected = selectedSwapSlot === slot;
+          <div className="pointer-events-none fixed inset-y-0 right-0 z-40 flex items-center">
+            <button
+              type="button"
+              onClick={() => setIsBenchDrawerOpen((open) => !open)}
+              className={`pointer-events-auto mr-[-1px] flex h-36 w-12 items-center justify-center rounded-l-2xl border border-r-0 border-white/10 bg-slate-950/96 px-2 shadow-[0_20px_45px_rgba(0,0,0,0.35)] transition-all ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-0'}`}
+            >
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-100/80">
+                Reservas
+              </span>
+            </button>
 
-              if (playerObj || confirmedPick) {
-                return (
-                  <div
-                    key={slot}
-                    onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
-                    onClick={() => handleOccupiedSlotClick(slot)}
-                    style={{
-                      ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
-                      flexShrink: 0,
-                      cursor: draggingSlot === slot ? 'grabbing' : 'pointer',
-                      opacity: draggingSlot === slot ? 0.5 : 1,
-                      outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : selectedSwapSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
-                      borderRadius: '20px',
-                      transition: 'outline 0.1s, opacity 0.15s',
-                      touchAction: draggingSlot === slot ? 'none' : 'manipulation',
-                    }}
-                  >
-                    <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
-                  </div>
-                );
-              }
-
-              return (
+            <aside
+              className={`pointer-events-auto h-full w-[min(88vw,22rem)] border-l border-white/10 bg-slate-950/96 px-4 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-white">Reservas</p>
+                  <p className="text-xs text-slate-300/60">
+                    Toque para escolher ou arraste para o campo
+                  </p>
+                </div>
                 <button
-                  key={slot}
-                  onClick={() => handleSlotClick(slot)}
-                  className="flex w-[5.75rem] flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 py-6 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10 sm:w-[7.5rem] sm:rounded-[24px]"
-                  style={{ flexShrink: 0 }}
+                  type="button"
+                  onClick={() => setIsBenchDrawerOpen(false)}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-200"
                 >
-                  <span className="text-[11px] font-bold text-gray-300">{label}</span>
-                  <span className="text-[9px] text-gray-500">{sub}</span>
+                  Fechar
                 </button>
-              );
-            })}
+              </div>
+
+              <div className="flex h-[calc(100%-4.5rem)] flex-wrap content-start gap-2 overflow-y-auto pr-1">
+                {BENCH_SLOTS.map(({ slot, label, sub }) => {
+                  const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
+                  const confirmedPick = picksBySlot[slot];
+                  const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
+                  const posLabel = playerObj
+                    ? getDetailedPositionLabel(playerObj.detailed_position_id)
+                    : confirmedPick
+                      ? getDetailedPositionLabel(confirmedPick.detailed_position_id)
+                      : null;
+
+                  const isSelected = selectedSwapSlot === slot;
+
+                  if (playerObj || confirmedPick) {
+                    return (
+                      <div
+                        key={slot}
+                        onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
+                        onClick={() => handleOccupiedSlotClick(slot)}
+                        style={{
+                          ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
+                          flexShrink: 0,
+                          cursor: draggingSlot === slot ? 'grabbing' : 'pointer',
+                          opacity: draggingSlot === slot ? 0.5 : 1,
+                          outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : selectedSwapSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
+                          borderRadius: '20px',
+                          transition: 'outline 0.1s, opacity 0.15s',
+                          touchAction: draggingSlot === slot ? 'none' : 'manipulation',
+                        }}
+                      >
+                        <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={slot}
+                      onClick={() => handleSlotClick(slot)}
+                      className="flex w-[5.75rem] flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 py-6 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10 sm:w-[7.5rem] sm:rounded-[24px]"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <span className="text-[11px] font-bold text-gray-300">{label}</span>
+                      <span className="text-[9px] text-gray-500">{sub}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
           </div>
-        </div>
+        </>
       )}
 
       {/* Player options overlay */}
