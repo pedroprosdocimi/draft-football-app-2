@@ -72,6 +72,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [swapError, setSwapError] = useState(null);
   const [isBenchDrawerOpen, setIsBenchDrawerOpen] = useState(false);
   const [isCaptainSelectionMode, setIsCaptainSelectionMode] = useState(false);
+  const [showConfirmDraftModal, setShowConfirmDraftModal] = useState(false);
   const [captainCandidateId, setCaptainCandidateId] = useState(null);
 
   const [pendingPick, setPendingPick] = useState(null);
@@ -694,9 +695,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }
 
     if (captainCandidateId) {
-      handleCaptain(captainCandidateId);
+      setShowConfirmDraftModal(true);
     }
-  }, [captainCandidateId, handleCaptain, isCaptainSelectionMode]);
+  }, [captainCandidateId, isCaptainSelectionMode]);
 
   const handleCaptainFieldClick = useCallback((slotPosition, player) => {
     const normalizedPlayer = normalizeDraftPlayer(player);
@@ -794,7 +795,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 : 'none',
             }}
           >
-            {captainCandidateId ? 'Confirmar capitão' : 'Escolher capitão'}
+            {captainCandidateId ? 'Confirmar Draft' : 'Escolher capitão'}
           </button>
         </div>
       )}
@@ -1055,6 +1056,36 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           player={selectedCard}
           onClose={() => setSelectedCard(null)}
         />
+      )}
+
+      {showConfirmDraftModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="w-full max-w-xs rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+            <p className="text-center text-base font-semibold text-white leading-snug mb-2">
+              Deseja confirmar seu draft?
+            </p>
+            <p className="text-center text-sm text-gray-400 mb-6">
+              Você não poderá editar após isso.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmDraftModal(false)}
+                className="flex-1 rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-white/10"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => { setShowConfirmDraftModal(false); handleCaptain(captainCandidateId); }}
+                className="flex-1 rounded-xl border border-emerald-400/40 bg-emerald-500/20 py-2.5 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/35 disabled:opacity-60"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
