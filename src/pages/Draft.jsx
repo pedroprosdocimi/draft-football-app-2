@@ -331,18 +331,20 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handlePickPlayer = (player) => {
     const slotPosition = activeSlot;
+    let optimisticApplied = false;
 
-    // 1. Store player optimistically
-    setPickedPlayers(prev => ({ ...prev, [slotPosition]: player }));
+    // 1. Keep the picked player pending while the panel fades out.
     setPendingPick({ player, slotPosition });
-    setPoppingSlot(slotPosition);
 
     // 2. Start overlay fade-out
     setIsAnimatingOut(true);
 
-    // 3. After 300ms, unmount overlay and trigger pop
+    // 3. After the overlay is gone, render the card directly in its final slot.
     const t1 = setTimeout(() => {
       animTimeoutsRef.current = animTimeoutsRef.current.filter(id => id !== t1);
+      optimisticApplied = true;
+      setPickedPlayers(prev => ({ ...prev, [slotPosition]: player }));
+      setPoppingSlot(slotPosition);
       setOptions(null);
       setActiveSlot(null);
       setIsAnimatingOut(false);
@@ -368,11 +370,25 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       })
       .catch(e => {
         setError(e.message);
-        setPickedPlayers(prev => {
-          const next = { ...prev };
-          delete next[slotPosition];
-          return next;
-        });
+        if (!optimisticApplied) {
+          clearTimeout(t1);
+          animTimeoutsRef.current = animTimeoutsRef.current.filter(id => id !== t1);
+          setOptions(null);
+          setActiveSlot(null);
+          setIsAnimatingOut(false);
+          setPendingPick((current) => (
+            current?.slotPosition === slotPosition ? null : current
+          ));
+        } else {
+          setPendingPick((current) => (
+            current?.slotPosition === slotPosition ? null : current
+          ));
+          setPickedPlayers(prev => {
+            const next = { ...prev };
+            delete next[slotPosition];
+            return next;
+          });
+        }
       })
       .finally(() => setLoading(false));
   };
