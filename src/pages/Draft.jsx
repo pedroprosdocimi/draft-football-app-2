@@ -71,6 +71,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [error, setError] = useState(null);
   const [swapError, setSwapError] = useState(null);
   const [isBenchDrawerOpen, setIsBenchDrawerOpen] = useState(false);
+  const [isCaptainSelectionMode, setIsCaptainSelectionMode] = useState(false);
+  const [captainCandidateId, setCaptainCandidateId] = useState(null);
 
   const [pendingPick, setPendingPick] = useState(null);
   // { player: PlayerObject, slotPosition: number }
@@ -89,6 +91,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const swapErrorTimeoutRef = React.useRef(null);
   const longPressTimeoutRef = React.useRef(null);
   const isBenchPhase = draft?.status === 'bench_drafting';
+  const isCaptainPhase = draft?.status === 'captain_pick';
 
   // Map slotPosition to pick for quick lookup
   const picksBySlot = useMemo(() => {
@@ -239,6 +242,18 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       setIsBenchDrawerOpen(false);
     }
   }, [draggingSlot, isBenchPhase]);
+
+  useEffect(() => {
+    if (!isCaptainPhase) {
+      setIsCaptainSelectionMode(false);
+      setCaptainCandidateId(null);
+      return;
+    }
+
+    if (draft?.captain_player_id) {
+      setCaptainCandidateId(String(draft.captain_player_id));
+    }
+  }, [draft?.captain_player_id, isCaptainPhase]);
 
   const showSwapError = useCallback((message) => {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
@@ -666,6 +681,33 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     }
   };
 
+  const handleCaptainModeButton = useCallback(() => {
+    if (!isCaptainSelectionMode) {
+      setIsCaptainSelectionMode(true);
+      setSelectedCard(null);
+      setSelectedSwapSlot(null);
+      setOptions(null);
+      setActiveSlot(null);
+      return;
+    }
+
+    if (captainCandidateId) {
+      handleCaptain(captainCandidateId);
+    }
+  }, [captainCandidateId, handleCaptain, isCaptainSelectionMode]);
+
+  const handleCaptainFieldClick = useCallback((slotPosition, player) => {
+    const normalizedPlayer = normalizeDraftPlayer(player);
+    if (!normalizedPlayer?.id || slotPosition > 11) return;
+
+    if (!isCaptainSelectionMode) {
+      handleOpenPlayerStats(normalizedPlayer);
+      return;
+    }
+
+    setCaptainCandidateId(String(normalizedPlayer.id));
+  }, [handleOpenPlayerStats, isCaptainSelectionMode]);
+
   if (!draft) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -682,42 +724,13 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     return <FormationPickerPhase onPick={handleSetFormation} />;
   }
 
-  // Captain pick phase - show starters as selectable cards
-  if (draft.status === 'captain_pick') {
-    const starterPicks = (draft.picks || []).filter(p => p.slot_position <= 11);
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-2xl">
-          <h2 className="text-xl font-bold text-white text-center mb-2">Escolha seu Capitão</h2>
-          <p className="text-gray-400 text-sm text-center mb-6">
-            O capitão multiplica sua pontuação
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {starterPicks.map(pick => {
-              const posLabel = getDetailedPositionLabel(pick.detailed_position_id);
-              return (
-                <button key={pick.slot_position}
-                  onClick={() => handleCaptain(pick.player_id)}
-                  className="bg-gray-800 border border-gray-700 hover:border-draft-gold hover:bg-gray-700 rounded-xl p-3 text-left transition-all">
-                  <div className="text-xs text-gray-500 mb-1">Slot {pick.slot_position} - {posLabel}</div>
-                  <div className="text-sm font-semibold text-white truncate">{pick.player_id.slice(0,8)}...</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {error && <p className="text-red-400 text-sm mt-4 text-center">{error}</p>}
-      </div>
-    );
-  }
-
   return (
     <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Sair</button>
         <span className="text-xs text-gray-500 font-mono uppercase">
-          {isBenchPhase ? 'Reservas' : 'Titulares'} - {draft.formation}
+          {isCaptainPhase ? 'Capitão' : isBenchPhase ? 'Reservas' : 'Titulares'} - {draft.formation}
         </span>
         <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
       </div>
@@ -751,6 +764,22 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           100% { transform: scale(1);   opacity: 1; }
         }
       `}</style>
+      {isCaptainPhase && (
+        <div className="mb-3 flex justify-end">
+          <button
+            type="button"
+            onClick={handleCaptainModeButton}
+            disabled={loading || (isCaptainSelectionMode && !captainCandidateId)}
+            className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+              captainCandidateId
+                ? 'border-amber-300/50 bg-amber-400/20 text-amber-100'
+                : 'border-white/10 bg-white/5 text-slate-100'
+            } ${loading || (isCaptainSelectionMode && !captainCandidateId) ? 'opacity-60' : 'hover:border-amber-300/40 hover:bg-amber-300/10'}`}
+          >
+            {captainCandidateId ? 'Confirmar capitão' : 'Escolher capitão'}
+          </button>
+        </div>
+      )}
       <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
         <div
           ref={fieldRef}
@@ -762,6 +791,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             touchAction: draggingSlot !== null ? 'none' : 'pan-y',
           }}
         >
+          {isCaptainSelectionMode && (
+            <div className="absolute inset-0 z-[5] bg-black/34" />
+          )}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(110,231,183,0.14),transparent_34%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
           <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/8 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />
@@ -782,6 +814,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
             const isLocked = isBenchPhase && !playerObj && !confirmedPick;
             const showFieldCard = Boolean(playerObj);
+            const isCaptainSelected = isCaptainPhase && captainCandidateId && String(cardPlayer?.id) === String(captainCandidateId);
             const cardAnimationStyle = poppingSlot === slot.position
               ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' }
               : undefined;
@@ -821,21 +854,34 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               >
                 {showFieldCard || confirmedPick ? (
                   <div
-                    onPointerDown={(e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
+                    onPointerDown={isCaptainPhase ? undefined : (e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
+                    onClick={isCaptainPhase ? () => handleCaptainFieldClick(slot.position, cardPlayer) : undefined}
                     style={{
                       ...cardAnimationStyle,
-                      touchAction: 'none',
-                      cursor: draggingSlot === slot.position ? 'grabbing' : 'grab',
+                      touchAction: isCaptainPhase ? 'manipulation' : 'none',
+                      cursor: isCaptainPhase ? 'pointer' : draggingSlot === slot.position ? 'grabbing' : 'grab',
                       opacity: draggingSlot === slot.position ? 0.5 : 1,
-                      outline: selectedSwapSlot === slot.position
+                      outline: isCaptainSelected
+                        ? '3px solid rgba(250,204,21,0.98)'
+                        : isCaptainSelectionMode
+                          ? '2px solid rgba(255,255,255,0.38)'
+                        : selectedSwapSlot === slot.position
                         ? '2px solid rgba(250,204,21,0.95)'
                         : dropTargetSlot === slot.position
                           ? '2px solid rgba(110,231,183,0.8)'
                           : 'none',
                       borderRadius: '20px',
-                      transition: 'opacity 0.15s, outline 0.1s',
+                      transition: 'opacity 0.15s, outline 0.1s, transform 0.16s',
+                      transform: isCaptainSelectionMode ? 'scale(1.03)' : undefined,
+                      position: 'relative',
+                      zIndex: isCaptainSelectionMode ? 25 : undefined,
                     }}
                   >
+                    {isCaptainSelected && (
+                      <div className="absolute -top-2 left-1/2 z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-amber-200/90 bg-amber-400 text-[11px] font-black text-slate-950 shadow-[0_10px_18px_rgba(0,0,0,0.32)]">
+                        C
+                      </div>
+                    )}
                     <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} slotPositionId={slot.detailed_position_id} />
                   </div>
                 ) : isLocked ? (
