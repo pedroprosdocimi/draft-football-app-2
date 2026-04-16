@@ -31,24 +31,6 @@ const TEAM_COLORS = {
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },
 };
 
-const OUTFIELD_ATTRS = [
-  ['ATA', '#f87171', 'attr_ata'],
-  ['COM', '#fbbf24', 'attr_com'],
-  ['CRI', '#a78bfa', 'attr_cri'],
-  ['DEF', '#4ade80', 'attr_def'],
-  ['PAS', '#60a5fa', 'attr_pas'],
-  ['FIS', '#22d3ee', 'attr_fis'],
-];
-
-const GOALKEEPER_ATTRS = [
-  ['GOL', '#3b82f6', 'attr_gol'],
-  ['COM', '#fbbf24', 'attr_com'],
-  ['CRI', '#a78bfa', 'attr_cri'],
-  ['DEF', '#4ade80', 'attr_def'],
-  ['PAS', '#60a5fa', 'attr_pas'],
-  ['FIS', '#22d3ee', 'attr_fis'],
-];
-
 function formatName(name) {
   const parts = name.trim().split(/\s+/);
   if (parts.length < 2) return name;
@@ -63,12 +45,10 @@ function formatName(name) {
 }
 
 export default function FieldPlayerPreview({ player, posLabel, slotPositionId = null }) {
-  const isGoalkeeper = player?.detailed_position_id === 1;
   const rawName = player?.display_name || player?.name || 'Jogador';
   const displayName = rawName.includes(' ') ? formatName(rawName) : rawName;
   const avgScore = Number.isFinite(player?.avg_score) ? player.avg_score.toFixed(1) : '0.0';
   const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
-  const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const jerseyColors = {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
@@ -223,56 +203,9 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             lineHeight: 1.2,
-            paddingBottom: 3,
-            borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}
         >
           {displayName}
-        </div>
-
-        <div
-          className="mt-1"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '1px 5px',
-          }}
-        >
-          {attrs.map(([label, color, key]) => (
-            <div
-              key={key}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 4,
-                padding: '1px 0',
-              }}
-            >
-              <div
-                style={{
-                  color,
-                  fontWeight: 800,
-                  lineHeight: 1,
-                  fontSize: 6,
-                  textTransform: 'uppercase',
-                }}
-              >
-                {label}
-              </div>
-              <span
-                style={{
-                  color,
-                  fontWeight: 900,
-                  lineHeight: 1,
-                  fontSize: 7,
-                  textAlign: 'right',
-                }}
-              >
-                {Number(player?.[key] ?? 0).toFixed(1)}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
     </div>
