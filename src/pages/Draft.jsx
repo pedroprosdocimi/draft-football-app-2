@@ -183,13 +183,16 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (!normalizeDraftPlayer(player)?.id) return;
     e.preventDefault();
     fieldGestureRef.current = {
+      pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
       moved: false,
       slotPosition,
     };
     setDraggingSlot(slotPosition);
-    fieldRef.current?.setPointerCapture(e.pointerId);
+    if (typeof e.currentTarget?.setPointerCapture === 'function') {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
   }, []);
 
   const isSwapValid = useCallback((slotA, slotB) => {
@@ -222,6 +225,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handleFieldPointerMove = useCallback((e) => {
     if (draggingSlot === null) return;
+    if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
     if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
       const deltaX = e.clientX - fieldGestureRef.current.startX;
       const deltaY = e.clientY - fieldGestureRef.current.startY;
@@ -241,6 +245,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   const handleFieldPointerUp = useCallback((e) => {
     if (draggingSlot === null) return;
+    if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
     const activePlayer = normalizeDraftPlayer(pickedPlayers[draggingSlot] || picksBySlot[draggingSlot]);
     if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
       if (activePlayer) handleOpenPlayerStats(activePlayer);
@@ -257,6 +262,34 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     setDraggingSlot(null);
     setDropTargetSlot(null);
   }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (draggingSlot === null) return undefined;
+
+    const handleWindowPointerMove = (e) => {
+      handleFieldPointerMove(e);
+    };
+
+    const handleWindowPointerUp = (e) => {
+      handleFieldPointerUp(e);
+    };
+
+    const handleWindowPointerCancel = () => {
+      fieldGestureRef.current = null;
+      setDraggingSlot(null);
+      setDropTargetSlot(null);
+    };
+
+    window.addEventListener('pointermove', handleWindowPointerMove, { passive: true });
+    window.addEventListener('pointerup', handleWindowPointerUp);
+    window.addEventListener('pointercancel', handleWindowPointerCancel);
+
+    return () => {
+      window.removeEventListener('pointermove', handleWindowPointerMove);
+      window.removeEventListener('pointerup', handleWindowPointerUp);
+      window.removeEventListener('pointercancel', handleWindowPointerCancel);
+    };
+  }, [draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
 
   const handleSwap = async (slotA, slotB) => {
     const playerAId = pickedPlayers[slotA]?.id || picksBySlot[slotA]?.player_id;
@@ -500,18 +533,12 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
         <div
           ref={fieldRef}
-          onPointerMove={handleFieldPointerMove}
-          onPointerUp={handleFieldPointerUp}
-          onPointerLeave={() => {
-            fieldGestureRef.current = null;
-            setDraggingSlot(null);
-            setDropTargetSlot(null);
-          }}
           className="relative mx-auto h-[40rem] w-full overflow-hidden rounded-[30px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:h-[44rem]"
           style={{
             backgroundImage:
               'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
             cursor: draggingSlot !== null ? 'grabbing' : 'default',
+            touchAction: draggingSlot !== null ? 'none' : 'pan-y',
           }}
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(110,231,183,0.14),transparent_34%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
