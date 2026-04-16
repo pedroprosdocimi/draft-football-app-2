@@ -223,36 +223,54 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             lineHeight: 1.2,
+            paddingBottom: 4,
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
           }}
         >
           {displayName}
         </div>
 
-        <div className="mt-1.5 grid grid-cols-3 gap-1 text-[7px] sm:text-[8px]">
+        <div
+          className="mt-1.5"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '2px 6px',
+          }}
+        >
           {attrs.map(([label, color, key]) => (
             <div
               key={key}
-              className="rounded-md border border-white/10 bg-white/5 px-1 py-0.5"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 4,
+                padding: '1px 0',
+              }}
             >
               <div
                 style={{
                   color,
                   fontWeight: 800,
                   lineHeight: 1,
+                  fontSize: 7,
+                  textTransform: 'uppercase',
                 }}
               >
                 {label}
               </div>
-              <div
+              <span
                 style={{
-                  color: '#f8fafc',
-                  fontWeight: 700,
-                  lineHeight: 1.1,
-                  marginTop: 2,
+                  color,
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  fontSize: 8,
+                  textAlign: 'right',
                 }}
               >
                 {Number(player?.[key] ?? 0).toFixed(1)}
-              </div>
+              </span>
             </div>
           ))}
         </div>
