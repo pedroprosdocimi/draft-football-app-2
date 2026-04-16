@@ -254,7 +254,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                   color,
                   fontWeight: 800,
                   lineHeight: 1,
-                  fontSize: 6.5,
+                  fontSize: 6,
                   textTransform: 'uppercase',
                 }}
               >
@@ -265,7 +265,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                   color,
                   fontWeight: 900,
                   lineHeight: 1,
-                  fontSize: 7.5,
+                  fontSize: 7,
                   textAlign: 'right',
                 }}
               >
