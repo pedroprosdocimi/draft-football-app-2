@@ -53,6 +53,11 @@ export default function App() {
     setPage('end');
   };
 
+  const handleViewDraft = (id) => {
+    setDraftId(id);
+    setPage('end');
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen">
@@ -96,7 +101,8 @@ export default function App() {
       {page === 'home' && (
         <Home user={user} onLogout={handleLogout}
           onGoAdmin={() => setPage('admin')}
-          onStartDraft={handleStartDraft} />
+          onStartDraft={handleStartDraft}
+          onViewDraft={handleViewDraft} />
       )}
       {page === 'admin' && <Admin onBack={() => setPage('home')} />}
       {page === 'draft' && draftId && (
