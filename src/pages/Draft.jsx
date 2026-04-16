@@ -694,7 +694,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       )}
 
       {swapError && (
-        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-5 sm:hidden">
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-5 pt-6 sm:hidden">
           <div className="w-full max-w-sm rounded-2xl border border-red-400/35 bg-slate-950/96 px-5 py-4 text-center shadow-[0_24px_60px_rgba(0,0,0,0.5)] ring-1 ring-red-300/15 backdrop-blur-md">
             <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-red-300/80">
               Erro
