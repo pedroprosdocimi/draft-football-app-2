@@ -66,6 +66,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [swapError, setSwapError] = useState(null);
+  const [showRefreshPrompt, setShowRefreshPrompt] = useState(false);
 
   const [pendingPick, setPendingPick] = useState(null);
   // { player: PlayerObject, slotPosition: number }
@@ -82,6 +83,12 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const fieldGestureRef = React.useRef(null);
   const swapErrorTimeoutRef = React.useRef(null);
   const longPressTimeoutRef = React.useRef(null);
+  const pullToRefreshRef = React.useRef({
+    tracking: false,
+    startX: 0,
+    startY: 0,
+    lastY: 0,
+  });
   const isBenchPhase = draft?.status === 'bench_drafting';
 
   // Map slotPosition → pick for quick lookup
@@ -149,6 +156,90 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
     if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const root = document.documentElement;
+    const body = document.body;
+    const prevRootOverscroll = root.style.overscrollBehaviorY;
+    const prevBodyOverscroll = body.style.overscrollBehaviorY;
+
+    root.style.overscrollBehaviorY = 'none';
+    body.style.overscrollBehaviorY = 'none';
+
+    const resetPullState = () => {
+      pullToRefreshRef.current = {
+        tracking: false,
+        startX: 0,
+        startY: 0,
+        lastY: 0,
+      };
+    };
+
+    const handleTouchStart = (event) => {
+      if (showRefreshPrompt || event.touches.length !== 1 || window.scrollY > 0) {
+        resetPullState();
+        return;
+      }
+
+      const touch = event.touches[0];
+      pullToRefreshRef.current = {
+        tracking: true,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        lastY: touch.clientY,
+      };
+    };
+
+    const handleTouchMove = (event) => {
+      const state = pullToRefreshRef.current;
+      if (!state.tracking || event.touches.length !== 1) return;
+
+      const touch = event.touches[0];
+      const deltaX = touch.clientX - state.startX;
+      const deltaY = touch.clientY - state.startY;
+
+      if (deltaY <= 0 || Math.abs(deltaX) > Math.abs(deltaY) || window.scrollY > 0) {
+        return;
+      }
+
+      state.lastY = touch.clientY;
+
+      if (deltaY > 10) {
+        event.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = () => {
+      const state = pullToRefreshRef.current;
+      if (!state.tracking) {
+        resetPullState();
+        return;
+      }
+
+      const deltaY = state.lastY - state.startY;
+      if (deltaY > 72) {
+        setShowRefreshPrompt(true);
+      }
+
+      resetPullState();
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', resetPullState);
+
+    return () => {
+      root.style.overscrollBehaviorY = prevRootOverscroll;
+      body.style.overscrollBehaviorY = prevBodyOverscroll;
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', resetPullState);
+    };
+  }, [showRefreshPrompt]);
 
   const showSwapError = useCallback((message) => {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
@@ -611,6 +702,35 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             <p className="mt-2 text-sm font-medium leading-5 text-red-100">
               {swapError}
             </p>
+          </div>
+        </div>
+      )}
+
+      {showRefreshPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5">
+          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-slate-950/96 px-5 py-5 text-center shadow-[0_28px_70px_rgba(0,0,0,0.55)] backdrop-blur-md">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300/75">
+              Atualizar página
+            </div>
+            <p className="mt-3 text-sm leading-5 text-slate-100">
+              Quer mesmo atualizar a página?
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="flex-1 rounded-2xl border border-emerald-400/35 bg-emerald-500/15 px-4 py-3 text-sm font-semibold text-emerald-200"
+              >
+                Atualizar
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRefreshPrompt(false)}
+                className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
