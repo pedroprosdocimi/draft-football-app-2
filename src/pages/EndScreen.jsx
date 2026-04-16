@@ -24,13 +24,14 @@ export default function EndScreen({ draftId, onGoHome }) {
   const [draft, setDraft] = useState(null);
   const [formations, setFormations] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [isBenchDrawerOpen, setIsBenchDrawerOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
     const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      fetch(`${API_URL}/drafts/${draftId}`, { headers }).then(r => r.json()),
-      fetch(`${API_URL}/formations?include_inactive=true`, { headers }).then(r => r.json()),
+      fetch(`${API_URL}/drafts/${draftId}`, { headers }).then((r) => r.json()),
+      fetch(`${API_URL}/formations?include_inactive=true`, { headers }).then((r) => r.json()),
     ]).then(([draftData, formData]) => {
       setDraft(draftData);
       setFormations(formData.data || []);
@@ -45,8 +46,8 @@ export default function EndScreen({ draftId, onGoHome }) {
 
   const formationSlots = useMemo(() => {
     if (!formations.length || !draft?.formation) return [];
-    const f = formations.find(f => f.name === draft.formation);
-    return f ? f.slots : [];
+    const formation = formations.find((item) => item.name === draft.formation);
+    return formation ? formation.slots : [];
   }, [formations, draft]);
 
   const starterPlacements = useMemo(() => {
@@ -67,16 +68,14 @@ export default function EndScreen({ draftId, onGoHome }) {
 
   return (
     <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Sair</button>
-        <span className="text-xs text-gray-500 font-mono uppercase">
+        <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Voltar</button>
+        <span className="text-xs text-gray-500 font-mono uppercase text-center">
           {draft.formation} · Draft Completo
         </span>
         <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
       </div>
 
-      {/* Field */}
       <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
         <div
           className="relative mx-auto h-full min-h-0 w-full overflow-hidden rounded-[26px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:rounded-[30px]"
@@ -85,7 +84,6 @@ export default function EndScreen({ draftId, onGoHome }) {
               'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
           }}
         >
-          {/* Field markings */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(110,231,183,0.14),transparent_34%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
           <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/8 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />
@@ -98,7 +96,6 @@ export default function EndScreen({ draftId, onGoHome }) {
           <div className="absolute left-1/2 top-3 h-6 w-14 -translate-x-1/2 rounded-b-[14px] border border-t-0 border-white/10" />
           <div className="absolute left-1/2 bottom-3 h-6 w-14 -translate-x-1/2 rounded-t-[14px] border border-b-0 border-white/10" />
 
-          {/* Starter player cards */}
           {starterPlacements.map((slot) => {
             const pick = picksBySlot[slot.position];
             const player = normalizePlayer(pick);
@@ -141,18 +138,40 @@ export default function EndScreen({ draftId, onGoHome }) {
         </div>
       </div>
 
-      {/* Bench — always-open right panel (mirrors bench drawer) */}
-      <aside
-        className="pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md sm:w-[12rem]"
-      >
-        <div className="mb-3 flex justify-end">
+      {isBenchDrawerOpen && (
+        <button
+          type="button"
+          aria-label="Fechar reservas"
+          onClick={() => setIsBenchDrawerOpen(false)}
+          className="fixed inset-0 z-30 bg-black/45 backdrop-blur-[1px]"
+        />
+      )}
+
+      {!isBenchDrawerOpen && (
+        <div className="pointer-events-none fixed bottom-6 right-0 z-40">
           <button
             type="button"
-            onClick={onGoHome}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-500/40 bg-emerald-500/15 text-sm font-black text-emerald-400 transition hover:bg-emerald-500/30"
-            title="Voltar"
+            onClick={() => setIsBenchDrawerOpen(true)}
+            className="pointer-events-auto flex h-36 w-12 items-center justify-center rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-2 shadow-[0_20px_45px_rgba(0,0,0,0.35)]"
           >
-            ✓
+            <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-100/80">
+              Reservas
+            </span>
+          </button>
+        </div>
+      )}
+
+      <aside
+        className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 sm:w-[12rem] ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300/70">Reservas</span>
+          <button
+            type="button"
+            onClick={() => setIsBenchDrawerOpen(false)}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-sm font-black text-red-400 transition hover:bg-red-500/30"
+          >
+            ✕
           </button>
         </div>
 
