@@ -269,6 +269,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           handleSwap(selectedSwapSlot, draggingSlot);
           setSelectedSwapSlot(null);
         }
+      } else if (isBenchPhase && activePlayer) {
+        setSelectedSwapSlot(draggingSlot);
       } else if (activePlayer) {
         handleOpenPlayerStats(activePlayer);
       }
@@ -284,7 +286,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     fieldGestureRef.current = null;
     setDraggingSlot(null);
     setDropTargetSlot(null);
-  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats, selectedSwapSlot]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [draggingSlot, getSlotAtPoint, pickedPlayers, picksBySlot, handleOpenPlayerStats, selectedSwapSlot, isBenchPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (draggingSlot === null) return undefined;
