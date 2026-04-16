@@ -534,7 +534,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
             const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
             const isLocked = isBenchPhase && !playerObj && !confirmedPick;
             const showFieldCard = Boolean(playerObj);
-            const animationStyle = poppingSlot === slot.position
+            const cardAnimationStyle = poppingSlot === slot.position
               ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' }
               : undefined;
 
@@ -569,13 +569,13 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                   top: `${slot.top}%`,
                   left: `${slot.left}%`,
                   zIndex: showFieldCard ? 20 : 10,
-                  ...animationStyle,
                 }}
               >
                 {showFieldCard || confirmedPick ? (
                   <div
                     onPointerDown={(e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
                     style={{
+                      ...cardAnimationStyle,
                       touchAction: 'none',
                       cursor: draggingSlot === slot.position ? 'grabbing' : 'grab',
                       opacity: draggingSlot === slot.position ? 0.5 : 1,
