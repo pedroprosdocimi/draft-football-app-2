@@ -114,7 +114,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-4xl font-bold text-white mb-2">Draft Football</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Tira Tira</h1>
           <div className="flex items-center justify-center gap-3 mt-4">
             <span className="text-gray-400 text-sm">
               Olá, <span className="text-white font-medium">{user.name?.split(' ')[0]}</span>
