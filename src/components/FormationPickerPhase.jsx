@@ -71,7 +71,7 @@ function FormationCard({ formation, chosen, onPick }) {
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="relative z-10">
           <p className="text-[10px] uppercase tracking-[0.28em] text-emerald-300/70">
-            Formacao
+            Formação
           </p>
           <h2 className="mt-2 font-mono text-3xl font-black text-white">
             {formation.name}
@@ -95,6 +95,7 @@ export default function FormationPickerPhase({ onPick }) {
   const [formations, setFormations] = useState([]);
   const [chosen, setChosen] = useState(null);
   const [pendingFormation, setPendingFormation] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -105,7 +106,7 @@ export default function FormationPickerPhase({ onPick }) {
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) {
-          throw new Error(data.error || 'Nao foi possivel carregar as formacoes.');
+          throw new Error(data.error || 'Não foi possível carregar as formações.');
         }
         setFormations(pickRandomFormations(data.data || []));
       })
@@ -130,7 +131,7 @@ export default function FormationPickerPhase({ onPick }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-400 animate-pulse">Carregando formacoes...</p>
+        <p className="text-gray-400 animate-pulse">Carregando formações...</p>
       </div>
     );
   }
@@ -148,18 +149,6 @@ export default function FormationPickerPhase({ onPick }) {
   return (
     <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mx-auto mb-8 max-w-2xl text-center">
-          <p className="text-[11px] uppercase tracking-[0.4em] text-emerald-300/70">
-            Draft setup
-          </p>
-          <h1 className="mt-4 text-3xl font-black text-white sm:text-4xl">
-            Escolha 1 entre 5 formacoes aleatorias
-          </h1>
-          <p className="mt-3 text-sm text-gray-400 sm:text-base">
-            Cada card mostra o desenho tatico da equipe antes do primeiro pick.
-          </p>
-        </div>
-
         <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 xl:grid-cols-3">
           {formations.map((formation) => (
             <div key={formation.name} className="w-[calc(100vw-2rem)] max-w-[380px] flex-none snap-center md:w-auto md:max-w-none">
@@ -172,17 +161,43 @@ export default function FormationPickerPhase({ onPick }) {
           ))}
         </div>
 
+        {showInstructions && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+            <div className="w-full max-w-md rounded-[28px] border border-emerald-400/25 bg-gray-950 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+              <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-300/70">
+                Instruções
+              </p>
+              <h2 className="mt-3 text-2xl font-black text-white">
+                Escolha 1 entre 5 formações aleatórias
+              </h2>
+              <p className="mt-3 text-sm text-gray-400">
+                Cada carta mostra o desenho tático da equipe antes do primeiro pick.
+              </p>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowInstructions(false)}
+                  className="rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-black text-gray-950 transition hover:bg-emerald-400"
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {pendingFormation && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
             <div className="w-full max-w-md rounded-[28px] border border-emerald-400/25 bg-gray-950 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
               <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-300/70">
-                Confirmacao
+                Confirmação
               </p>
               <h2 className="mt-3 text-2xl font-black text-white">
                 Confirmar {pendingFormation}?
               </h2>
               <p className="mt-3 text-sm text-gray-400">
-                Ao confirmar, essa sera a formacao do seu draft e a escolha dos jogadores comeca em seguida.
+                Ao confirmar, esta será a formação do seu draft, e a escolha dos jogadores começará em seguida.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
