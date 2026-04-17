@@ -82,6 +82,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const avgScore = scoreValue.toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const roundMatchup = player.round_matchup || '';
+  const roundTeamLogoURL = player.round_team_logo_url || '';
   const roundOpponentLogoURL = player.round_opponent_logo_url || '';
   const roundIsHome = Boolean(player.round_is_home);
   const jersey = TEAM_COLORS[player.team_short_code] || {
@@ -315,7 +316,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           ))}
         </div>
 
-        {showRoundMatchup && player.team_logo_url && roundOpponentLogoURL && (
+        {showRoundMatchup && roundTeamLogoURL && roundOpponentLogoURL && (
           <div
             style={{
               position: 'absolute',
@@ -333,7 +334,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             }}
             title={roundMatchup}
           >
-            {(roundIsHome ? [player.team_logo_url, roundOpponentLogoURL] : [roundOpponentLogoURL, player.team_logo_url]).map((logoURL, index) => (
+            {(roundIsHome ? [roundTeamLogoURL, roundOpponentLogoURL] : [roundOpponentLogoURL, roundTeamLogoURL]).map((logoURL, index) => (
               <React.Fragment key={`${logoURL}-${index}`}>
                 {index === 1 && (
                   <span
