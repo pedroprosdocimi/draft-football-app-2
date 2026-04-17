@@ -216,10 +216,20 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     return null;
   }, [slotPlayers, starterPlacements]);
 
+  const isCaptainSlot = useCallback((slot) => {
+    const player = slotPlayers[slot];
+    return Boolean(player && draft?.captain_player_id && String(player.id) === String(draft.captain_player_id));
+  }, [slotPlayers, draft?.captain_player_id]);
+
   const performSwap = useCallback(async (slotA, slotB) => {
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA?.player_id || !playerB?.player_id) return;
+
+    if (isCaptainSlot(slotA) || isCaptainSlot(slotB)) {
+      showSwapError('O capitão não pode ser movido de posição.');
+      return;
+    }
 
     if (!isSwapValid(slotA, slotB)) {
       showSwapError(getSwapInvalidReason(slotA, slotB) || 'Troca inválida.');
@@ -276,6 +286,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     if (!canEdit) return;
     const player = slotPlayers[slotPosition];
     if (!player) return;
+    if (isCaptainSlot(slotPosition)) return; // captain is fixed
 
     const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen';
     const isBenchSlot = slotPosition >= 12;
@@ -353,7 +364,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     const target = getSlotAtPoint(e.clientX, e.clientY);
     if (!target || target === activeDraggingSlot) { setDropTargetSlot(null); return; }
     const hasPlayer = slotPlayers[target];
-    setDropTargetSlot(hasPlayer && isSwapValid(activeDraggingSlot, target) ? target : null);
+    setDropTargetSlot(hasPlayer && !isCaptainSlot(target) && isSwapValid(activeDraggingSlot, target) ? target : null);
   }, [clearLongPressTimeout, getSlotAtPoint, isSwapValid, slotPlayers]);
 
   const handlePlayerTap = useCallback((slotPosition) => {
@@ -462,11 +473,12 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
           {starterPlacements.map((slot) => {
             const player = slotPlayers[slot.position];
-            const isCaptain = player && draft.captain_player_id &&
-              String(player.id) === String(draft.captain_player_id);
+            const isCaptain = Boolean(player && draft.captain_player_id &&
+              String(player.id) === String(draft.captain_player_id));
             const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || '?';
             const isDragging = draggingSlot === slot.position;
-            const isDropTarget = dropTargetSlot === slot.position;
+            // captain slot cannot be a drop target
+            const isDropTarget = dropTargetSlot === slot.position && !isCaptain;
 
             return (
               <div
@@ -482,7 +494,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                       handlePlayerTap(slot.position);
                     }}
                     style={{
-                      cursor: canEdit ? 'grab' : 'pointer',
+                      cursor: isCaptain ? 'pointer' : canEdit ? 'grab' : 'pointer',
                       position: 'relative',
                       touchAction: 'manipulation',
                       opacity: isDragging ? 0.3 : 1,
