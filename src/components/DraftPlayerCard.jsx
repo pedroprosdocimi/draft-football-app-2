@@ -57,7 +57,7 @@ const GOALKEEPER_ATTRS = [
   ['FIS', '#22d3ee', 'attr_fis'],
 ];
 
-export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = false, large = false, slotPositionId = null }) {
+export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = false, large = false, slotPositionId = null, showRoundMatchup = false }) {
   const isGoalkeeper = player.detailed_position_id === 1;
   const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
@@ -81,6 +81,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const scoreLabel = player.score_label || 'score med.';
   const avgScore = scoreValue.toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
+  const roundMatchup = player.round_matchup || '';
   const jersey = TEAM_COLORS[player.team_short_code] || {
     p: BORDER_COLORS[player.position_id] || '#3b82f6',
     s: '#FFFFFF',
@@ -311,6 +312,30 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             </span>
           ))}
         </div>
+
+        {showRoundMatchup && roundMatchup && (
+          <div
+            style={{
+              position: 'absolute',
+              left: compact ? 9 : 11,
+              bottom: compact ? 26 : 34,
+              padding: compact ? '2px 5px' : '3px 7px',
+              borderRadius: compact ? 8 : 10,
+              background: 'rgba(2,6,23,0.68)',
+              border: '1px solid rgba(255,255,255,0.09)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+              backdropFilter: 'blur(8px)',
+              fontSize: compact ? 8 : large ? 10 : 9,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              color: '#e5e7eb',
+              lineHeight: 1,
+              textTransform: 'uppercase',
+            }}
+          >
+            {roundMatchup}
+          </div>
+        )}
 
         {/* Bottom-left: flag */}
         {iso2 && (

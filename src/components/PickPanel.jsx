@@ -220,6 +220,7 @@ export default function PickPanel({ options, slotDetailedPositionId, slotPositio
                       player={player}
                       isMyTurn
                       large
+                      showRoundMatchup
                       slotPositionId={slotDetailedPositionId}
                       onClick={() => setConfirmPlayer(player)}
                     />
