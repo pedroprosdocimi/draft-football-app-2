@@ -61,25 +61,22 @@ function formatTime(iso) {
 
 function TeamBadge({ team, side }) {
   return (
-    <div className={`flex flex-col items-center gap-1 w-24 ${side === 'away' ? 'items-end' : 'items-start'}`}>
+    <div className={`flex items-center justify-center w-20 ${side === 'away' ? 'justify-end' : 'justify-start'}`}>
       {team.badge_url ? (
         <img
           src={team.badge_url}
           alt={team.short_code}
-          className="w-10 h-10 object-contain"
+          className="w-11 h-11 object-contain"
           onError={(event) => { event.target.style.display = 'none'; }}
         />
       ) : (
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold text-white"
+          className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold text-white"
           style={{ background: team.primary_color || '#333' }}
         >
           {team.short_code}
         </div>
       )}
-      <span className="text-xs font-semibold text-gray-200 text-center leading-tight">
-        {team.short_code}
-      </span>
     </div>
   );
 }
