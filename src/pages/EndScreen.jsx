@@ -126,7 +126,12 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     return getFormationPreviewLayout({ name: draft.formation, slots: formationSlots });
   }, [draft?.formation, formationSlots]);
 
-  const canEdit = Boolean(user?.id && draft?.user_id && String(user.id) === String(draft.user_id));
+  const canEdit = Boolean(
+    user?.id &&
+    draft?.user_id &&
+    String(user.id) === String(draft.user_id) &&
+    (!draft.edit_deadline || new Date() < new Date(draft.edit_deadline))
+  );
 
   // Lock body scroll while dragging
   useEffect(() => {
