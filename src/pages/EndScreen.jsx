@@ -47,8 +47,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   const [formations, setFormations] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isBenchDrawerOpen, setIsBenchDrawerOpen] = useState(false);
-  const [isReorderMode, setIsReorderMode] = useState(false);
-  const [selectedSwapSlot, setSelectedSwapSlot] = useState(null);
   const [swapError, setSwapError] = useState(null);
   const [savingSwap, setSavingSwap] = useState(false);
   const [slotPlayers, setSlotPlayers] = useState({});
@@ -79,6 +77,26 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Lock scroll for the entire screen lifetime
+  useEffect(() => {
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehaviorY;
+    const prevRootOverscroll = root.style.overscrollBehaviorY;
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    body.style.overscrollBehaviorY = 'none';
+    root.style.overscrollBehaviorY = 'none';
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+      body.style.overscrollBehaviorY = prevBodyOverscroll;
+      root.style.overscrollBehaviorY = prevRootOverscroll;
+    };
+  }, []);
 
   useEffect(() => () => {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
@@ -223,16 +241,13 @@ export default function EndScreen({ draftId, user, onGoHome }) {
       });
       const d2 = await r2.json();
       if (!r2.ok) throw new Error(d2.error || 'Não foi possível trocar.');
-
-      await loadData();
     } catch (error) {
       setSlotPlayers(previous);
       showSwapError(error.message || 'Não foi possível trocar os jogadores.');
     } finally {
       setSavingSwap(false);
-      setSelectedSwapSlot(null);
     }
-  }, [draftId, getSwapInvalidReason, isSwapValid, loadData, showSwapError, slotPlayers]);
+  }, [draftId, getSwapInvalidReason, isSwapValid, showSwapError, slotPlayers]);
 
   // ── Drag & drop ────────────────────────────────────────────────────────────
 
@@ -330,23 +345,8 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   const handlePlayerTap = useCallback((slotPosition) => {
     const player = slotPlayers[slotPosition];
     if (!player) return;
-
-    if (!canEdit || !isReorderMode) {
-      setSelectedCard(player);
-      return;
-    }
-
-    if (selectedSwapSlot === null) {
-      setSelectedSwapSlot(slotPosition);
-      return;
-    }
-    if (selectedSwapSlot === slotPosition) {
-      setSelectedSwapSlot(null);
-      return;
-    }
-    performSwap(selectedSwapSlot, slotPosition);
-    setSelectedSwapSlot(null);
-  }, [canEdit, isReorderMode, performSwap, selectedSwapSlot, slotPlayers]);
+    setSelectedCard(player);
+  }, [slotPlayers]);
 
   const handleFieldPointerUp = useCallback((e) => {
     if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
@@ -426,26 +426,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         <span className="text-xs text-gray-500 font-mono uppercase text-center">
           {draft.formation} · Draft Completo
         </span>
-        <div className="flex items-center gap-2">
-          {canEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                setIsReorderMode((current) => !current);
-                setSelectedSwapSlot(null);
-                setSelectedCard(null);
-              }}
-              className={`rounded-xl border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition ${
-                isReorderMode
-                  ? 'border-amber-300/40 bg-amber-400/15 text-amber-200'
-                  : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:text-white'
-              }`}
-            >
-              {isReorderMode ? 'Concluir' : 'Organizar'}
-            </button>
-          )}
-          <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
-        </div>
+        <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
       </div>
 
       {swapError && (
@@ -454,11 +435,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         </div>
       )}
 
-      {canEdit && isReorderMode && !draggingSlot && (
-        <div className="mb-3 rounded-xl border border-amber-300/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-100">
-          Arraste ou toque em dois jogadores para trocar as posições.
-        </div>
-      )}
 
       <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
         <div
@@ -488,7 +464,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
             const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || '?';
             const isDragging = draggingSlot === slot.position;
             const isDropTarget = dropTargetSlot === slot.position;
-            const isSelected = selectedSwapSlot === slot.position;
 
             return (
               <div
@@ -504,9 +479,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                       position: 'relative',
                       touchAction: 'manipulation',
                       opacity: isDragging ? 0.3 : 1,
-                      outline: isSelected || isDropTarget
-                        ? `2px solid ${isDropTarget ? 'rgba(34,197,94,0.9)' : 'rgba(250,204,21,0.95)'}`
-                        : 'none',
+                      outline: isDropTarget ? '2px solid rgba(34,197,94,0.9)' : 'none',
                       borderRadius: '20px',
                       transition: isDragging ? 'none' : 'opacity 0.15s',
                     }}
@@ -580,7 +553,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
             const player = slotPlayers[slot];
             const posLabel = player ? getDetailedPositionLabel(player.detailed_position_id) : null;
             const isDragging = draggingSlot === slot;
-            const isSelected = selectedSwapSlot === slot;
 
             if (player) {
               return (
@@ -595,7 +567,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                     cursor: canEdit ? 'grab' : 'pointer',
                     touchAction: 'manipulation',
                     opacity: isDragging ? 0.3 : 1,
-                    outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : 'none',
                     borderRadius: '20px',
                     transition: isDragging ? 'none' : 'opacity 0.15s',
                   }}
