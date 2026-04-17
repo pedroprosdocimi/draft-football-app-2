@@ -320,7 +320,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           <div
             style={{
               position: 'absolute',
-              left: compact ? 9 : 11,
+              left: compact ? 5 : 7,
               bottom: compact ? 26 : 34,
               display: 'flex',
               alignItems: 'center',
@@ -352,8 +352,8 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
                   src={logoURL}
                   alt=""
                   style={{
-                    width: compact ? 12 : large ? 18 : 14,
-                    height: compact ? 12 : large ? 18 : 14,
+                    width: compact ? 14 : large ? 22 : 18,
+                    height: compact ? 14 : large ? 22 : 18,
                     objectFit: 'contain',
                     filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.45))',
                   }}
