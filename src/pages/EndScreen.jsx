@@ -52,6 +52,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   const [slotPlayers, setSlotPlayers] = useState({});
 
   // Drag state
+  const [hasActiveGesture, setHasActiveGesture] = useState(false); // pointerdown held, drag may not have started yet
   const [draggingSlot, setDraggingSlot] = useState(null);
   const [dropTargetSlot, setDropTargetSlot] = useState(null);
   const [dragPointer, setDragPointer] = useState(null);
@@ -282,13 +283,14 @@ export default function EndScreen({ draftId, user, onGoHome }) {
       moved: false,
       slotPosition,
       pointerType: e.pointerType,
-      dragReady: !isTouchPointer,
+      dragStarted: false,
     };
 
-    if (!isTouchPointer) {
-      if (isBenchSlot) setIsBenchDrawerOpen(false);
-      setDraggingSlot(slotPosition);
-    } else {
+    // Register window listeners immediately so we can detect movement before drag starts
+    setHasActiveGesture(true);
+
+    if (isTouchPointer) {
+      // Touch: long press (150ms) activates drag
       clearLongPressTimeout();
       longPressTimeoutRef.current = setTimeout(() => {
         if (
@@ -296,7 +298,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
           fieldGestureRef.current?.slotPosition === slotPosition &&
           !fieldGestureRef.current?.moved
         ) {
-          fieldGestureRef.current = { ...fieldGestureRef.current, dragReady: true };
+          fieldGestureRef.current = { ...fieldGestureRef.current, dragStarted: true };
           if (isBenchSlot) setIsBenchDrawerOpen(false);
           setDragPointer({ x: fieldGestureRef.current.startX, y: fieldGestureRef.current.startY });
           setDraggingSlot(slotPosition);
@@ -304,8 +306,9 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         longPressTimeoutRef.current = null;
       }, 150);
     }
+    // Mouse: drag starts on first movement (handled in handleFieldPointerMove)
 
-    if (!isTouchPointer && typeof e.currentTarget?.setPointerCapture === 'function') {
+    if (typeof e.currentTarget?.setPointerCapture === 'function') {
       e.currentTarget.setPointerCapture(e.pointerId);
     }
   }, [canEdit, clearLongPressTimeout, slotPlayers]);
@@ -314,33 +317,36 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
     if (!fieldGestureRef.current) return;
 
-    if (draggingSlot === null) {
-      const deltaX = e.clientX - fieldGestureRef.current.startX;
-      const deltaY = e.clientY - fieldGestureRef.current.startY;
-      if (Math.hypot(deltaX, deltaY) > 8) {
-        fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
-        clearLongPressTimeout();
-      }
-      return;
+    const deltaX = e.clientX - fieldGestureRef.current.startX;
+    const deltaY = e.clientY - fieldGestureRef.current.startY;
+    const movedEnough = Math.hypot(deltaX, deltaY) > 6;
+
+    if (movedEnough && !fieldGestureRef.current.moved) {
+      fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
+      clearLongPressTimeout();
     }
 
-    if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
-      const deltaX = e.clientX - fieldGestureRef.current.startX;
-      const deltaY = e.clientY - fieldGestureRef.current.startY;
-      if (Math.hypot(deltaX, deltaY) > 8) {
-        fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
-      }
+    // Mouse: start drag the moment the pointer moves enough (no long-press needed)
+    if (
+      movedEnough &&
+      !fieldGestureRef.current.dragStarted &&
+      fieldGestureRef.current.pointerType === 'mouse'
+    ) {
+      const { slotPosition } = fieldGestureRef.current;
+      fieldGestureRef.current = { ...fieldGestureRef.current, dragStarted: true };
+      if (slotPosition >= 12) setIsBenchDrawerOpen(false);
+      setDraggingSlot(slotPosition);
     }
-    if (!fieldGestureRef.current?.moved) {
-      setDropTargetSlot(null);
-      return;
-    }
+
+    if (!fieldGestureRef.current.dragStarted) return;
+
     setDragPointer({ x: e.clientX, y: e.clientY });
+    const activeDraggingSlot = fieldGestureRef.current.slotPosition;
     const target = getSlotAtPoint(e.clientX, e.clientY);
-    if (!target || target === draggingSlot) { setDropTargetSlot(null); return; }
+    if (!target || target === activeDraggingSlot) { setDropTargetSlot(null); return; }
     const hasPlayer = slotPlayers[target];
-    setDropTargetSlot(hasPlayer && isSwapValid(draggingSlot, target) ? target : null);
-  }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, isSwapValid, slotPlayers]);
+    setDropTargetSlot(hasPlayer && isSwapValid(activeDraggingSlot, target) ? target : null);
+  }, [clearLongPressTimeout, getSlotAtPoint, isSwapValid, slotPlayers]);
 
   const handlePlayerTap = useCallback((slotPosition) => {
     const player = slotPlayers[slotPosition];
@@ -353,46 +359,36 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     const gesture = fieldGestureRef.current;
     if (!gesture) return;
     clearLongPressTimeout();
-
-    if (draggingSlot === null) {
-      if (!gesture.moved) {
-        handlePlayerTap(gesture.slotPosition);
-      }
-      fieldGestureRef.current = null;
-      setDropTargetSlot(null);
-      return;
-    }
-
-    if (!gesture.moved) {
-      if (gesture.pointerType === 'mouse') {
-        handlePlayerTap(draggingSlot);
-      }
-      fieldGestureRef.current = null;
-      setDraggingSlot(null);
-      setDragPointer(null);
-      setDropTargetSlot(null);
-      return;
-    }
-
-    const target = getSlotAtPoint(e.clientX, e.clientY);
-    if (target && target !== draggingSlot && slotPlayers[target]) {
-      performSwap(draggingSlot, target);
-    }
     fieldGestureRef.current = null;
+    setHasActiveGesture(false);
+
+    if (!gesture.dragStarted) {
+      // No drag happened — it was a tap
+      if (!gesture.moved) handlePlayerTap(gesture.slotPosition);
+      setDropTargetSlot(null);
+      return;
+    }
+
+    // Drag was active — complete the swap
+    const target = getSlotAtPoint(e.clientX, e.clientY);
+    if (target && target !== gesture.slotPosition && slotPlayers[target]) {
+      performSwap(gesture.slotPosition, target);
+    }
     setDraggingSlot(null);
     setDragPointer(null);
     setDropTargetSlot(null);
-  }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, handlePlayerTap, performSwap, slotPlayers]);
+  }, [clearLongPressTimeout, getSlotAtPoint, handlePlayerTap, performSwap, slotPlayers]);
 
-  // Global pointer listeners while dragging
+  // Global pointer listeners — active from pointerdown until pointerup/cancel
   useEffect(() => {
-    if (draggingSlot === null) return undefined;
+    if (!hasActiveGesture && draggingSlot === null) return undefined;
 
     const onMove = (e) => handleFieldPointerMove(e);
     const onUp = (e) => handleFieldPointerUp(e);
     const onCancel = () => {
       clearLongPressTimeout();
       fieldGestureRef.current = null;
+      setHasActiveGesture(false);
       setDraggingSlot(null);
       setDragPointer(null);
       setDropTargetSlot(null);
@@ -406,7 +402,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onCancel);
     };
-  }, [clearLongPressTimeout, draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
+  }, [clearLongPressTimeout, hasActiveGesture, draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
 
   if (!draft) {
     return (
