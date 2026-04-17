@@ -5,6 +5,7 @@ import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import PickPanel from '../components/PickPanel.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
+import FixturesBrowser from '../components/FixturesBrowser.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
 
 // Maps detailed_position_id to basic position_id
@@ -73,6 +74,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const [isBenchDrawerOpen, setIsBenchDrawerOpen] = useState(false);
   const [isCaptainSelectionMode, setIsCaptainSelectionMode] = useState(false);
   const [showConfirmDraftModal, setShowConfirmDraftModal] = useState(false);
+  const [showFixturesModal, setShowFixturesModal] = useState(false);
   const [captainCandidateId, setCaptainCandidateId] = useState(null);
 
   const [pendingPick, setPendingPick] = useState(null);
@@ -729,9 +731,31 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
   return (
     <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
+      {showFixturesModal && (
+        <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm">
+          <div className="mx-auto h-full w-full max-w-xl">
+            <FixturesBrowser
+              embedded
+              initialRoundNumber={draft?.round?.number || null}
+              backLabel="Fechar"
+              onBack={() => setShowFixturesModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Sair</button>
+        <div className="flex items-center gap-2">
+          <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Sair</button>
+          <button
+            type="button"
+            onClick={() => setShowFixturesModal(true)}
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-300 transition-colors hover:border-white/25 hover:text-white"
+          >
+            Partidas
+          </button>
+        </div>
         <span className="text-xs text-gray-500 font-mono uppercase">
           {isCaptainPhase ? 'Capitão' : isBenchPhase ? 'Reservas' : 'Titulares'} - {draft.formation}
         </span>
