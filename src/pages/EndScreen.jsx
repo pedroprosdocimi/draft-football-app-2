@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { API_URL } from '../config.js';
 import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
@@ -53,6 +53,16 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   const [savingSwap, setSavingSwap] = useState(false);
   const [slotPlayers, setSlotPlayers] = useState({});
 
+  // Drag state
+  const [draggingSlot, setDraggingSlot] = useState(null);
+  const [dropTargetSlot, setDropTargetSlot] = useState(null);
+  const [dragPointer, setDragPointer] = useState(null);
+
+  const fieldRef = useRef(null);
+  const fieldGestureRef = useRef(null);
+  const longPressTimeoutRef = useRef(null);
+  const swapErrorTimeoutRef = useRef(null);
+
   const loadData = useCallback(() => {
     const token = localStorage.getItem('draft_token');
     const headers = { Authorization: `Bearer ${token}` };
@@ -69,6 +79,11 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => () => {
+    if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
+    if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
+  }, []);
 
   const picksBySlot = useMemo(() => {
     const map = {};
@@ -93,25 +108,66 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
   const canEdit = Boolean(user?.id && draft?.user_id && String(user.id) === String(draft.user_id));
 
-  const showTemporaryError = useCallback((message) => {
+  // Lock body scroll while dragging
+  useEffect(() => {
+    if (draggingSlot === null) return undefined;
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyTouchAction = body.style.touchAction;
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [draggingSlot]);
+
+  useEffect(() => {
+    if (draggingSlot !== null) return;
+    setDragPointer(null);
+  }, [draggingSlot]);
+
+  const showSwapError = useCallback((message) => {
+    if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
     setSwapError(message);
-    window.clearTimeout(window.__endScreenSwapErrorTimeout);
-    window.__endScreenSwapErrorTimeout = window.setTimeout(() => {
+    swapErrorTimeoutRef.current = setTimeout(() => {
       setSwapError(null);
+      swapErrorTimeoutRef.current = null;
     }, 5000);
   }, []);
 
+  const clearLongPressTimeout = useCallback(() => {
+    if (!longPressTimeoutRef.current) return;
+    clearTimeout(longPressTimeoutRef.current);
+    longPressTimeoutRef.current = null;
+  }, []);
+
+  const draggingPlayer = useMemo(() => {
+    if (draggingSlot === null) return null;
+    return slotPlayers[draggingSlot] ?? null;
+  }, [draggingSlot, slotPlayers]);
+
+  const draggingPosLabel = useMemo(() => {
+    if (draggingSlot === null) return null;
+    if (draggingSlot <= 11) {
+      const slotDef = starterPlacements.find((s) => s.position === draggingSlot);
+      return getDetailedPositionLabel(slotDef?.detailed_position_id) || null;
+    }
+    return getDetailedPositionLabel(draggingPlayer?.detailed_position_id) || null;
+  }, [draggingSlot, draggingPlayer, starterPlacements]);
+
   const isSwapValid = useCallback((slotA, slotB) => {
     if (slotA >= 12 || slotB >= 12) return true;
-
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA || !playerB) return true;
-
     const slotADef = starterPlacements.find((slot) => slot.position === slotA);
     const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
     if (!slotADef || !slotBDef) return true;
-
     return (
       matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id) &&
       matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)
@@ -120,23 +176,18 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
   const getSwapInvalidReason = useCallback((slotA, slotB) => {
     if (slotA >= 12 || slotB >= 12) return null;
-
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA || !playerB) return null;
-
     const slotADef = starterPlacements.find((slot) => slot.position === slotA);
     const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
     if (!slotADef || !slotBDef) return null;
-
     if (!matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id)) {
-      return `O jogador ${getPlayerDisplayName(playerA)} não pode jogar na posição ${getDetailedPositionLabel(slotBDef.detailed_position_id)}.`;
+      return `${getPlayerDisplayName(playerA)} não pode jogar como ${getDetailedPositionLabel(slotBDef.detailed_position_id)}.`;
     }
-
     if (!matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)) {
-      return `O jogador ${getPlayerDisplayName(playerB)} não pode jogar na posição ${getDetailedPositionLabel(slotADef.detailed_position_id)}.`;
+      return `${getPlayerDisplayName(playerB)} não pode jogar como ${getDetailedPositionLabel(slotADef.detailed_position_id)}.`;
     }
-
     return null;
   }, [slotPlayers, starterPlacements]);
 
@@ -146,7 +197,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     if (!playerA?.player_id || !playerB?.player_id) return;
 
     if (!isSwapValid(slotA, slotB)) {
-      showTemporaryError(getSwapInvalidReason(slotA, slotB) || 'Troca inválida.');
+      showSwapError(getSwapInvalidReason(slotA, slotB) || 'Troca inválida.');
       return;
     }
 
@@ -159,31 +210,124 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
     try {
       setSavingSwap(true);
-      const firstResponse = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
+      const r1 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
         method: 'PUT',
         body: JSON.stringify({ player_id: playerB.player_id, slot_position: slotA }),
       });
-      const firstData = await firstResponse.json();
-      if (!firstResponse.ok) throw new Error(firstData.error || 'Não foi possível trocar os jogadores.');
+      const d1 = await r1.json();
+      if (!r1.ok) throw new Error(d1.error || 'Não foi possível trocar.');
 
-      const secondResponse = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
+      const r2 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
         method: 'PUT',
         body: JSON.stringify({ player_id: playerA.player_id, slot_position: slotB }),
       });
-      const secondData = await secondResponse.json();
-      if (!secondResponse.ok) throw new Error(secondData.error || 'Não foi possível trocar os jogadores.');
+      const d2 = await r2.json();
+      if (!r2.ok) throw new Error(d2.error || 'Não foi possível trocar.');
 
       await loadData();
     } catch (error) {
       setSlotPlayers(previous);
-      showTemporaryError(error.message || 'Não foi possível trocar os jogadores.');
+      showSwapError(error.message || 'Não foi possível trocar os jogadores.');
     } finally {
       setSavingSwap(false);
       setSelectedSwapSlot(null);
     }
-  }, [draftId, getSwapInvalidReason, isSwapValid, loadData, showTemporaryError, slotPlayers]);
+  }, [draftId, getSwapInvalidReason, isSwapValid, loadData, showSwapError, slotPlayers]);
 
-  const handlePlayerClick = useCallback((slotPosition) => {
+  // ── Drag & drop ────────────────────────────────────────────────────────────
+
+  const getSlotAtPoint = useCallback((clientX, clientY) => {
+    const rect = fieldRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    const xPct = ((clientX - rect.left) / rect.width) * 100;
+    const yPct = ((clientY - rect.top) / rect.height) * 100;
+    let closest = null;
+    let minDist = 12;
+    starterPlacements.forEach((slot) => {
+      const dist = Math.hypot(slot.left - xPct, slot.top - yPct);
+      if (dist < minDist) { minDist = dist; closest = slot.position; }
+    });
+    return closest;
+  }, [starterPlacements]);
+
+  const handleFieldPointerDown = useCallback((e, slotPosition) => {
+    if (!canEdit) return;
+    const player = slotPlayers[slotPosition];
+    if (!player) return;
+
+    const isTouchPointer = e.pointerType === 'touch' || e.pointerType === 'pen';
+    const isBenchSlot = slotPosition >= 12;
+
+    if (!isTouchPointer) e.preventDefault();
+
+    fieldGestureRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+      slotPosition,
+      pointerType: e.pointerType,
+      dragReady: !isTouchPointer,
+    };
+
+    if (!isTouchPointer) {
+      if (isBenchSlot) setIsBenchDrawerOpen(false);
+      setDraggingSlot(slotPosition);
+    } else {
+      clearLongPressTimeout();
+      longPressTimeoutRef.current = setTimeout(() => {
+        if (
+          fieldGestureRef.current?.pointerId === e.pointerId &&
+          fieldGestureRef.current?.slotPosition === slotPosition &&
+          !fieldGestureRef.current?.moved
+        ) {
+          fieldGestureRef.current = { ...fieldGestureRef.current, dragReady: true };
+          if (isBenchSlot) setIsBenchDrawerOpen(false);
+          setDragPointer({ x: fieldGestureRef.current.startX, y: fieldGestureRef.current.startY });
+          setDraggingSlot(slotPosition);
+        }
+        longPressTimeoutRef.current = null;
+      }, 150);
+    }
+
+    if (!isTouchPointer && typeof e.currentTarget?.setPointerCapture === 'function') {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+  }, [canEdit, clearLongPressTimeout, slotPlayers]);
+
+  const handleFieldPointerMove = useCallback((e) => {
+    if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
+    if (!fieldGestureRef.current) return;
+
+    if (draggingSlot === null) {
+      const deltaX = e.clientX - fieldGestureRef.current.startX;
+      const deltaY = e.clientY - fieldGestureRef.current.startY;
+      if (Math.hypot(deltaX, deltaY) > 8) {
+        fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
+        clearLongPressTimeout();
+      }
+      return;
+    }
+
+    if (fieldGestureRef.current && !fieldGestureRef.current.moved) {
+      const deltaX = e.clientX - fieldGestureRef.current.startX;
+      const deltaY = e.clientY - fieldGestureRef.current.startY;
+      if (Math.hypot(deltaX, deltaY) > 8) {
+        fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
+      }
+    }
+    if (!fieldGestureRef.current?.moved) {
+      setDropTargetSlot(null);
+      return;
+    }
+    setDragPointer({ x: e.clientX, y: e.clientY });
+    const target = getSlotAtPoint(e.clientX, e.clientY);
+    if (!target || target === draggingSlot) { setDropTargetSlot(null); return; }
+    const hasPlayer = slotPlayers[target];
+    setDropTargetSlot(hasPlayer && isSwapValid(draggingSlot, target) ? target : null);
+  }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, isSwapValid, slotPlayers]);
+
+  const handlePlayerTap = useCallback((slotPosition) => {
     const player = slotPlayers[slotPosition];
     if (!player) return;
 
@@ -196,14 +340,73 @@ export default function EndScreen({ draftId, user, onGoHome }) {
       setSelectedSwapSlot(slotPosition);
       return;
     }
-
     if (selectedSwapSlot === slotPosition) {
       setSelectedSwapSlot(null);
       return;
     }
-
     performSwap(selectedSwapSlot, slotPosition);
+    setSelectedSwapSlot(null);
   }, [canEdit, isReorderMode, performSwap, selectedSwapSlot, slotPlayers]);
+
+  const handleFieldPointerUp = useCallback((e) => {
+    if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
+    const gesture = fieldGestureRef.current;
+    if (!gesture) return;
+    clearLongPressTimeout();
+
+    if (draggingSlot === null) {
+      if (!gesture.moved) {
+        handlePlayerTap(gesture.slotPosition);
+      }
+      fieldGestureRef.current = null;
+      setDropTargetSlot(null);
+      return;
+    }
+
+    if (!gesture.moved) {
+      if (gesture.pointerType === 'mouse') {
+        handlePlayerTap(draggingSlot);
+      }
+      fieldGestureRef.current = null;
+      setDraggingSlot(null);
+      setDragPointer(null);
+      setDropTargetSlot(null);
+      return;
+    }
+
+    const target = getSlotAtPoint(e.clientX, e.clientY);
+    if (target && target !== draggingSlot && slotPlayers[target]) {
+      performSwap(draggingSlot, target);
+    }
+    fieldGestureRef.current = null;
+    setDraggingSlot(null);
+    setDragPointer(null);
+    setDropTargetSlot(null);
+  }, [clearLongPressTimeout, draggingSlot, getSlotAtPoint, handlePlayerTap, performSwap, slotPlayers]);
+
+  // Global pointer listeners while dragging
+  useEffect(() => {
+    if (draggingSlot === null) return undefined;
+
+    const onMove = (e) => handleFieldPointerMove(e);
+    const onUp = (e) => handleFieldPointerUp(e);
+    const onCancel = () => {
+      clearLongPressTimeout();
+      fieldGestureRef.current = null;
+      setDraggingSlot(null);
+      setDragPointer(null);
+      setDropTargetSlot(null);
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+    };
+  }, [clearLongPressTimeout, draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
 
   if (!draft) {
     return (
@@ -251,14 +454,15 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         </div>
       )}
 
-      {canEdit && isReorderMode && (
+      {canEdit && isReorderMode && !draggingSlot && (
         <div className="mb-3 rounded-xl border border-amber-300/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-100">
-          Toque em um jogador e depois em outro para trocar as posições.
+          Arraste ou toque em dois jogadores para trocar as posições.
         </div>
       )}
 
       <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
         <div
+          ref={fieldRef}
           className="relative mx-auto h-full min-h-0 w-full overflow-hidden rounded-[26px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:rounded-[30px]"
           style={{
             backgroundImage:
@@ -282,6 +486,9 @@ export default function EndScreen({ draftId, user, onGoHome }) {
             const isCaptain = player && draft.captain_player_id &&
               String(player.id) === String(draft.captain_player_id);
             const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || '?';
+            const isDragging = draggingSlot === slot.position;
+            const isDropTarget = dropTargetSlot === slot.position;
+            const isSelected = selectedSwapSlot === slot.position;
 
             return (
               <div
@@ -291,13 +498,17 @@ export default function EndScreen({ draftId, user, onGoHome }) {
               >
                 {player ? (
                   <div
-                    onClick={() => handlePlayerClick(slot.position)}
+                    onPointerDown={(e) => handleFieldPointerDown(e, slot.position)}
                     style={{
-                      cursor: canEdit && isReorderMode ? 'pointer' : 'pointer',
+                      cursor: canEdit ? 'grab' : 'pointer',
                       position: 'relative',
                       touchAction: 'manipulation',
-                      outline: selectedSwapSlot === slot.position ? '2px solid rgba(250,204,21,0.95)' : 'none',
+                      opacity: isDragging ? 0.3 : 1,
+                      outline: isSelected || isDropTarget
+                        ? `2px solid ${isDropTarget ? 'rgba(34,197,94,0.9)' : 'rgba(250,204,21,0.95)'}`
+                        : 'none',
                       borderRadius: '20px',
+                      transition: isDragging ? 'none' : 'opacity 0.15s',
                     }}
                   >
                     {isCaptain && (
@@ -324,6 +535,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         </div>
       </div>
 
+      {/* Bench drawer backdrop */}
       {isBenchDrawerOpen && (
         <button
           type="button"
@@ -333,6 +545,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         />
       )}
 
+      {/* Bench toggle tab */}
       {!isBenchDrawerOpen && (
         <div className="pointer-events-none fixed bottom-6 right-0 z-40">
           <button
@@ -347,6 +560,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         </div>
       )}
 
+      {/* Bench drawer */}
       <aside
         className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 sm:w-[12rem] ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
@@ -365,21 +579,25 @@ export default function EndScreen({ draftId, user, onGoHome }) {
           {BENCH_SLOTS.map(({ slot, label }) => {
             const player = slotPlayers[slot];
             const posLabel = player ? getDetailedPositionLabel(player.detailed_position_id) : null;
+            const isDragging = draggingSlot === slot;
+            const isSelected = selectedSwapSlot === slot;
 
             if (player) {
               return (
                 <div
                   key={slot}
-                  onClick={() => handlePlayerClick(slot)}
+                  onPointerDown={(e) => handleFieldPointerDown(e, slot)}
                   style={{
                     flexShrink: 0,
                     width: '100%',
                     display: 'flex',
                     justifyContent: 'center',
-                    cursor: 'pointer',
+                    cursor: canEdit ? 'grab' : 'pointer',
                     touchAction: 'manipulation',
-                    outline: selectedSwapSlot === slot ? '2px solid rgba(250,204,21,0.95)' : 'none',
+                    opacity: isDragging ? 0.3 : 1,
+                    outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : 'none',
                     borderRadius: '20px',
+                    transition: isDragging ? 'none' : 'opacity 0.15s',
                   }}
                 >
                   <FieldPlayerPreview player={player} posLabel={posLabel} />
@@ -399,6 +617,30 @@ export default function EndScreen({ draftId, user, onGoHome }) {
           })}
         </div>
       </aside>
+
+      {/* Drag preview */}
+      {draggingSlot !== null && draggingPlayer && dragPointer && (
+        <div
+          className="pointer-events-none fixed z-[80]"
+          style={{
+            left: dragPointer.x,
+            top: dragPointer.y,
+            transform: 'translate(-50%, -50%) scale(1.08)',
+            opacity: 0.92,
+            filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.5))',
+          }}
+        >
+          <FieldPlayerPreview
+            player={draggingPlayer}
+            posLabel={draggingPosLabel}
+            slotPositionId={
+              draggingSlot <= 11
+                ? starterPlacements.find((s) => s.position === draggingSlot)?.detailed_position_id ?? null
+                : null
+            }
+          />
+        </div>
+      )}
 
       {selectedCard && (
         <PlayerStatsModal
