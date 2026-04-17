@@ -82,6 +82,8 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const avgScore = scoreValue.toFixed(1);
   const avgMinutes = Math.round(player.avg_minutes || 0);
   const roundMatchup = player.round_matchup || '';
+  const roundOpponentLogoURL = player.round_opponent_logo_url || '';
+  const roundIsHome = Boolean(player.round_is_home);
   const jersey = TEAM_COLORS[player.team_short_code] || {
     p: BORDER_COLORS[player.position_id] || '#3b82f6',
     s: '#FFFFFF',
@@ -313,27 +315,50 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
           ))}
         </div>
 
-        {showRoundMatchup && roundMatchup && (
+        {showRoundMatchup && player.team_logo_url && roundOpponentLogoURL && (
           <div
             style={{
               position: 'absolute',
               left: compact ? 9 : 11,
               bottom: compact ? 26 : 34,
-              padding: compact ? '2px 5px' : '3px 7px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: compact ? 4 : 6,
+              padding: compact ? '3px 5px' : '4px 7px',
               borderRadius: compact ? 8 : 10,
               background: 'rgba(2,6,23,0.68)',
               border: '1px solid rgba(255,255,255,0.09)',
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
               backdropFilter: 'blur(8px)',
-              fontSize: compact ? 8 : large ? 10 : 9,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: '#e5e7eb',
-              lineHeight: 1,
-              textTransform: 'uppercase',
             }}
+            title={roundMatchup}
           >
-            {roundMatchup}
+            {(roundIsHome ? [player.team_logo_url, roundOpponentLogoURL] : [roundOpponentLogoURL, player.team_logo_url]).map((logoURL, index) => (
+              <React.Fragment key={`${logoURL}-${index}`}>
+                {index === 1 && (
+                  <span
+                    style={{
+                      fontSize: compact ? 8 : 9,
+                      fontWeight: 800,
+                      color: '#e5e7eb',
+                      lineHeight: 1,
+                    }}
+                  >
+                    x
+                  </span>
+                )}
+                <img
+                  src={logoURL}
+                  alt=""
+                  style={{
+                    width: compact ? 12 : large ? 18 : 14,
+                    height: compact ? 12 : large ? 18 : 14,
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.45))',
+                  }}
+                />
+              </React.Fragment>
+            ))}
           </div>
         )}
 
