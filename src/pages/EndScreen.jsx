@@ -61,6 +61,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   const fieldGestureRef = useRef(null);
   const longPressTimeoutRef = useRef(null);
   const swapErrorTimeoutRef = useRef(null);
+  const suppressNextClickRef = useRef(false); // set when pointer moved; suppresses the following onClick
 
   const loadData = useCallback(() => {
     const token = localStorage.getItem('draft_token');
@@ -288,6 +289,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
     // Register window listeners immediately so we can detect movement before drag starts
     setHasActiveGesture(true);
+    suppressNextClickRef.current = false;
 
     if (isTouchPointer) {
       // Touch: long press (150ms) activates drag
@@ -323,6 +325,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
     if (movedEnough && !fieldGestureRef.current.moved) {
       fieldGestureRef.current = { ...fieldGestureRef.current, moved: true };
+      suppressNextClickRef.current = true; // pointer moved → suppress the upcoming onClick
       clearLongPressTimeout();
     }
 
@@ -363,8 +366,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     setHasActiveGesture(false);
 
     if (!gesture.dragStarted) {
-      // No drag happened — it was a tap
-      if (!gesture.moved) handlePlayerTap(gesture.slotPosition);
+      // No drag — onClick will handle opening stats
       setDropTargetSlot(null);
       return;
     }
@@ -470,6 +472,10 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                 {player ? (
                   <div
                     onPointerDown={(e) => handleFieldPointerDown(e, slot.position)}
+                    onClick={() => {
+                      if (suppressNextClickRef.current) { suppressNextClickRef.current = false; return; }
+                      handlePlayerTap(slot.position);
+                    }}
                     style={{
                       cursor: canEdit ? 'grab' : 'pointer',
                       position: 'relative',
@@ -555,6 +561,10 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                 <div
                   key={slot}
                   onPointerDown={(e) => handleFieldPointerDown(e, slot)}
+                  onClick={() => {
+                    if (suppressNextClickRef.current) { suppressNextClickRef.current = false; return; }
+                    handlePlayerTap(slot);
+                  }}
                   style={{
                     flexShrink: 0,
                     width: '100%',
