@@ -131,7 +131,7 @@ export default function App() {
           onComplete={handleDraftComplete} />
       )}
       {page === 'end' && draftId && (
-        <EndScreen draftId={draftId} onGoHome={() => { setDraftId(null); setPage('home'); }} />
+        <EndScreen draftId={draftId} user={user} onGoHome={() => { setDraftId(null); setPage('home'); }} />
       )}
     </div>
   );
