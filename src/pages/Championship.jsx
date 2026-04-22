@@ -33,10 +33,10 @@ const BRACKET_LAYOUT = {
   canvasPaddingX: 20,
   canvasPaddingY: 20,
   headerHeight: 56,
-  columnWidth: 260,
+  columnWidth: 300,
   columnGap: 92,
-  cardHeight: 104,
-  rowGap: 22,
+  cardHeight: 132,
+  rowGap: 26,
 };
 
 function roundRangeLabel(data) {
@@ -103,43 +103,86 @@ function buildBracketLayout(stages) {
   if (!stages?.length) return null;
 
   const { canvasPaddingY, headerHeight, cardHeight, rowGap } = BRACKET_LAYOUT;
+  const firstStageMatchCount = stages[0]?.matches?.length || 1;
+  const firstStageOrder = buildDisplayOrder(firstStageMatchCount);
+  const firstStageSlotByMatch = new Map(firstStageOrder.map((matchIndex, slotIndex) => [matchIndex, slotIndex]));
+  const firstStageCenters = new Array(firstStageMatchCount).fill(0);
+  const stageLeafSets = [];
   const stageLayouts = [];
-  let previousCenters = [];
 
-  stages.forEach((stage, stageIndex) => {
-    let centers = [];
-    if (stageIndex === 0) {
-      centers = stage.matches.map((_, matchIndex) => (
-        canvasPaddingY + headerHeight + (cardHeight / 2) + matchIndex * (cardHeight + rowGap)
-      ));
-    } else {
-      centers = stage.matches.map((_, matchIndex) => (
-        (previousCenters[matchIndex] + previousCenters[previousCenters.length - 1 - matchIndex]) / 2
-      ));
+  for (let matchIndex = 0; matchIndex < firstStageMatchCount; matchIndex++) {
+    const slotIndex = firstStageSlotByMatch.get(matchIndex) ?? matchIndex;
+    firstStageCenters[matchIndex] = (
+      canvasPaddingY +
+      headerHeight +
+      (cardHeight / 2) +
+      slotIndex * (cardHeight + rowGap)
+    );
+  }
+
+  stageLeafSets[0] = Array.from({ length: firstStageMatchCount }, (_, matchIndex) => [matchIndex]);
+  stageLayouts[0] = {
+    ...stages[0],
+    cards: stages[0].matches.map((match, matchIndex) => ({
+      match,
+      center: firstStageCenters[matchIndex],
+      top: firstStageCenters[matchIndex] - (cardHeight / 2),
+    })),
+  };
+
+  for (let stageIndex = 1; stageIndex < stages.length; stageIndex++) {
+    const prevMatchCount = stages[stageIndex - 1].matches.length;
+    const leafSets = [];
+
+    for (let matchIndex = 0; matchIndex < stages[stageIndex].matches.length; matchIndex++) {
+      leafSets[matchIndex] = [
+        ...stageLeafSets[stageIndex - 1][matchIndex],
+        ...stageLeafSets[stageIndex - 1][prevMatchCount - 1 - matchIndex],
+      ];
     }
 
-    stageLayouts.push({
-      ...stage,
-      cards: stage.matches.map((match, matchIndex) => ({
-        match,
-        center: centers[matchIndex],
-        top: centers[matchIndex] - (cardHeight / 2),
-      })),
-    });
+    stageLeafSets[stageIndex] = leafSets;
+    stageLayouts[stageIndex] = {
+      ...stages[stageIndex],
+      cards: stages[stageIndex].matches.map((match, matchIndex) => {
+        const leaves = leafSets[matchIndex];
+        const center = leaves.reduce((sum, leafIndex) => sum + firstStageCenters[leafIndex], 0) / leaves.length;
+        return {
+          match,
+          center,
+          top: center - (cardHeight / 2),
+        };
+      }),
+    };
+  }
 
-    previousCenters = centers;
-  });
-
-  const firstStageMatches = stages[0]?.matches?.length || 1;
   const height = (
     canvasPaddingY +
     headerHeight +
-    firstStageMatches * BRACKET_LAYOUT.cardHeight +
-    Math.max(0, firstStageMatches - 1) * BRACKET_LAYOUT.rowGap +
+    firstStageMatchCount * BRACKET_LAYOUT.cardHeight +
+    Math.max(0, firstStageMatchCount - 1) * BRACKET_LAYOUT.rowGap +
     canvasPaddingY
   );
 
   return { height, stageLayouts };
+}
+
+function buildDisplayOrder(matchCount) {
+  const matches = Array.from({ length: matchCount }, (_, index) => index);
+  return buildDisplayOrderFromList(matches);
+}
+
+function buildDisplayOrderFromList(matches) {
+  if (matches.length <= 1) return matches;
+
+  const pairs = [];
+  for (let left = 0, right = matches.length - 1; left <= right; left += 1, right -= 1) {
+    if (left === right) pairs.push([matches[left]]);
+    else pairs.push([matches[left], matches[right]]);
+  }
+
+  const pairOrder = buildDisplayOrderFromList(Array.from({ length: pairs.length }, (_, index) => index));
+  return pairOrder.flatMap((pairIndex) => pairs[pairIndex]);
 }
 
 function BracketTeamRow({ team, isWinner, isTop }) {
@@ -155,10 +198,10 @@ function BracketTeamRow({ team, isWinner, isTop }) {
       } ${isWinner ? 'bg-draft-gold/10' : ''}`}
     >
       <div className="min-w-0">
-        <p className={`truncate text-sm font-semibold ${isWinner ? 'text-draft-gold' : 'text-white'}`}>
+        <p className={`break-words text-sm font-semibold leading-snug ${isWinner ? 'text-draft-gold' : 'text-white'}`}>
           {label}
         </p>
-        <p className="truncate text-[11px] uppercase tracking-wide text-gray-500">
+        <p className="mt-1 break-words text-[11px] uppercase tracking-wide text-gray-500">
           {subtitle}
         </p>
       </div>
