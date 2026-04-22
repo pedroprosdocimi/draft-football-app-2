@@ -282,7 +282,7 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
 
             {data.type === 'hybrid' && !data.knockout_ready && (
               <section className="rounded-3xl border border-sky-500/20 bg-sky-500/10 px-5 py-4 text-sm text-sky-200">
-                O mata-mata sera montado automaticamente depois da rodada {data.league_phase_end_round_number}.
+                O chaveamento final ja aparece projetado pelas posicoes da fase inicial e sera preenchido com os times reais depois da rodada {data.league_phase_end_round_number}.
               </section>
             )}
 
