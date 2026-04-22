@@ -33,6 +33,13 @@ function formatScore(value) {
   return Number(value || 0).toFixed(1);
 }
 
+function formatChampionshipType(type) {
+  if (type === 'league') return 'Pontos corridos';
+  if (type === 'knockout') return 'Mata-mata';
+  if (type === 'hybrid') return 'Misto';
+  return type;
+}
+
 const STATUS_LABELS = {
   formation_pick: 'Escolha da formacao',
   drafting: 'Titulares',
@@ -126,9 +133,10 @@ function StandingsModal({ open, loading, error, currentRound, standings, onClose
   );
 }
 
-export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDraft }) {
+export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDraft, onOpenChampionship }) {
   const [activeDrafts, setActiveDrafts] = useState([]);
   const [historyDrafts, setHistoryDrafts] = useState([]);
+  const [championships, setChampionships] = useState([]);
   const [currentRound, setCurrentRound] = useState(null);
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -141,18 +149,21 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const loadDrafts = async () => {
     setLoading(true);
     try {
-      const [activeRes, historyRes] = await Promise.all([
+      const [activeRes, historyRes, championshipsRes] = await Promise.all([
         authFetch(`${API_URL}/drafts/active`),
         authFetch(`${API_URL}/drafts/history`),
+        authFetch(`${API_URL}/championships`),
       ]);
-      const [activeData, historyData] = await Promise.all([
+      const [activeData, historyData, championshipsData] = await Promise.all([
         activeRes.json(),
         historyRes.json(),
+        championshipsRes.json(),
       ]);
 
       setActiveDrafts(activeData.drafts || []);
       setHistoryDrafts(historyData.drafts || []);
       setCurrentRound(activeData.current_round || null);
+      setChampionships(championshipsData.data || []);
     } catch {
       setError('Nao foi possivel carregar seus drafts agora.');
     } finally {
@@ -279,6 +290,42 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
             </button>
           </div>
         </div>
+
+        {championships.length > 0 && (
+          <div className="card mb-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Campeonatos</p>
+                <p className="text-sm text-white">Acompanhe e compartilhe os torneios ativos.</p>
+              </div>
+              <span className="rounded-full border border-draft-gold/30 bg-draft-gold/10 px-2.5 py-1 text-xs font-semibold text-draft-gold">
+                {championships.length}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {championships.slice(0, 4).map((item) => (
+                <div key={item.id} className="rounded-xl border border-gray-800 bg-gray-800/50 px-4 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">{item.name}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {formatChampionshipType(item.type)} • rodadas {item.start_round_number} a {item.end_round_number}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onOpenChampionship({ id: item.id, shareCode: item.share_code })}
+                      className="rounded-lg bg-draft-gold px-3 py-2 text-xs font-semibold text-black transition-colors hover:bg-yellow-300"
+                    >
+                      Abrir
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {currentRoundActiveDraft && (
           <div className="mb-4 rounded-xl border border-draft-green/30 bg-draft-green/10 px-4 py-4">

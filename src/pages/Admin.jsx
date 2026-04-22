@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { API_URL } from '../config.js';
 import AdminFormationManager from '../components/AdminFormationManager.jsx';
+import ChampionshipAdminPanel from '../components/ChampionshipAdminPanel.jsx';
 import DraftHistory from '../components/DraftHistory.jsx';
 import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
@@ -923,6 +924,8 @@ export default function Admin({ onBack }) {
         </button>
         <h1 className="text-xl font-bold text-white">Painel Admin</h1>
       </div>
+
+      <ChampionshipAdminPanel />
 
       {/* Active round control */}
       <div className="card mb-6">

@@ -9,13 +9,28 @@ import Draft from './pages/Draft.jsx';
 import EndScreen from './pages/EndScreen.jsx';
 import Admin from './pages/Admin.jsx';
 import Partidas from './pages/Partidas.jsx';
+import Championship from './pages/Championship.jsx';
+
+function getInitialChampionshipShareCode() {
+  return new URLSearchParams(window.location.search).get('championship') || null;
+}
+
+function syncChampionshipQuery(shareCode) {
+  const url = new URL(window.location.href);
+  if (shareCode) url.searchParams.set('championship', shareCode);
+  else url.searchParams.delete('championship');
+  window.history.replaceState({}, '', url.toString());
+}
 
 export default function App() {
+  const initialShareCode = getInitialChampionshipShareCode();
   const [authPage, setAuthPage] = useState('login');
   const [verifyEmail, setVerifyEmail] = useState(null); // { email, password }
   const [user, setUser] = useState(null);
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState(initialShareCode ? 'championship' : 'home');
   const [draftId, setDraftId] = useState(null);
+  const [championshipId, setChampionshipId] = useState(null);
+  const [championshipShareCode, setChampionshipShareCode] = useState(initialShareCode);
   const [error, setError] = useState(null);
 
   // Validate stored token on startup
@@ -40,7 +55,7 @@ export default function App() {
     localStorage.removeItem('draft_token');
     setUser(null);
     setAuthPage('login');
-    setPage('home');
+    setPage(championshipShareCode ? 'championship' : 'home');
     setDraftId(null);
   };
 
@@ -59,7 +74,21 @@ export default function App() {
     setPage('end');
   };
 
-  if (!user) {
+  const handleOpenChampionship = ({ id, shareCode }) => {
+    setChampionshipId(id || null);
+    setChampionshipShareCode(shareCode || null);
+    syncChampionshipQuery(shareCode || null);
+    setPage('championship');
+  };
+
+  const handleCloseChampionship = () => {
+    setChampionshipId(null);
+    setChampionshipShareCode(null);
+    syncChampionshipQuery(null);
+    setPage('home');
+  };
+
+  if (!user && page !== 'championship') {
     return (
       <div className="min-h-screen">
         {authPage === 'login' && (
@@ -121,10 +150,19 @@ export default function App() {
         <Home user={user} onLogout={handleLogout}
           onGoAdmin={() => setPage('admin')}
           onStartDraft={handleStartDraft}
-          onViewDraft={handleViewDraft} />
+          onViewDraft={handleViewDraft}
+          onOpenChampionship={handleOpenChampionship} />
       )}
       {page === 'partidas' && <Partidas onBack={() => setPage('home')} />}
       {page === 'admin' && <Admin onBack={() => setPage('home')} />}
+      {page === 'championship' && (
+        <Championship
+          championshipId={championshipId}
+          shareCode={championshipShareCode}
+          user={user}
+          onGoHome={handleCloseChampionship}
+        />
+      )}
       {page === 'draft' && draftId && (
         <Draft draftId={draftId} user={user}
           onGoHome={() => setPage('home')}
