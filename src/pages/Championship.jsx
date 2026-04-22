@@ -214,9 +214,7 @@ function buildDisplayOrderFromList(matches) {
 
 function BracketTeamRow({ team, isWinner, isTop }) {
   const label = team?.team_name || 'A definir';
-  const subtitle = team
-    ? (team.coach_name || (team.played ? 'confronto em andamento' : 'aguardando fase anterior'))
-    : 'aguardando fase anterior';
+  const subtitle = team?.coach_name || (team?.played ? 'confronto em andamento' : '');
 
   return (
     <div
@@ -228,9 +226,11 @@ function BracketTeamRow({ team, isWinner, isTop }) {
         <p className={`break-words text-sm font-semibold leading-snug ${isWinner ? 'text-draft-gold' : 'text-white'}`}>
           {label}
         </p>
-        <p className="mt-1 break-words text-[11px] uppercase tracking-wide text-gray-500">
-          {subtitle}
-        </p>
+        {subtitle && (
+          <p className="mt-1 break-words text-[11px] uppercase tracking-wide text-gray-500">
+            {subtitle}
+          </p>
+        )}
       </div>
 
       <div className="text-right">
