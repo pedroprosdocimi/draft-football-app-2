@@ -30,7 +30,7 @@ function formatScore(value) {
 }
 
 function formatPosition(value) {
-  return `${value}º`;
+  return `${value}\u00BA`;
 }
 
 const BRACKET_LAYOUT = {
