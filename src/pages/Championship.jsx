@@ -43,7 +43,7 @@ const BRACKET_LAYOUT = {
   headerHeight: 56,
   columnWidth: 300,
   columnGap: 92,
-  cardHeight: 132,
+  cardHeight: 164,
   rowGap: 26,
 };
 
