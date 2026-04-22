@@ -33,6 +33,10 @@ function formatPosition(value) {
   return `${value}\u00BA`;
 }
 
+function stageMatchLabel(stageLabel, matchNumber) {
+  return `${formatPosition(matchNumber)} ${stageLabel}`;
+}
+
 const BRACKET_LAYOUT = {
   canvasPaddingX: 20,
   canvasPaddingY: 20,
@@ -50,7 +54,7 @@ function roundRangeLabel(data) {
   return `Rodadas ${data.start_round_number} a ${data.end_round_number}`;
 }
 
-function ResultsTable({ title, rows }) {
+function ResultsTable({ title, rows, highlightTop = 0 }) {
   const allRounds = rows[0]?.round_scores || [];
   if (!rows?.length) return null;
 
@@ -61,6 +65,11 @@ function ResultsTable({ title, rows }) {
           <h2 className="text-lg font-semibold text-white">{title}</h2>
           <p className="text-sm text-gray-500">Pontuação acumulada rodada a rodada.</p>
         </div>
+        {highlightTop > 0 && (
+          <div className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-300">
+            Top {highlightTop} vão ao mata-mata
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto">
@@ -77,25 +86,39 @@ function ResultsTable({ title, rows }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.user_id} className="border-b border-gray-900/80 text-gray-200">
-                <td className="px-3 py-3">
-                  <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-white/5 px-2 font-semibold text-white">
-                    {formatPosition(row.position)}
-                  </span>
-                </td>
-                <td className="px-3 py-3 font-semibold text-white">{row.team_name}</td>
-                <td className="px-3 py-3 text-gray-400">{row.coach_name}</td>
-                {row.round_scores.map((round) => (
-                  <td key={round.round_number} className="px-3 py-3 text-center">
-                    <span className={round.played ? 'text-white' : 'text-gray-600'}>
-                      {formatScore(round.score)}
+            {rows.map((row) => {
+              const highlighted = highlightTop > 0 && row.position <= highlightTop;
+              return (
+                <tr
+                  key={row.user_id}
+                  className={`border-b border-gray-900/80 text-gray-200 ${
+                    highlighted ? 'bg-green-500/10' : ''
+                  }`}
+                >
+                  <td className="px-3 py-3">
+                    <span className={`inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 font-semibold ${
+                      highlighted ? 'bg-green-500/20 text-green-200' : 'bg-white/5 text-white'
+                    }`}>
+                      {formatPosition(row.position)}
                     </span>
                   </td>
-                ))}
-                <td className="px-3 py-3 text-right font-bold text-draft-gold">{formatScore(row.total_score)}</td>
-              </tr>
-            ))}
+                  <td className={`px-3 py-3 font-semibold ${highlighted ? 'text-green-100' : 'text-white'}`}>
+                    {row.team_name}
+                  </td>
+                  <td className="px-3 py-3 text-gray-400">{row.coach_name}</td>
+                  {row.round_scores.map((round) => (
+                    <td key={round.round_number} className="px-3 py-3 text-center">
+                      <span className={round.played ? (highlighted ? 'text-green-100' : 'text-white') : 'text-gray-600'}>
+                        {formatScore(round.score)}
+                      </span>
+                    </td>
+                  ))}
+                  <td className={`px-3 py-3 text-right font-bold ${highlighted ? 'text-green-300' : 'text-draft-gold'}`}>
+                    {formatScore(row.total_score)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -300,6 +323,11 @@ function BracketSection({ stages }) {
                       className="absolute overflow-hidden rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,15,23,0.96),rgba(15,23,35,0.82))] shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-sm"
                       style={{ left: `${x}px`, top: `${top}px`, width: `${columnWidth}px`, height: `${cardHeight}px` }}
                     >
+                      <div className="border-b border-white/10 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
+                        {stage.cards.length === layout.stageLayouts[0].cards.length
+                          ? stageMatchLabel(stage.label, match.match_number)
+                          : stageMatchLabel(stage.label, match.match_number)}
+                      </div>
                       <BracketTeamRow team={match.home} isWinner={homeWinner} isTop />
                       <BracketTeamRow team={match.away} isWinner={awayWinner} />
                     </div>
@@ -318,6 +346,7 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -349,8 +378,10 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
     if (!link) return;
     try {
       await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
     } catch {
-      // noop
+      setCopied(false);
     }
   };
 
@@ -365,15 +396,6 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
           >
             {user ? 'Voltar' : 'Fechar'}
           </button>
-          {data?.share_code && (
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="rounded-xl border border-draft-gold/30 bg-draft-gold/10 px-4 py-2 text-sm font-semibold text-draft-gold transition-colors hover:bg-draft-gold/20"
-            >
-              Copiar link
-            </button>
-          )}
         </div>
 
         {loading && (
@@ -413,32 +435,18 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
                   <p className="mt-2 text-2xl font-bold text-white">{data.winner?.team_name || 'Em disputa'}</p>
                   <p className="mt-1 text-sm text-gray-400">{data.winner?.coach_name || 'Aguardando definição'}</p>
                   {link && (
-                    <div className="mt-5 rounded-2xl border border-gray-800 bg-black/30 p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-gray-600">Link compartilhável</p>
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className="mt-5 block w-full rounded-2xl border border-gray-800 bg-black/30 p-3 text-left transition-colors hover:border-draft-gold/30 hover:bg-draft-gold/10"
+                    >
+                      <p className="text-[11px] uppercase tracking-wide text-gray-600">
+                        {copied ? 'Link copiado' : 'Link compartilhável'}
+                      </p>
                       <p className="mt-1 break-all text-xs text-gray-300">{link}</p>
-                    </div>
+                    </button>
                   )}
                 </div>
-              </div>
-            </section>
-
-            <section className="rounded-3xl border border-gray-800 bg-gray-900/70 p-5 shadow-2xl shadow-black/20">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Participantes</h2>
-                  <p className="text-sm text-gray-500">Times inscritos no campeonato.</p>
-                </div>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {data.participants.map((participant) => (
-                  <div key={participant.user_id} className="rounded-2xl border border-gray-800 bg-black/20 px-4 py-3">
-                    <div>
-                      <p className="font-semibold text-white">{participant.team_name}</p>
-                      <p className="text-sm text-gray-500">{participant.coach_name}</p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </section>
 
@@ -450,7 +458,11 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
             )}
 
             {data.qualification_standings?.length > 0 && (
-              <ResultsTable title="Classificação da fase inicial" rows={data.qualification_standings} />
+              <ResultsTable
+                title="Classificação da fase inicial"
+                rows={data.qualification_standings}
+                highlightTop={data.knockout_size || 0}
+              />
             )}
 
             {data.type === 'hybrid' && !data.knockout_ready && (
