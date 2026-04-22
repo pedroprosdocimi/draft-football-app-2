@@ -258,14 +258,11 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {data.participants.map((participant) => (
                   <div key={participant.user_id} className="rounded-2xl border border-gray-800 bg-black/20 px-4 py-3">
-                    <div className="flex items-center justify-between gap-3">
+                    <div>
                       <div>
                         <p className="font-semibold text-white">{participant.team_name}</p>
                         <p className="text-sm text-gray-500">{participant.coach_name}</p>
                       </div>
-                      <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold text-gray-300">
-                        Seed {participant.seed_order}
-                      </span>
                     </div>
                   </div>
                 ))}
