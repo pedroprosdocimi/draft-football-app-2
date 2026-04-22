@@ -29,6 +29,10 @@ function formatScore(value) {
   return Number(value || 0).toFixed(1);
 }
 
+function formatPosition(value) {
+  return `${value}º`;
+}
+
 const BRACKET_LAYOUT = {
   canvasPaddingX: 20,
   canvasPaddingY: 20,
@@ -41,7 +45,7 @@ const BRACKET_LAYOUT = {
 
 function roundRangeLabel(data) {
   if (data.type === 'hybrid' && data.league_phase_start_round_number && data.league_phase_end_round_number) {
-    return `Fase de liga: ${data.league_phase_start_round_number}-${data.league_phase_end_round_number} • Final em ${data.end_round_number}`;
+    return `Fase de liga: ${data.league_phase_start_round_number}-${data.league_phase_end_round_number} • final na rodada ${data.end_round_number}`;
   }
   return `Rodadas ${data.start_round_number} a ${data.end_round_number}`;
 }
@@ -55,7 +59,7 @@ function ResultsTable({ title, rows }) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-white">{title}</h2>
-          <p className="text-sm text-gray-500">Pontuacao acumulada rodada a rodada.</p>
+          <p className="text-sm text-gray-500">Pontuação acumulada rodada a rodada.</p>
         </div>
       </div>
 
@@ -63,9 +67,9 @@ function ResultsTable({ title, rows }) {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b border-gray-800 text-left text-xs uppercase tracking-wide text-gray-500">
-              <th className="px-3 py-2">Pos</th>
+              <th className="px-3 py-2">Pos.</th>
               <th className="px-3 py-2">Time</th>
-              <th className="px-3 py-2">Tecnico</th>
+              <th className="px-3 py-2">Técnico</th>
               {allRounds.map((round) => (
                 <th key={round.round_number} className="px-3 py-2 text-center">R{round.round_number}</th>
               ))}
@@ -77,7 +81,7 @@ function ResultsTable({ title, rows }) {
               <tr key={row.user_id} className="border-b border-gray-900/80 text-gray-200">
                 <td className="px-3 py-3">
                   <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-white/5 px-2 font-semibold text-white">
-                    {row.position}
+                    {formatPosition(row.position)}
                   </span>
                 </td>
                 <td className="px-3 py-3 font-semibold text-white">{row.team_name}</td>
@@ -233,7 +237,7 @@ function BracketSection({ stages }) {
     <section className="rounded-3xl border border-gray-800 bg-gray-900/70 p-5 shadow-2xl shadow-black/20">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">Chave do mata-mata</h2>
-        <p className="text-sm text-gray-500">Visualizacao grafica dos confrontos ate a final.</p>
+        <p className="text-sm text-gray-500">Visualização gráfica dos confrontos até a final.</p>
       </div>
 
       <div className="overflow-x-auto pb-2">
@@ -326,7 +330,7 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
           shareCode ? `/public/championships/${shareCode}` : `/championships/${championshipId}`
         );
         const payload = await res.json();
-        if (!res.ok) throw new Error(payload.error || 'Nao foi possivel carregar o campeonato.');
+        if (!res.ok) throw new Error(payload.error || 'Não foi possível carregar o campeonato.');
         if (!cancelled) setData(payload.data);
       } catch (err) {
         if (!cancelled) setError(err.message);
@@ -400,17 +404,17 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
                     {roundRangeLabel(data)}
                   </p>
                   <p className="mt-2 text-sm text-gray-500">
-                    {data.participants.length} participantes • rodada ativa atual {data.current_active_round_number || 'nao definida'}
+                    {data.participants.length} participantes • rodada ativa atual {data.current_active_round_number || 'não definida'}
                   </p>
                 </div>
 
                 <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Campeao atual</p>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Campeão atual</p>
                   <p className="mt-2 text-2xl font-bold text-white">{data.winner?.team_name || 'Em disputa'}</p>
-                  <p className="mt-1 text-sm text-gray-400">{data.winner?.coach_name || 'Aguardando definicao'}</p>
+                  <p className="mt-1 text-sm text-gray-400">{data.winner?.coach_name || 'Aguardando definição'}</p>
                   {link && (
                     <div className="mt-5 rounded-2xl border border-gray-800 bg-black/30 p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-gray-600">Link compartilhavel</p>
+                      <p className="text-[11px] uppercase tracking-wide text-gray-600">Link compartilhável</p>
                       <p className="mt-1 break-all text-xs text-gray-300">{link}</p>
                     </div>
                   )}
@@ -440,18 +444,18 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
 
             {data.standings?.length > 0 && (
               <ResultsTable
-                title={data.type === 'league' ? 'Classificacao geral' : 'Classificacao'}
+                title={data.type === 'league' ? 'Classificação geral' : 'Classificação'}
                 rows={data.standings}
               />
             )}
 
             {data.qualification_standings?.length > 0 && (
-              <ResultsTable title="Classificacao da fase inicial" rows={data.qualification_standings} />
+              <ResultsTable title="Classificação da fase inicial" rows={data.qualification_standings} />
             )}
 
             {data.type === 'hybrid' && !data.knockout_ready && (
               <section className="rounded-3xl border border-sky-500/20 bg-sky-500/10 px-5 py-4 text-sm text-sky-200">
-                O chaveamento final ja aparece projetado pelas posicoes da fase inicial e sera preenchido com os times reais depois da rodada {data.league_phase_end_round_number}.
+                O chaveamento final já aparece projetado pelas posições da fase inicial e será preenchido com os times reais depois da rodada {data.league_phase_end_round_number}.
               </section>
             )}
 
