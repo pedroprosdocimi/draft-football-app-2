@@ -1,10 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { API_URL } from '../config.js';
 
-function authFetch(path) {
+function authFetch(path, options = {}) {
   const token = localStorage.getItem('draft_token');
   return fetch(`${API_URL}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    ...options,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 }
 
@@ -92,9 +97,7 @@ function ResultsTable({ title, rows, highlightTop = 0 }) {
               return (
                 <tr
                   key={row.user_id}
-                  className={`border-b border-gray-900/80 text-gray-200 ${
-                    highlighted ? 'bg-green-500/10' : ''
-                  }`}
+                  className={`border-b border-gray-900/80 text-gray-200 ${highlighted ? 'bg-green-500/10' : ''}`}
                 >
                   <td className="px-3 py-3">
                     <span className={`inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 font-semibold ${
@@ -258,6 +261,7 @@ function BracketSection({ stages }) {
     stages.length * columnWidth +
     Math.max(0, stages.length - 1) * columnGap
   );
+  const firstStageCount = layout.stageLayouts[0]?.cards.length || 0;
 
   return (
     <section className="rounded-3xl border border-gray-800 bg-gray-900/70 p-5 shadow-2xl shadow-black/20">
@@ -319,6 +323,7 @@ function BracketSection({ stages }) {
                 {stage.cards.map(({ match, top }) => {
                   const homeWinner = match.resolved && match.winner_user_id && match.home?.user_id === match.winner_user_id;
                   const awayWinner = match.resolved && match.winner_user_id && match.away?.user_id === match.winner_user_id;
+                  const isFirstStage = stage.cards.length === firstStageCount;
 
                   return (
                     <div
@@ -327,9 +332,7 @@ function BracketSection({ stages }) {
                       style={{ left: `${x}px`, top: `${top}px`, width: `${columnWidth}px`, height: `${cardHeight}px` }}
                     >
                       <div className="border-b border-white/10 bg-white/5 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500">
-                        {stage.cards.length === layout.stageLayouts[0].cards.length
-                          ? stageMatchLabel(stage.label, match.match_number)
-                          : stageMatchLabel(stage.label, match.match_number)}
+                        {isFirstStage ? stageMatchLabel(stage.label, match.match_number) : stageMatchLabel(stage.label, match.match_number)}
                       </div>
                       <BracketTeamRow team={match.home} isWinner={homeWinner} isTop />
                       <BracketTeamRow team={match.away} isWinner={awayWinner} />
@@ -348,19 +351,22 @@ function BracketSection({ stages }) {
 export default function Championship({ championshipId, shareCode, user, onGoHome }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submittingJoin, setSubmittingJoin] = useState(false);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+
     const load = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await authFetch(
-          shareCode ? `/public/championships/${shareCode}` : `/championships/${championshipId}`
-        );
+        const path = shareCode
+          ? (user ? `/championships/share/${shareCode}` : `/public/championships/${shareCode}`)
+          : `/championships/${championshipId}`;
+        const res = await authFetch(path);
         const payload = await res.json();
         if (!res.ok) throw new Error(payload.error || 'Não foi possível carregar o campeonato.');
         if (!cancelled) setData(payload.data);
@@ -373,7 +379,7 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
 
     if (shareCode || championshipId) load();
     return () => { cancelled = true; };
-  }, [championshipId, shareCode]);
+  }, [championshipId, shareCode, user]);
 
   const link = useMemo(() => (data?.share_code ? shareLink(data.share_code) : ''), [data]);
 
@@ -387,6 +393,27 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
       setCopied(false);
     }
   };
+
+  const handleRequestJoin = async () => {
+    if (!shareCode) return;
+    setSubmittingJoin(true);
+    setError(null);
+    try {
+      const res = await authFetch(`/championships/share/${shareCode}/join-request`, {
+        method: 'POST',
+      });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Não foi possível solicitar participação.');
+      setData(payload.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmittingJoin(false);
+    }
+  };
+
+  const viewerRequestStatus = data?.viewer_join_request_status || null;
+  const shouldShowJoinPrompt = user && data && !data.viewer_is_participant;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.14),_transparent_30%),linear-gradient(180deg,_#070b11,_#0f1724)] px-4 py-8">
@@ -452,6 +479,45 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
                 </div>
               </div>
             </section>
+
+            {!user && shareCode && (
+              <section className="rounded-3xl border border-sky-500/20 bg-sky-500/10 px-5 py-4 text-sm text-sky-200">
+                Faça login para solicitar participação neste campeonato.
+              </section>
+            )}
+
+            {shouldShowJoinPrompt && viewerRequestStatus === 'pending' && (
+              <section className="rounded-3xl border border-amber-500/20 bg-amber-500/10 px-5 py-4 text-sm text-amber-200">
+                Sua solicitação de participação está pendente de aprovação do admin.
+              </section>
+            )}
+
+            {shouldShowJoinPrompt && viewerRequestStatus === 'declined' && (
+              <section className="rounded-3xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
+                Sua solicitação anterior foi recusada. Você pode solicitar participação novamente.
+              </section>
+            )}
+
+            {shouldShowJoinPrompt && viewerRequestStatus !== 'pending' && (
+              <section className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-200">Quer entrar neste campeonato?</p>
+                    <p className="mt-1 text-sm text-emerald-100/80">
+                      Envie um pedido e o admin poderá aprovar ou recusar sua participação.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRequestJoin}
+                    disabled={submittingJoin}
+                    className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {submittingJoin ? 'Enviando...' : viewerRequestStatus === 'declined' ? 'Solicitar novamente' : 'Solicitar participação'}
+                  </button>
+                </div>
+              </section>
+            )}
 
             {data.standings?.length > 0 && (
               <ResultsTable
