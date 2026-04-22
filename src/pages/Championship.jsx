@@ -29,6 +29,16 @@ function formatScore(value) {
   return Number(value || 0).toFixed(1);
 }
 
+const BRACKET_LAYOUT = {
+  canvasPaddingX: 20,
+  canvasPaddingY: 20,
+  headerHeight: 56,
+  columnWidth: 260,
+  columnGap: 92,
+  cardHeight: 104,
+  rowGap: 22,
+};
+
 function roundRangeLabel(data) {
   if (data.type === 'hybrid' && data.league_phase_start_round_number && data.league_phase_end_round_number) {
     return `Fase de liga: ${data.league_phase_start_round_number}-${data.league_phase_end_round_number} • Final em ${data.end_round_number}`;
@@ -89,51 +99,169 @@ function ResultsTable({ title, rows }) {
   );
 }
 
+function buildBracketLayout(stages) {
+  if (!stages?.length) return null;
+
+  const { canvasPaddingY, headerHeight, cardHeight, rowGap } = BRACKET_LAYOUT;
+  const stageLayouts = [];
+  let previousCenters = [];
+
+  stages.forEach((stage, stageIndex) => {
+    let centers = [];
+    if (stageIndex === 0) {
+      centers = stage.matches.map((_, matchIndex) => (
+        canvasPaddingY + headerHeight + (cardHeight / 2) + matchIndex * (cardHeight + rowGap)
+      ));
+    } else {
+      centers = stage.matches.map((_, matchIndex) => (
+        (previousCenters[matchIndex] + previousCenters[previousCenters.length - 1 - matchIndex]) / 2
+      ));
+    }
+
+    stageLayouts.push({
+      ...stage,
+      cards: stage.matches.map((match, matchIndex) => ({
+        match,
+        center: centers[matchIndex],
+        top: centers[matchIndex] - (cardHeight / 2),
+      })),
+    });
+
+    previousCenters = centers;
+  });
+
+  const firstStageMatches = stages[0]?.matches?.length || 1;
+  const height = (
+    canvasPaddingY +
+    headerHeight +
+    firstStageMatches * BRACKET_LAYOUT.cardHeight +
+    Math.max(0, firstStageMatches - 1) * BRACKET_LAYOUT.rowGap +
+    canvasPaddingY
+  );
+
+  return { height, stageLayouts };
+}
+
+function BracketTeamRow({ team, isWinner, isTop }) {
+  const label = team?.team_name || 'A definir';
+  const subtitle = team
+    ? (team.coach_name || (team.played ? 'confronto em andamento' : 'aguardando fase anterior'))
+    : 'aguardando fase anterior';
+
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 px-4 py-3 ${
+        isTop ? 'border-b border-white/10' : ''
+      } ${isWinner ? 'bg-draft-gold/10' : ''}`}
+    >
+      <div className="min-w-0">
+        <p className={`truncate text-sm font-semibold ${isWinner ? 'text-draft-gold' : 'text-white'}`}>
+          {label}
+        </p>
+        <p className="truncate text-[11px] uppercase tracking-wide text-gray-500">
+          {subtitle}
+        </p>
+      </div>
+
+      <div className="text-right">
+        <p className={`text-base font-black ${team?.played ? 'text-white' : 'text-gray-600'}`}>
+          {team ? formatScore(team.score) : '—'}
+        </p>
+        <p className="text-[10px] uppercase tracking-wide text-gray-600">
+          {team?.played ? 'jogou' : 'pendente'}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function BracketSection({ stages }) {
   if (!stages?.length) return null;
+
+  const layout = buildBracketLayout(stages);
+  const { canvasPaddingX, canvasPaddingY, headerHeight, columnWidth, columnGap, cardHeight } = BRACKET_LAYOUT;
+  const canvasWidth = (
+    canvasPaddingX * 2 +
+    stages.length * columnWidth +
+    Math.max(0, stages.length - 1) * columnGap
+  );
 
   return (
     <section className="rounded-3xl border border-gray-800 bg-gray-900/70 p-5 shadow-2xl shadow-black/20">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">Chave do mata-mata</h2>
-        <p className="text-sm text-gray-500">Cada fase usa a pontuacao da rodada correspondente.</p>
+        <p className="text-sm text-gray-500">Visualizacao grafica dos confrontos ate a final.</p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {stages.map((stage) => (
-          <div key={`${stage.stage_number}-${stage.round_number}`} className="rounded-2xl border border-gray-800 bg-black/20 p-4">
-            <div className="mb-3">
-              <p className="text-sm font-semibold text-white">{stage.label}</p>
-              <p className="text-xs text-gray-500">Rodada {stage.round_number}</p>
-            </div>
+      <div className="overflow-x-auto pb-2">
+        <div
+          className="relative rounded-[28px] border border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))]"
+          style={{
+            width: `${canvasWidth}px`,
+            minHeight: `${layout.height}px`,
+            backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0)',
+            backgroundSize: '20px 20px',
+          }}
+        >
+          <svg
+            className="absolute inset-0 h-full w-full"
+            viewBox={`0 0 ${canvasWidth} ${layout.height}`}
+            preserveAspectRatio="none"
+          >
+            {layout.stageLayouts.slice(0, -1).flatMap((stage, stageIndex) => {
+              const stageX = canvasPaddingX + stageIndex * (columnWidth + columnGap);
+              const nextX = canvasPaddingX + (stageIndex + 1) * (columnWidth + columnGap);
+              const startX = stageX + columnWidth;
+              const middleX = startX + columnGap / 2;
+              const nextCount = layout.stageLayouts[stageIndex + 1].cards.length;
 
-            <div className="space-y-3">
-              {stage.matches.map((match) => (
-                <div key={match.match_number} className="rounded-xl border border-gray-800 bg-gray-950/60 p-3">
-                  {[match.home, match.away].map((team, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between gap-3 ${index === 0 ? 'mb-2 border-b border-gray-800/80 pb-2' : ''}`}
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-white">{team?.team_name || 'A definir'}</p>
-                        <p className="text-xs text-gray-500">{team?.coach_name || 'aguardando fase anterior'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-draft-gold">{team ? formatScore(team.score) : '—'}</p>
-                        <p className="text-[11px] text-gray-600">{team?.played ? 'jogou' : 'pendente'}</p>
-                      </div>
-                    </div>
-                  ))}
+              return stage.cards.map((card, matchIndex) => {
+                const parentIndex = Math.min(matchIndex, stage.cards.length - 1 - matchIndex, nextCount - 1);
+                const targetCenter = layout.stageLayouts[stageIndex + 1].cards[parentIndex].center;
+                return (
+                  <g key={`${stage.stage_number}-${matchIndex}`}>
+                    <line x1={startX} y1={card.center} x2={middleX} y2={card.center} stroke="rgba(250,204,21,0.45)" strokeWidth="2" />
+                    <line x1={middleX} y1={card.center} x2={middleX} y2={targetCenter} stroke="rgba(250,204,21,0.45)" strokeWidth="2" />
+                    <line x1={middleX} y1={targetCenter} x2={nextX} y2={targetCenter} stroke="rgba(250,204,21,0.45)" strokeWidth="2" />
+                  </g>
+                );
+              });
+            })}
+          </svg>
 
-                  <div className="mt-2 text-[11px] uppercase tracking-wide text-gray-500">
-                    {match.resolved && match.winner_user_id ? 'Confronto resolvido' : 'Aguardando resultado'}
+          {layout.stageLayouts.map((stage, stageIndex) => {
+            const x = canvasPaddingX + stageIndex * (columnWidth + columnGap);
+            return (
+              <div key={`${stage.stage_number}-${stage.round_number}`}>
+                <div
+                  className="absolute"
+                  style={{ left: `${x}px`, top: `${canvasPaddingY}px`, width: `${columnWidth}px`, height: `${headerHeight}px` }}
+                >
+                  <div className="rounded-2xl border border-white/10 bg-black/35 px-4 py-3 backdrop-blur-sm">
+                    <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Rodada {stage.round_number}</p>
+                    <p className="mt-1 text-sm font-bold text-white">{stage.label}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        ))}
+
+                {stage.cards.map(({ match, top }) => {
+                  const homeWinner = match.resolved && match.winner_user_id && match.home?.user_id === match.winner_user_id;
+                  const awayWinner = match.resolved && match.winner_user_id && match.away?.user_id === match.winner_user_id;
+
+                  return (
+                    <div
+                      key={match.match_number}
+                      className="absolute overflow-hidden rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,15,23,0.96),rgba(15,23,35,0.82))] shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+                      style={{ left: `${x}px`, top: `${top}px`, width: `${columnWidth}px`, height: `${cardHeight}px` }}
+                    >
+                      <BracketTeamRow team={match.home} isWinner={homeWinner} isTop />
+                      <BracketTeamRow team={match.away} isWinner={awayWinner} />
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -259,10 +387,8 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
                 {data.participants.map((participant) => (
                   <div key={participant.user_id} className="rounded-2xl border border-gray-800 bg-black/20 px-4 py-3">
                     <div>
-                      <div>
-                        <p className="font-semibold text-white">{participant.team_name}</p>
-                        <p className="text-sm text-gray-500">{participant.coach_name}</p>
-                      </div>
+                      <p className="font-semibold text-white">{participant.team_name}</p>
+                      <p className="text-sm text-gray-500">{participant.coach_name}</p>
                     </div>
                   </div>
                 ))}
