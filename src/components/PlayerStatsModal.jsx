@@ -1,6 +1,7 @@
 import React from 'react';
 import { API_URL } from '../config.js';
 import DraftPlayerCard from './DraftPlayerCard.jsx';
+import { getPlayerPrimaryDetailedPositionId } from '../utils/positions.js';
 
 const CATEGORY_META = {
   ataque:        { label: 'Ataque',        color: '#f87171' },
@@ -13,6 +14,7 @@ const CATEGORY_META = {
 };
 
 const CATEGORY_ORDER = ['ataque', 'comportamento', 'criacao', 'defesa', 'passes', 'fisico', 'goleiro'];
+const GOALKEEPER_POSITION_ID = 1;
 
 const CATEGORY_SCORE_KEY = {
   ataque:        'score_ataque',
@@ -181,6 +183,7 @@ export default function PlayerStatsModal({ player, onClose, lockedRoundNumber = 
   const [data, setData] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedRound, setSelectedRound] = React.useState(null);
+  const isGoalkeeper = getPlayerPrimaryDetailedPositionId(player) === GOALKEEPER_POSITION_ID;
 
   React.useEffect(() => {
     const token = localStorage.getItem('draft_token');
@@ -205,6 +208,11 @@ export default function PlayerStatsModal({ player, onClose, lockedRoundNumber = 
   const roundNumbers = Object.keys(rounds).map(Number).sort((a, b) => a - b);
   const effectiveRound = lockedRoundNumber ?? selectedRound;
   const currentRound = rounds[effectiveRound];
+  const visibleCategoryOrder = React.useMemo(() => (
+    isGoalkeeper
+      ? ['goleiro', 'comportamento', 'criacao', 'defesa', 'passes', 'fisico']
+      : CATEGORY_ORDER.filter((category) => category !== 'goleiro')
+  ), [isGoalkeeper]);
 
   return (
     <div
@@ -317,7 +325,7 @@ export default function PlayerStatsModal({ player, onClose, lockedRoundNumber = 
 
               {/* Categories */}
               <div style={{ paddingTop: 6, paddingBottom: 4 }}>
-                {CATEGORY_ORDER.map(cat => {
+                {visibleCategoryOrder.map(cat => {
                   const stats = currentRound.byCategory[cat];
                   if (!stats || stats.length === 0) return null;
                   return <CategoryBlock key={cat} catKey={cat} stats={stats} roundData={currentRound} />;
