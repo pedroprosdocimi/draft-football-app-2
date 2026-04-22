@@ -41,6 +41,7 @@ const BRACKET_LAYOUT = {
   canvasPaddingX: 20,
   canvasPaddingY: 20,
   headerHeight: 56,
+  headerGap: 18,
   columnWidth: 300,
   columnGap: 92,
   cardHeight: 164,
@@ -129,7 +130,7 @@ function ResultsTable({ title, rows, highlightTop = 0 }) {
 function buildBracketLayout(stages) {
   if (!stages?.length) return null;
 
-  const { canvasPaddingY, headerHeight, cardHeight, rowGap } = BRACKET_LAYOUT;
+  const { canvasPaddingY, headerHeight, headerGap, cardHeight, rowGap } = BRACKET_LAYOUT;
   const firstStageMatchCount = stages[0]?.matches?.length || 1;
   const firstStageOrder = buildDisplayOrder(firstStageMatchCount);
   const firstStageSlotByMatch = new Map(firstStageOrder.map((matchIndex, slotIndex) => [matchIndex, slotIndex]));
@@ -142,6 +143,7 @@ function buildBracketLayout(stages) {
     firstStageCenters[matchIndex] = (
       canvasPaddingY +
       headerHeight +
+      headerGap +
       (cardHeight / 2) +
       slotIndex * (cardHeight + rowGap)
     );
@@ -186,6 +188,7 @@ function buildBracketLayout(stages) {
   const height = (
     canvasPaddingY +
     headerHeight +
+    headerGap +
     firstStageMatchCount * BRACKET_LAYOUT.cardHeight +
     Math.max(0, firstStageMatchCount - 1) * BRACKET_LAYOUT.rowGap +
     canvasPaddingY
