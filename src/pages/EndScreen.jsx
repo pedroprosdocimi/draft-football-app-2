@@ -16,6 +16,7 @@ const BENCH_SLOTS = [
 ];
 const STARTER_SLOT_LIMIT = 11;
 const MAX_AUTO_SUBSTITUTIONS = 5;
+const CAPTAIN_MULTIPLIER = 1.5;
 
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
@@ -219,8 +220,39 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     buildAutoSubstitutionView(slotPlayers, starterPlacements)
   ), [slotPlayers, starterPlacements]);
 
-  const visualSlotPlayers = autoSubstitutionView.displaySlots;
-  const visualBenchSlots = autoSubstitutionView.benchSlots;
+  const captainSlotPosition = useMemo(() => {
+    const captainPlayerId = draft?.captain_player_id;
+    if (!captainPlayerId) return null;
+
+    for (const [slot, player] of Object.entries(slotPlayers)) {
+      if (Number(slot) > STARTER_SLOT_LIMIT) continue;
+      if (String(player?.id ?? player?.player_id ?? '') === String(captainPlayerId)) {
+        return Number(slot);
+      }
+    }
+
+    return null;
+  }, [draft?.captain_player_id, slotPlayers]);
+
+  const visualSlotPlayers = useMemo(() => {
+    const next = { ...autoSubstitutionView.displaySlots };
+    if (captainSlotPosition == null || !next[captainSlotPosition]) return next;
+
+    next[captainSlotPosition] = {
+      ...next[captainSlotPosition],
+      score_value: (Number(next[captainSlotPosition].score_value) || 0) * CAPTAIN_MULTIPLIER,
+      score_label: `${next[captainSlotPosition].score_label || 'rodada'} x1.5`,
+    };
+
+    return next;
+  }, [autoSubstitutionView.displaySlots, captainSlotPosition]);
+
+  const visualBenchSlots = useMemo(() => (
+    autoSubstitutionView.benchSlots.map((item) => ({
+      ...item,
+      isCaptainSlot: false,
+    }))
+  ), [autoSubstitutionView.benchSlots]);
 
   const autoSubstitutionCount = useMemo(() => (
     visualBenchSlots.reduce((count, item) => (
@@ -323,9 +355,9 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     return Boolean(player && draft?.captain_player_id && String(player.id) === String(draft.captain_player_id));
   }, [slotPlayers, draft?.captain_player_id]);
 
-  const isCaptainPlayer = useCallback((player) => (
-    Boolean(player && draft?.captain_player_id && String(player.id ?? player.player_id) === String(draft.captain_player_id))
-  ), [draft?.captain_player_id]);
+  const isCaptainFieldSlot = useCallback((slotPosition) => (
+    captainSlotPosition != null && Number(slotPosition) === Number(captainSlotPosition)
+  ), [captainSlotPosition]);
 
   const performSwap = useCallback(async (slotA, slotB) => {
     const playerA = slotPlayers[slotA];
@@ -584,7 +616,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
           {starterPlacements.map((slot) => {
             const player = visualSlotPlayers[slot.position];
-            const isCaptain = isCaptainPlayer(player);
+            const isCaptain = isCaptainFieldSlot(slot.position);
             const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || '?';
             const isDragging = draggingSlot === slot.position;
             // captain slot cannot be a drop target
@@ -683,7 +715,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
           {visualBenchSlots.map(({ slot, label, player }) => {
             const posLabel = player ? getDetailedPositionLabel(player.detailed_position_id) : null;
             const isDragging = draggingSlot === slot;
-            const isCaptain = isCaptainPlayer(player);
             const substitutionType = player?.auto_substitution?.type ?? null;
 
             if (player) {
@@ -708,11 +739,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                     position: 'relative',
                   }}
                 >
-                  {isCaptain && (
-                    <div className="absolute -top-2 left-1/2 z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-amber-200/90 bg-amber-400 text-[11px] font-black text-slate-950 shadow-[0_10px_18px_rgba(0,0,0,0.32)]">
-                      C
-                    </div>
-                  )}
                   <SubstitutionBadge type={substitutionType} />
                   <FieldPlayerPreview player={player} posLabel={posLabel} />
                 </div>
