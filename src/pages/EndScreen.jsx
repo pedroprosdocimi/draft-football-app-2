@@ -14,6 +14,8 @@ const BENCH_SLOTS = [
   { slot: 17, label: 'RES 6' },
   { slot: 18, label: 'RES 7' },
 ];
+const STARTER_SLOT_LIMIT = 11;
+const MAX_AUTO_SUBSTITUTIONS = 5;
 
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
@@ -40,6 +42,93 @@ function normalizePlayer(pick) {
 
 function getPlayerDisplayName(player) {
   return player?.display_name || player?.name || 'Este jogador';
+}
+
+function shouldAutoReplaceStarter(player) {
+  if (!player) return false;
+  return Number(player.round_minutes || 0) === 0 && Boolean(player.fixture_started);
+}
+
+function canBenchPlayerAutoSub(player) {
+  if (!player) return false;
+  return Number(player.round_minutes || 0) > 0;
+}
+
+function buildAutoSubstitutionView(slotPlayers, starterPlacements) {
+  const displaySlots = { ...slotPlayers };
+  if (!starterPlacements.length) {
+    return {
+      displaySlots,
+      benchSlots: BENCH_SLOTS.map(({ slot, label }) => ({ slot, label, player: slotPlayers[slot] ?? null })),
+    };
+  }
+
+  const orderedBenchCandidates = BENCH_SLOTS
+    .map(({ slot, label }) => ({ slot, label, player: slotPlayers[slot] ?? null }))
+    .filter(({ player }) => canBenchPlayerAutoSub(player));
+
+  const usedBenchSlots = new Set();
+  let substitutionsCount = 0;
+
+  for (const starterSlot of [...starterPlacements].sort((a, b) => a.position - b.position)) {
+    const starter = slotPlayers[starterSlot.position];
+    if (!shouldAutoReplaceStarter(starter)) continue;
+    if (substitutionsCount >= MAX_AUTO_SUBSTITUTIONS) break;
+
+    const benchCandidate = orderedBenchCandidates.find(({ slot, player }) => (
+      !usedBenchSlots.has(slot) &&
+      matchesDetailedPositionSlot(player, starterSlot.detailed_position_id)
+    ));
+
+    if (!benchCandidate) continue;
+
+    usedBenchSlots.add(benchCandidate.slot);
+    substitutionsCount += 1;
+
+    displaySlots[starterSlot.position] = {
+      ...benchCandidate.player,
+      score_value: (Number(benchCandidate.player.round_score) || 0) / 2,
+      score_label: 'rodada/2',
+      auto_substitution: {
+        type: 'in',
+        starter_slot: starterSlot.position,
+        bench_slot: benchCandidate.slot,
+      },
+    };
+
+    displaySlots[benchCandidate.slot] = {
+      ...starter,
+      score_value: Number(starter.round_score) || 0,
+      score_label: 'rodada',
+      auto_substitution: {
+        type: 'out',
+        starter_slot: starterSlot.position,
+        bench_slot: benchCandidate.slot,
+      },
+    };
+  }
+
+  return {
+    displaySlots,
+    benchSlots: BENCH_SLOTS.map(({ slot, label }) => ({ slot, label, player: displaySlots[slot] ?? null })),
+  };
+}
+
+function SubstitutionBadge({ type }) {
+  if (type !== 'in' && type !== 'out') return null;
+
+  const isIn = type === 'in';
+  return (
+    <div
+      className={`absolute -bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] shadow-[0_10px_18px_rgba(0,0,0,0.32)] ${
+        isIn
+          ? 'border-emerald-200/90 bg-emerald-400 text-emerald-950'
+          : 'border-rose-200/90 bg-rose-400 text-rose-950'
+      }`}
+    >
+      {isIn ? 'Entrou' : 'Saiu'}
+    </div>
+  );
 }
 
 export default function EndScreen({ draftId, user, onGoHome }) {
@@ -126,6 +215,19 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     return getFormationPreviewLayout({ name: draft.formation, slots: formationSlots });
   }, [draft?.formation, formationSlots]);
 
+  const autoSubstitutionView = useMemo(() => (
+    buildAutoSubstitutionView(slotPlayers, starterPlacements)
+  ), [slotPlayers, starterPlacements]);
+
+  const visualSlotPlayers = autoSubstitutionView.displaySlots;
+  const visualBenchSlots = autoSubstitutionView.benchSlots;
+
+  const autoSubstitutionCount = useMemo(() => (
+    visualBenchSlots.reduce((count, item) => (
+      count + (item.player?.auto_substitution?.type === 'out' ? 1 : 0)
+    ), 0)
+  ), [visualBenchSlots]);
+
   const canEdit = Boolean(
     user?.id &&
     draft?.user_id &&
@@ -178,7 +280,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
   const draggingPosLabel = useMemo(() => {
     if (draggingSlot === null) return null;
-    if (draggingSlot <= 11) {
+    if (draggingSlot <= STARTER_SLOT_LIMIT) {
       const slotDef = starterPlacements.find((s) => s.position === draggingSlot);
       return getDetailedPositionLabel(slotDef?.detailed_position_id) || null;
     }
@@ -186,7 +288,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   }, [draggingSlot, draggingPlayer, starterPlacements]);
 
   const isSwapValid = useCallback((slotA, slotB) => {
-    if (slotA >= 12 || slotB >= 12) return true;
+    if (slotA > STARTER_SLOT_LIMIT || slotB > STARTER_SLOT_LIMIT) return true;
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA || !playerB) return true;
@@ -200,7 +302,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   }, [slotPlayers, starterPlacements]);
 
   const getSwapInvalidReason = useCallback((slotA, slotB) => {
-    if (slotA >= 12 || slotB >= 12) return null;
+    if (slotA > STARTER_SLOT_LIMIT || slotB > STARTER_SLOT_LIMIT) return null;
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA || !playerB) return null;
@@ -220,6 +322,10 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     const player = slotPlayers[slot];
     return Boolean(player && draft?.captain_player_id && String(player.id) === String(draft.captain_player_id));
   }, [slotPlayers, draft?.captain_player_id]);
+
+  const isCaptainPlayer = useCallback((player) => (
+    Boolean(player && draft?.captain_player_id && String(player.id ?? player.player_id) === String(draft.captain_player_id))
+  ), [draft?.captain_player_id]);
 
   const performSwap = useCallback(async (slotA, slotB) => {
     const playerA = slotPlayers[slotA];
@@ -367,11 +473,10 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     setDropTargetSlot(hasPlayer && !isCaptainSlot(target) && isSwapValid(activeDraggingSlot, target) ? target : null);
   }, [clearLongPressTimeout, getSlotAtPoint, isSwapValid, slotPlayers]);
 
-  const handlePlayerTap = useCallback((slotPosition) => {
-    const player = slotPlayers[slotPosition];
+  const handlePlayerTap = useCallback((player) => {
     if (!player) return;
     setSelectedCard(player);
-  }, [slotPlayers]);
+  }, []);
 
   const handleFieldPointerUp = useCallback((e) => {
     if (fieldGestureRef.current?.pointerId != null && e.pointerId !== fieldGestureRef.current.pointerId) return;
@@ -449,6 +554,12 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         </div>
       )}
 
+      {autoSubstitutionCount > 0 && (
+        <div className="mb-3 rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100">
+          {autoSubstitutionCount} substitui{autoSubstitutionCount > 1 ? 'coes automáticas aplicadas' : 'ção automática aplicada'} nesta rodada.
+        </div>
+      )}
+
 
       <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
         <div
@@ -472,13 +583,13 @@ export default function EndScreen({ draftId, user, onGoHome }) {
           <div className="absolute left-1/2 bottom-3 h-6 w-14 -translate-x-1/2 rounded-t-[14px] border border-b-0 border-white/10" />
 
           {starterPlacements.map((slot) => {
-            const player = slotPlayers[slot.position];
-            const isCaptain = Boolean(player && draft.captain_player_id &&
-              String(player.id) === String(draft.captain_player_id));
+            const player = visualSlotPlayers[slot.position];
+            const isCaptain = isCaptainPlayer(player);
             const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || '?';
             const isDragging = draggingSlot === slot.position;
             // captain slot cannot be a drop target
             const isDropTarget = dropTargetSlot === slot.position && !isCaptain;
+            const substitutionType = player?.auto_substitution?.type ?? null;
 
             return (
               <div
@@ -491,7 +602,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                     onPointerDown={(e) => handleFieldPointerDown(e, slot.position)}
                     onClick={() => {
                       if (suppressNextClickRef.current) { suppressNextClickRef.current = false; return; }
-                      handlePlayerTap(slot.position);
+                      handlePlayerTap(player);
                     }}
                     style={{
                       cursor: isCaptain ? 'pointer' : canEdit ? 'grab' : 'pointer',
@@ -508,6 +619,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                         C
                       </div>
                     )}
+                    <SubstitutionBadge type={substitutionType} />
                     <FieldPlayerPreview
                       player={player}
                       posLabel={posLabel}
@@ -568,10 +680,11 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         </div>
 
         <div className="flex h-[calc(100%-4.5rem)] flex-col items-center gap-2 overflow-y-auto pr-1">
-          {BENCH_SLOTS.map(({ slot, label }) => {
-            const player = slotPlayers[slot];
+          {visualBenchSlots.map(({ slot, label, player }) => {
             const posLabel = player ? getDetailedPositionLabel(player.detailed_position_id) : null;
             const isDragging = draggingSlot === slot;
+            const isCaptain = isCaptainPlayer(player);
+            const substitutionType = player?.auto_substitution?.type ?? null;
 
             if (player) {
               return (
@@ -580,7 +693,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                   onPointerDown={(e) => handleFieldPointerDown(e, slot)}
                   onClick={() => {
                     if (suppressNextClickRef.current) { suppressNextClickRef.current = false; return; }
-                    handlePlayerTap(slot);
+                    handlePlayerTap(player);
                   }}
                   style={{
                     flexShrink: 0,
@@ -592,8 +705,15 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                     opacity: isDragging ? 0.3 : 1,
                     borderRadius: '20px',
                     transition: isDragging ? 'none' : 'opacity 0.15s',
+                    position: 'relative',
                   }}
                 >
+                  {isCaptain && (
+                    <div className="absolute -top-2 left-1/2 z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-amber-200/90 bg-amber-400 text-[11px] font-black text-slate-950 shadow-[0_10px_18px_rgba(0,0,0,0.32)]">
+                      C
+                    </div>
+                  )}
+                  <SubstitutionBadge type={substitutionType} />
                   <FieldPlayerPreview player={player} posLabel={posLabel} />
                 </div>
               );
@@ -628,7 +748,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
             player={draggingPlayer}
             posLabel={draggingPosLabel}
             slotPositionId={
-              draggingSlot <= 11
+              draggingSlot <= STARTER_SLOT_LIMIT
                 ? starterPlacements.find((s) => s.position === draggingSlot)?.detailed_position_id ?? null
                 : null
             }
