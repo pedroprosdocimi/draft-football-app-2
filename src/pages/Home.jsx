@@ -140,6 +140,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const [creating, setCreating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('current');
   const [standingsOpen, setStandingsOpen] = useState(false);
   const [standingsLoading, setStandingsLoading] = useState(false);
   const [standingsError, setStandingsError] = useState(null);
@@ -262,7 +263,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const canCreateDraft = Boolean(currentRound) && !currentRoundActiveDraft;
 
   return (
-    <div className="h-dvh overflow-hidden flex flex-col items-center justify-center p-4">
+    <div className="h-dvh overflow-hidden flex flex-col items-center p-4">
       <StandingsModal
         open={standingsOpen}
         loading={standingsLoading}
@@ -273,11 +274,11 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
         onViewDraft={handleViewStandingsDraft}
       />
 
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6 md:mb-10">
-          <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Tira Tira</h1>
-          <div className="flex items-center justify-center gap-3 mt-4">
+      <div className="w-full max-w-md flex flex-col flex-1 min-h-0">
+        <div className="text-center mb-4">
+          <div className="text-6xl mb-2">⚽</div>
+          <h1 className="text-3xl md:text-4xl font-bold text-white">Tira Tira</h1>
+          <div className="flex items-center justify-center gap-3 mt-3">
             <span className="text-gray-400 text-sm">
               Ola, <span className="text-white font-medium">{user.name?.split(' ')[0]}</span>
               {user.is_admin && (
@@ -292,144 +293,198 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
           </div>
         </div>
 
-        <div className="card mb-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Rodada atual</p>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-white font-semibold">{formatRoundLabel(currentRound)}</p>
-              <p className="text-xs text-gray-500">
-                {currentRound ? 'Os novos drafts serao criados para esta rodada.' : 'Defina a rodada ativa no painel admin.'}
-              </p>
-            </div>
-            {loading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />}
-          </div>
-          <div className="mt-3 flex justify-end">
+        <div className="mb-4 flex items-center justify-center">
+          <div className="inline-flex rounded-xl border border-gray-800 bg-gray-900/60 p-1">
             <button
               type="button"
-              onClick={handleOpenStandings}
-              disabled={!currentRound}
-              className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setActiveTab('current')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                activeTab === 'current'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+              }`}
             >
-              Classificacao
+              Rodada atual
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('previous')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                activeTab === 'previous'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+              }`}
+            >
+              Rodadas
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('championships')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                activeTab === 'championships'
+                  ? 'bg-gray-800 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+              }`}
+            >
+              Campeonatos
             </button>
           </div>
         </div>
 
-        {(playedRoundsLoading || playedRounds.length > 0) && (
-          <div className="card mb-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rodadas anteriores</p>
-                <p className="text-sm text-white">Classificacao das rodadas que voce jogou.</p>
-              </div>
-              {playedRoundsLoading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />}
-            </div>
-
-            <div className="flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden pb-1">
-              {playedRounds.map((round) => (
-                <button
-                  key={round.id}
-                  type="button"
-                  onClick={() => handleOpenRoundStandings(round)}
-                  className="shrink-0 rounded-full border border-gray-800 bg-gray-800/40 px-3 py-1.5 text-xs font-semibold text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-800/70"
-                >
-                  R{round.number}
-                </button>
-              ))}
-              {!playedRoundsLoading && playedRounds.length === 0 && (
-                <div className="text-xs text-gray-500">
-                  Nenhuma rodada finalizada encontrada ainda.
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {activeTab === 'current' && (
+            <div className="pb-4">
+              <div className="card mb-4">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Rodada atual</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-white font-semibold">{formatRoundLabel(currentRound)}</p>
+                    <p className="text-xs text-gray-500">
+                      {currentRound ? 'Os novos drafts serao criados para esta rodada.' : 'Defina a rodada ativa no painel admin.'}
+                    </p>
+                  </div>
+                  {loading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />}
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {championships.length > 0 && (
-          <div className="card mb-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Campeonatos</p>
-                <p className="text-sm text-white">Acompanhe e compartilhe os torneios ativos.</p>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleOpenStandings}
+                    disabled={!currentRound}
+                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Classificacao
+                  </button>
+                </div>
               </div>
-              <span className="rounded-full border border-draft-gold/30 bg-draft-gold/10 px-2.5 py-1 text-xs font-semibold text-draft-gold">
-                {championships.length}
-              </span>
-            </div>
 
-            <div className="space-y-2">
-              {championships.slice(0, 4).map((item) => (
-                <div key={item.id} className="rounded-xl border border-gray-800 bg-gray-800/50 px-4 py-3">
-                  <div className="flex items-start justify-between gap-3">
+              {currentRoundActiveDraft && (
+                <div className="mb-4 rounded-xl border border-draft-green/30 bg-draft-green/10 px-4 py-4">
+                  <p className="text-xs font-semibold text-draft-green uppercase tracking-wide mb-2">Draft em andamento nesta rodada</p>
+                  <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{item.name}</p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {formatChampionshipType(item.type)} • rodadas {item.start_round_number} a {item.end_round_number}
-                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono font-bold text-white text-sm">
+                          {currentRoundActiveDraft.formation || 'A definir'}
+                        </span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-draft-green/20 text-green-400 border border-draft-green/30">
+                          {STATUS_LABELS[currentRoundActiveDraft.status] || currentRoundActiveDraft.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">{formatRoundLabel(currentRoundActiveDraft.round)}</p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onOpenChampionship({ id: item.id, shareCode: item.share_code })}
-                      className="rounded-lg bg-draft-gold px-3 py-2 text-xs font-semibold text-black transition-colors hover:bg-yellow-300"
-                    >
-                      Abrir
+                    <button onClick={() => onStartDraft(currentRoundActiveDraft.id)} className="flex-shrink-0 btn-primary text-sm py-1.5 px-4">
+                      Continuar
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {currentRoundActiveDraft && (
-          <div className="mb-4 rounded-xl border border-draft-green/30 bg-draft-green/10 px-4 py-4">
-            <p className="text-xs font-semibold text-draft-green uppercase tracking-wide mb-2">Draft em andamento nesta rodada</p>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono font-bold text-white text-sm">
-                    {currentRoundActiveDraft.formation || 'A definir'}
-                  </span>
-                  <span className="text-xs px-1.5 py-0.5 rounded bg-draft-green/20 text-green-400 border border-draft-green/30">
-                    {STATUS_LABELS[currentRoundActiveDraft.status] || currentRoundActiveDraft.status}
+              <div className="card">
+                {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+                <button
+                  onClick={handleCreateDraft}
+                  disabled={creating || !canCreateDraft}
+                  className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {creating
+                    ? 'Criando draft...'
+                    : canCreateDraft
+                      ? `Criar draft da ${formatRoundLabel(currentRound)}`
+                      : currentRoundActiveDraft
+                        ? `Continue seu draft da ${formatRoundLabel(currentRound)}`
+                        : 'Nenhuma rodada ativa definida'}
+                </button>
+              </div>
+
+              {user.is_admin && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={onGoAdmin}
+                    className="text-xs text-gray-600 hover:text-draft-gold border border-gray-800 hover:border-gray-600 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Painel Admin
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'previous' && (
+            <div className="pb-4">
+              <div className="card">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rodadas anteriores</p>
+                    <p className="text-sm text-white">Classificacao das rodadas que voce jogou.</p>
+                  </div>
+                  {playedRoundsLoading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />}
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {playedRounds.map((round) => (
+                    <button
+                      key={round.id}
+                      type="button"
+                      onClick={() => handleOpenRoundStandings(round)}
+                      className="rounded-full border border-gray-800 bg-gray-800/40 px-3 py-1.5 text-xs font-semibold text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-800/70"
+                    >
+                      R{round.number}
+                    </button>
+                  ))}
+                  {!playedRoundsLoading && playedRounds.length === 0 && (
+                    <div className="text-xs text-gray-500">
+                      Nenhuma rodada finalizada encontrada ainda.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'championships' && (
+            <div className="pb-4">
+              <div className="card">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Campeonatos</p>
+                    <p className="text-sm text-white">Torneios em que voce faz parte.</p>
+                  </div>
+                  <span className="rounded-full border border-draft-gold/30 bg-draft-gold/10 px-2.5 py-1 text-xs font-semibold text-draft-gold">
+                    {championships.length}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">{formatRoundLabel(currentRoundActiveDraft.round)}</p>
+
+                {championships.length === 0 ? (
+                  <div className="text-xs text-gray-500">
+                    Voce ainda nao participa de nenhum campeonato.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {championships.map((item) => (
+                      <div key={item.id} className="rounded-xl border border-gray-800 bg-gray-800/50 px-4 py-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">{item.name}</p>
+                            <p className="mt-1 text-xs text-gray-500">
+                              {formatChampionshipType(item.type)} • rodadas {item.start_round_number} a {item.end_round_number}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onOpenChampionship({ id: item.id, shareCode: item.share_code })}
+                            className="rounded-lg bg-draft-gold px-3 py-2 text-xs font-semibold text-black transition-colors hover:bg-yellow-300"
+                          >
+                            Abrir
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <button onClick={() => onStartDraft(currentRoundActiveDraft.id)} className="flex-shrink-0 btn-primary text-sm py-1.5 px-4">
-                Continuar
-              </button>
             </div>
-          </div>
-        )}
-
-        <div className="card">
-          {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
-          <button
-            onClick={handleCreateDraft}
-            disabled={creating || !canCreateDraft}
-            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {creating
-              ? 'Criando draft...'
-              : canCreateDraft
-                ? `Criar draft da ${formatRoundLabel(currentRound)}`
-                : currentRoundActiveDraft
-                  ? `Continue seu draft da ${formatRoundLabel(currentRound)}`
-                  : 'Nenhuma rodada ativa definida'}
-          </button>
+          )}
         </div>
-
-        {user.is_admin && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={onGoAdmin}
-              className="text-xs text-gray-600 hover:text-draft-gold border border-gray-800 hover:border-gray-600 px-4 py-2 rounded-lg transition-colors"
-            >
-              Painel Admin
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
