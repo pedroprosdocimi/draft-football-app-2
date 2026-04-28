@@ -315,7 +315,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
           </div>
         </div>
 
-        {playedRounds.length > 0 && (
+        {(playedRoundsLoading || playedRounds.length > 0) && (
           <div className="card mb-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
@@ -326,7 +326,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {playedRounds.slice(0, 12).map((round) => (
+              {playedRounds.map((round) => (
                 <button
                   key={round.id}
                   type="button"
@@ -336,6 +336,11 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
                   R{round.number}
                 </button>
               ))}
+              {!playedRoundsLoading && playedRounds.length === 0 && (
+                <div className="text-xs text-gray-500">
+                  Nenhuma rodada finalizada encontrada ainda.
+                </div>
+              )}
             </div>
           </div>
         )}
