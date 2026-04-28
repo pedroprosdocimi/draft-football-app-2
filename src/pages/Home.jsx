@@ -135,7 +135,6 @@ function StandingsModal({ open, loading, error, currentRound, standings, onClose
 
 export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDraft, onOpenChampionship }) {
   const [activeDrafts, setActiveDrafts] = useState([]);
-  const [historyDrafts, setHistoryDrafts] = useState([]);
   const [championships, setChampionships] = useState([]);
   const [currentRound, setCurrentRound] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -152,19 +151,16 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const loadDrafts = async () => {
     setLoading(true);
     try {
-      const [activeRes, historyRes, championshipsRes] = await Promise.all([
+      const [activeRes, championshipsRes] = await Promise.all([
         authFetch(`${API_URL}/drafts/active`),
-        authFetch(`${API_URL}/drafts/history`),
         authFetch(`${API_URL}/championships`),
       ]);
-      const [activeData, historyData, championshipsData] = await Promise.all([
+      const [activeData, championshipsData] = await Promise.all([
         activeRes.json(),
-        historyRes.json(),
         championshipsRes.json(),
       ]);
 
       setActiveDrafts(activeData.drafts || []);
-      setHistoryDrafts(historyData.drafts || []);
       setCurrentRound(activeData.current_round || null);
       setChampionships(championshipsData.data || []);
     } catch {
@@ -197,15 +193,6 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
     if (!currentRound?.id) return null;
     return activeDrafts.find((draft) => draft.round_id === currentRound.id) || null;
   }, [activeDrafts, currentRound]);
-
-  const currentRoundCompleteDraft = useMemo(() => {
-    if (!currentRound?.id) return null;
-    return historyDrafts.find((draft) => draft.round_id === currentRound.id) || null;
-  }, [historyDrafts, currentRound]);
-
-  const previousActiveDrafts = useMemo(() => (
-    activeDrafts.filter((draft) => draft.id !== currentRoundActiveDraft?.id)
-  ), [activeDrafts, currentRoundActiveDraft]);
 
   const handleCreateDraft = async () => {
     setCreating(true);
@@ -272,7 +259,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
     onViewDraft(draftId);
   };
 
-  const canCreateDraft = Boolean(currentRound) && !currentRoundActiveDraft && !currentRoundCompleteDraft;
+  const canCreateDraft = Boolean(currentRound) && !currentRoundActiveDraft;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -424,35 +411,9 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
                 ? `Criar draft da ${formatRoundLabel(currentRound)}`
                 : currentRoundActiveDraft
                   ? `Continue seu draft da ${formatRoundLabel(currentRound)}`
-                  : currentRoundCompleteDraft
-                    ? `Draft da ${formatRoundLabel(currentRound)} ja concluido`
-                    : 'Nenhuma rodada ativa definida'}
+                  : 'Nenhuma rodada ativa definida'}
           </button>
         </div>
-
-        {previousActiveDrafts.length > 0 && (
-          <div className="mt-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Outros drafts em andamento</p>
-            <div className="space-y-2">
-              {previousActiveDrafts.map((draft) => (
-                <div key={draft.id} className="rounded-xl border border-gray-700 bg-gray-800/60 px-4 py-3 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-white text-sm">{draft.formation || 'A definir'}</span>
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-draft-green/20 text-green-400 border border-draft-green/30">
-                        {STATUS_LABELS[draft.status] || draft.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">{formatRoundLabel(draft.round)}</p>
-                  </div>
-                  <button onClick={() => onStartDraft(draft.id)} className="flex-shrink-0 btn-primary text-sm py-1.5 px-4">
-                    Continuar
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {user.is_admin && (
           <div className="mt-4 text-center">
