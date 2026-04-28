@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { API_URL } from '../config.js';
 
 function authFetch(path, options = {}) {
@@ -380,6 +380,39 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
     if (shareCode || championshipId) load();
     return () => { cancelled = true; };
   }, [championshipId, shareCode, user]);
+
+  const refreshChampionship = useCallback(async () => {
+    if (!shareCode && !championshipId) return;
+
+    try {
+      const path = shareCode
+        ? (user ? `/championships/share/${shareCode}` : `/public/championships/${shareCode}`)
+        : `/championships/${championshipId}`;
+      const res = await authFetch(path);
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'NÃ£o foi possÃ­vel carregar o campeonato.');
+      setData(payload.data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  }, [championshipId, shareCode, user]);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (!document.hidden) refreshChampionship();
+    };
+
+    const intervalID = window.setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+
+    return () => {
+      window.clearInterval(intervalID);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [refreshChampionship]);
 
   const link = useMemo(() => (data?.share_code ? shareLink(data.share_code) : ''), [data]);
 
