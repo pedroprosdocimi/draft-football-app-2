@@ -145,6 +145,9 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const [standingsLoading, setStandingsLoading] = useState(false);
   const [standingsError, setStandingsError] = useState(null);
   const [standings, setStandings] = useState([]);
+  const [standingsRound, setStandingsRound] = useState(null);
+  const [playedRounds, setPlayedRounds] = useState([]);
+  const [playedRoundsLoading, setPlayedRoundsLoading] = useState(false);
 
   const loadDrafts = async () => {
     setLoading(true);
@@ -171,8 +174,23 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
     }
   };
 
+  const loadPlayedRounds = async () => {
+    setPlayedRoundsLoading(true);
+    try {
+      const res = await authFetch(`${API_URL}/drafts/played-rounds`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Nao foi possivel carregar rodadas anteriores.');
+      setPlayedRounds(data.rounds || []);
+    } catch {
+      setPlayedRounds([]);
+    } finally {
+      setPlayedRoundsLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadDrafts();
+    loadPlayedRounds();
   }, []);
 
   const currentRoundActiveDraft = useMemo(() => {
@@ -188,10 +206,6 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const previousActiveDrafts = useMemo(() => (
     activeDrafts.filter((draft) => draft.id !== currentRoundActiveDraft?.id)
   ), [activeDrafts, currentRoundActiveDraft]);
-
-  const previousCompletedDrafts = useMemo(() => (
-    historyDrafts.filter((draft) => draft.id !== currentRoundCompleteDraft?.id)
-  ), [historyDrafts, currentRoundCompleteDraft]);
 
   const handleCreateDraft = async () => {
     setCreating(true);
@@ -215,9 +229,32 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
     setStandingsOpen(true);
     setStandingsLoading(true);
     setStandingsError(null);
+    setStandingsRound(currentRound);
 
     try {
       const res = await authFetch(`${API_URL}/drafts/current-round/standings`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Nao foi possivel carregar a classificacao.');
+      }
+      setStandings(data.standings || []);
+    } catch (err) {
+      setStandingsError(err.message);
+    } finally {
+      setStandingsLoading(false);
+    }
+  };
+
+  const handleOpenRoundStandings = async (round) => {
+    if (!round?.id) return;
+
+    setStandingsOpen(true);
+    setStandingsLoading(true);
+    setStandingsError(null);
+    setStandingsRound(round);
+
+    try {
+      const res = await authFetch(`${API_URL}/drafts/rounds/${round.id}/standings`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || 'Nao foi possivel carregar a classificacao.');
@@ -243,7 +280,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
         open={standingsOpen}
         loading={standingsLoading}
         error={standingsError}
-        currentRound={currentRound}
+        currentRound={standingsRound || currentRound}
         standings={standings}
         onClose={() => setStandingsOpen(false)}
         onViewDraft={handleViewStandingsDraft}
@@ -290,6 +327,31 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
             </button>
           </div>
         </div>
+
+        {playedRounds.length > 0 && (
+          <div className="card mb-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rodadas anteriores</p>
+                <p className="text-sm text-white">Classificacao das rodadas que voce jogou.</p>
+              </div>
+              {playedRoundsLoading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {playedRounds.slice(0, 12).map((round) => (
+                <button
+                  key={round.id}
+                  type="button"
+                  onClick={() => handleOpenRoundStandings(round)}
+                  className="rounded-full border border-gray-800 bg-gray-800/40 px-3 py-1.5 text-xs font-semibold text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-800/70"
+                >
+                  R{round.number}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {championships.length > 0 && (
           <div className="card mb-4">
@@ -349,23 +411,6 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
           </div>
         )}
 
-        {currentRoundCompleteDraft && (
-          <div className="mb-4 rounded-xl border border-green-700/40 bg-green-950/30 px-4 py-4">
-            <p className="text-xs font-semibold text-green-400 uppercase tracking-wide mb-2">Draft desta rodada ja concluido</p>
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-mono font-bold text-white text-sm">{currentRoundCompleteDraft.formation || 'Formacao definida'}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatRoundLabel(currentRoundCompleteDraft.round)} • {formatDraftDate(currentRoundCompleteDraft.updated_at)}
-                </p>
-              </div>
-              <button onClick={() => onViewDraft(currentRoundCompleteDraft.id)} className="flex-shrink-0 btn-primary text-sm py-1.5 px-4">
-                Ver time
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className="card">
           {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
           <button
@@ -404,30 +449,6 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
                     Continuar
                   </button>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {previousCompletedDrafts.length > 0 && (
-          <div className="mt-6">
-            <p className="text-sm font-semibold text-white mb-3">Drafts anteriores</p>
-            <div className="space-y-2">
-              {previousCompletedDrafts.map((draft) => (
-                <button
-                  key={draft.id}
-                  onClick={() => onViewDraft(draft.id)}
-                  className="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-left transition-colors hover:border-gray-500 hover:bg-gray-800/70"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono font-bold text-white text-sm">{draft.formation}</span>
-                    <span className="text-xs text-green-500 bg-green-950/40 border border-green-900/60 px-1.5 py-0.5 rounded">
-                      finalizado
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">{formatRoundLabel(draft.round)}</p>
-                  <p className="text-xs text-gray-500 mt-1">{formatDraftDate(draft.updated_at)}</p>
-                </button>
               ))}
             </div>
           </div>
