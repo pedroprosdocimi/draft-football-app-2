@@ -262,7 +262,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const canCreateDraft = Boolean(currentRound) && !currentRoundActiveDraft;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="h-dvh overflow-hidden flex flex-col items-center justify-center p-4">
       <StandingsModal
         open={standingsOpen}
         loading={standingsLoading}
@@ -274,9 +274,9 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
       />
 
       <div className="w-full max-w-md">
-        <div className="text-center mb-10">
+        <div className="text-center mb-6 md:mb-10">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-4xl font-bold text-white mb-2">Tira Tira</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Tira Tira</h1>
           <div className="flex items-center justify-center gap-3 mt-4">
             <span className="text-gray-400 text-sm">
               Ola, <span className="text-white font-medium">{user.name?.split(' ')[0]}</span>
@@ -325,13 +325,13 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
               {playedRoundsLoading && <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />}
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-nowrap gap-2 overflow-x-auto overflow-y-hidden pb-1">
               {playedRounds.map((round) => (
                 <button
                   key={round.id}
                   type="button"
                   onClick={() => handleOpenRoundStandings(round)}
-                  className="rounded-full border border-gray-800 bg-gray-800/40 px-3 py-1.5 text-xs font-semibold text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-800/70"
+                  className="shrink-0 rounded-full border border-gray-800 bg-gray-800/40 px-3 py-1.5 text-xs font-semibold text-gray-200 transition-colors hover:border-gray-600 hover:bg-gray-800/70"
                 >
                   R{round.number}
                 </button>
