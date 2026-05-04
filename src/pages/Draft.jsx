@@ -7,6 +7,7 @@ import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import FixturesBrowser from '../components/FixturesBrowser.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
+import { BENCH_SLOT_IDS, findBenchReassignment } from '../utils/benchSlots.js';
 
 // Maps detailed_position_id to basic position_id
 const DETAILED_TO_BASIC = {
@@ -536,9 +537,95 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }, [clearLongPressTimeout, draggingSlot, handleFieldPointerMove, handleFieldPointerUp]);
 
   const handleSwap = async (slotA, slotB) => {
-    const playerAId = pickedPlayers[slotA]?.id || picksBySlot[slotA]?.player_id;
-    const playerBId = pickedPlayers[slotB]?.id || picksBySlot[slotB]?.player_id;
+    const playerA = normalizeDraftPlayer(pickedPlayers[slotA] || picksBySlot[slotA]);
+    const playerB = normalizeDraftPlayer(pickedPlayers[slotB] || picksBySlot[slotB]);
+    const playerAId = playerA?.id || null;
+    const playerBId = playerB?.id || null;
     if (!playerAId || !playerBId) return;
+
+    const putPick = async (playerId, slotPosition) => {
+      const r = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
+        method: 'PUT',
+        body: JSON.stringify({ player_id: playerId, slot_position: slotPosition }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Não foi possível trocar.');
+      return d;
+    };
+
+    const isBenchA = slotA >= 12;
+    const isBenchB = slotB >= 12;
+
+    // Starter <-> bench swaps need special handling because bench slots have strict constraints.
+    // We keep the user's intent (bench player goes to the starter slot) and rebalance the bench
+    // to fit the displaced starter when needed.
+    if (isBenchA !== isBenchB) {
+      const benchSlot = isBenchA ? slotA : slotB;
+      const starterSlot = isBenchA ? slotB : slotA;
+      const benchPlayer = isBenchA ? playerA : playerB;
+      const starterPlayer = isBenchA ? playerB : playerA;
+
+      const starterDef =
+        starterPlacements.find((s) => s.position === starterSlot) ||
+        formationSlots.find((s) => s.position === starterSlot) ||
+        null;
+
+      if (starterDef?.detailed_position_id && !matchesDetailedPositionSlot(benchPlayer, starterDef.detailed_position_id)) {
+        showSwapError(
+          `O jogador ${getPlayerDisplayName(benchPlayer)} não pode jogar na posição ${getDetailedPositionLabel(starterDef.detailed_position_id)}.`
+        );
+        return;
+      }
+
+      const benchPlayersBySlot = {};
+      for (const s of BENCH_SLOT_IDS) {
+        benchPlayersBySlot[s] = normalizeDraftPlayer(pickedPlayers[s] || picksBySlot[s]);
+      }
+
+      const nextBench = findBenchReassignment(benchPlayersBySlot, benchSlot, starterPlayer);
+      if (!nextBench) {
+        showSwapError('Não foi possível reorganizar os reservas para concluir essa troca.');
+        return;
+      }
+
+      // Optimistic update to the final state (starter swap + bench rebalance).
+      setPickedPlayers((prev) => {
+        const next = { ...prev };
+        next[starterSlot] = benchPlayer;
+        for (const s of BENCH_SLOT_IDS) {
+          const p = nextBench[s];
+          if (p) next[s] = p;
+        }
+        return next;
+      });
+
+      try {
+        setLoading(true);
+
+        // 1) Put bench player into the starter slot (always validate starters on the client).
+        await putPick(benchPlayer.id, starterSlot);
+
+        // 2) Apply the computed bench reassignment (only update slots that actually changed).
+        for (const s of BENCH_SLOT_IDS) {
+          const desired = nextBench[s];
+          const desiredId = desired?.id || null;
+          const current = benchPlayersBySlot[s];
+          const currentId = current?.id || null;
+          if (!desiredId || desiredId === currentId) continue;
+          await putPick(desiredId, s);
+        }
+
+        await loadDraft();
+      } catch (e) {
+        showSwapError(e.message);
+        // Revert by reloading from server (source of truth).
+        await loadDraft();
+      } finally {
+        setLoading(false);
+      }
+
+      return;
+    }
 
     if (!isSwapValid(slotA, slotB)) {
       showSwapError(getSwapInvalidReason(slotA, slotB) || 'Troca inválida.');
@@ -557,19 +644,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
     try {
       setLoading(true);
-      const r1 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-        method: 'PUT',
-        body: JSON.stringify({ player_id: playerBId, slot_position: slotA }),
-      });
-      const d1 = await r1.json();
-      if (!r1.ok) throw new Error(d1.error);
-
-      const r2 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-        method: 'PUT',
-        body: JSON.stringify({ player_id: playerAId, slot_position: slotB }),
-      });
-      const d2 = await r2.json();
-      if (!r2.ok) throw new Error(d2.error);
+      await putPick(playerBId, slotA);
+      await putPick(playerAId, slotB);
 
       await loadDraft();
     } catch (e) {
