@@ -75,11 +75,13 @@ export default function CartolaMappingPanel() {
     setMsg(null);
     try {
       const res = await fetch(`${API_URL}/admin/players?team_id=${tid}`, { headers: authHeaders() });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao carregar jogadores (HTTP ${res.status}).`);
       setPlayers(data.data || []);
       setLocalEdits({});
-    } catch {
+    } catch (err) {
       setPlayers([]);
+      setMsg(err.message);
     } finally {
       setLoadingPlayers(false);
     }
@@ -256,6 +258,12 @@ export default function CartolaMappingPanel() {
           </div>
 
           <div className="mt-3">
+            {!loadingTeams && teams.length === 0 && (
+              <div className="text-xs text-gray-500">
+                Nenhum time carregado. Verifique se voce esta logado como admin e se a API esta acessivel.
+              </div>
+            )}
+
             {loadingPlayers && (
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-700 border-t-draft-gold" />
