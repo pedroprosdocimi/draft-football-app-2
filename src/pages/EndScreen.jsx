@@ -4,7 +4,6 @@ import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
-import { BENCH_SLOT_IDS, findBenchReassignment } from '../utils/benchSlots.js';
 
 const BENCH_SLOTS = [
   { slot: 12, label: 'RES 1' },
@@ -321,32 +320,63 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   }, [draggingSlot, draggingPlayer, starterPlacements]);
 
   const isSwapValid = useCallback((slotA, slotB) => {
-    if (slotA > STARTER_SLOT_LIMIT || slotB > STARTER_SLOT_LIMIT) return true;
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA || !playerB) return true;
-    const slotADef = starterPlacements.find((slot) => slot.position === slotA);
-    const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
-    if (!slotADef || !slotBDef) return true;
-    return (
-      matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id) &&
-      matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)
-    );
+
+    const isBenchA = slotA > STARTER_SLOT_LIMIT;
+    const isBenchB = slotB > STARTER_SLOT_LIMIT;
+
+    // Bench <-> bench: always valid (no slot constraints).
+    if (isBenchA && isBenchB) return true;
+
+    // Starter <-> starter: both directions must match.
+    if (!isBenchA && !isBenchB) {
+      const slotADef = starterPlacements.find((slot) => slot.position === slotA);
+      const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
+      if (!slotADef || !slotBDef) return true;
+      return (
+        matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id) &&
+        matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)
+      );
+    }
+
+    // Starter <-> bench: only validate the player that would end up in the starter slot.
+    const starterSlot = isBenchA ? slotB : slotA;
+    const incomingToStarter = isBenchA ? playerA : playerB;
+    const starterDef = starterPlacements.find((slot) => slot.position === starterSlot);
+    if (!starterDef) return true;
+    return matchesDetailedPositionSlot(incomingToStarter, starterDef.detailed_position_id);
   }, [slotPlayers, starterPlacements]);
 
   const getSwapInvalidReason = useCallback((slotA, slotB) => {
-    if (slotA > STARTER_SLOT_LIMIT || slotB > STARTER_SLOT_LIMIT) return null;
     const playerA = slotPlayers[slotA];
     const playerB = slotPlayers[slotB];
     if (!playerA || !playerB) return null;
-    const slotADef = starterPlacements.find((slot) => slot.position === slotA);
-    const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
-    if (!slotADef || !slotBDef) return null;
-    if (!matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id)) {
-      return `${getPlayerDisplayName(playerA)} não pode jogar como ${getDetailedPositionLabel(slotBDef.detailed_position_id)}.`;
+
+    const isBenchA = slotA > STARTER_SLOT_LIMIT;
+    const isBenchB = slotB > STARTER_SLOT_LIMIT;
+    if (isBenchA && isBenchB) return null;
+
+    if (!isBenchA && !isBenchB) {
+      const slotADef = starterPlacements.find((slot) => slot.position === slotA);
+      const slotBDef = starterPlacements.find((slot) => slot.position === slotB);
+      if (!slotADef || !slotBDef) return null;
+      if (!matchesDetailedPositionSlot(playerA, slotBDef.detailed_position_id)) {
+        return `${getPlayerDisplayName(playerA)} nao pode jogar como ${getDetailedPositionLabel(slotBDef.detailed_position_id)}.`;
+      }
+      if (!matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)) {
+        return `${getPlayerDisplayName(playerB)} nao pode jogar como ${getDetailedPositionLabel(slotADef.detailed_position_id)}.`;
+      }
+      return null;
     }
-    if (!matchesDetailedPositionSlot(playerB, slotADef.detailed_position_id)) {
-      return `${getPlayerDisplayName(playerB)} não pode jogar como ${getDetailedPositionLabel(slotADef.detailed_position_id)}.`;
+
+    const starterSlot = isBenchA ? slotB : slotA;
+    const incomingToStarter = isBenchA ? playerA : playerB;
+    const starterDef = starterPlacements.find((slot) => slot.position === starterSlot);
+    if (!starterDef) return null;
+    if (!matchesDetailedPositionSlot(incomingToStarter, starterDef.detailed_position_id)) {
+      return `${getPlayerDisplayName(incomingToStarter)} nao pode jogar como ${getDetailedPositionLabel(starterDef.detailed_position_id)}.`;
     }
     return null;
   }, [slotPlayers, starterPlacements]);
@@ -381,69 +411,9 @@ export default function EndScreen({ draftId, user, onGoHome }) {
         body: JSON.stringify({ player_id: playerId, slot_position: slotPosition }),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'NÃ£o foi possÃ­vel trocar.');
+      if (!r.ok) throw new Error(d.error || 'Nao foi possivel trocar.');
       return d;
     };
-
-    const isBenchA = slotA > STARTER_SLOT_LIMIT;
-    const isBenchB = slotB > STARTER_SLOT_LIMIT;
-
-    // Starter <-> bench swaps: keep bench constraints valid by rebalancing the bench if needed.
-    if (isBenchA !== isBenchB) {
-      const benchSlot = isBenchA ? slotA : slotB;
-      const starterSlot = isBenchA ? slotB : slotA;
-      const benchPlayer = isBenchA ? playerA : playerB;
-      const starterPlayer = isBenchA ? playerB : playerA;
-
-      const starterDef = starterPlacements.find((s) => s.position === starterSlot) || null;
-      if (starterDef?.detailed_position_id && !matchesDetailedPositionSlot(benchPlayer, starterDef.detailed_position_id)) {
-        showSwapError(
-          `${getPlayerDisplayName(benchPlayer)} nÃ£o pode jogar como ${getDetailedPositionLabel(starterDef.detailed_position_id)}.`
-        );
-        return;
-      }
-
-      const benchPlayersBySlot = {};
-      for (const s of BENCH_SLOT_IDS) {
-        benchPlayersBySlot[s] = slotPlayers[s] ?? null;
-      }
-
-      const nextBench = findBenchReassignment(benchPlayersBySlot, benchSlot, starterPlayer);
-      if (!nextBench) {
-        showSwapError('NÃ£o foi possÃ­vel reorganizar os reservas para concluir essa troca.');
-        return;
-      }
-
-      const previousBench = { ...slotPlayers };
-      setSlotPlayers((current) => {
-        const next = { ...current };
-        next[starterSlot] = benchPlayer;
-        for (const s of BENCH_SLOT_IDS) next[s] = nextBench[s];
-        return next;
-      });
-
-      try {
-        setSavingSwap(true);
-
-        await putPick(benchPlayer.player_id, starterSlot);
-
-        for (const s of BENCH_SLOT_IDS) {
-          const desired = nextBench[s];
-          const desiredId = desired?.player_id || null;
-          const current = benchPlayersBySlot[s];
-          const currentId = current?.player_id || null;
-          if (!desiredId || desiredId === currentId) continue;
-          await putPick(desiredId, s);
-        }
-      } catch (error) {
-        setSlotPlayers(previousBench);
-        showSwapError(error.message || 'NÃ£o foi possÃ­vel trocar os jogadores.');
-      } finally {
-        setSavingSwap(false);
-      }
-
-      return;
-    }
 
     const previous = { ...slotPlayers };
     setSlotPlayers((current) => ({
@@ -454,22 +424,11 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
     try {
       setSavingSwap(true);
-      const r1 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-        method: 'PUT',
-        body: JSON.stringify({ player_id: playerB.player_id, slot_position: slotA }),
-      });
-      const d1 = await r1.json();
-      if (!r1.ok) throw new Error(d1.error || 'Não foi possível trocar.');
-
-      const r2 = await authFetch(`${API_URL}/drafts/${draftId}/picks`, {
-        method: 'PUT',
-        body: JSON.stringify({ player_id: playerA.player_id, slot_position: slotB }),
-      });
-      const d2 = await r2.json();
-      if (!r2.ok) throw new Error(d2.error || 'Não foi possível trocar.');
+      await putPick(playerB.player_id, slotA);
+      await putPick(playerA.player_id, slotB);
     } catch (error) {
       setSlotPlayers(previous);
-      showSwapError(error.message || 'Não foi possível trocar os jogadores.');
+      showSwapError(error.message || 'Nao foi possivel trocar os jogadores.');
     } finally {
       setSavingSwap(false);
     }
