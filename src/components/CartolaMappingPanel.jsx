@@ -31,6 +31,9 @@ export default function CartolaMappingPanel() {
 
   const [cartolaPlayers, setCartolaPlayers] = useState([]);
   const [loadingCartola, setLoadingCartola] = useState(false);
+  const [cartolaClubs, setCartolaClubs] = useState([]);
+  const [loadingClubs, setLoadingClubs] = useState(false);
+  const [cartolaClubFilter, setCartolaClubFilter] = useState('');
   const [cartolaSearch, setCartolaSearch] = useState('');
   const [onlyProbables, setOnlyProbables] = useState(true);
   const [selectedCartola, setSelectedCartola] = useState(null);
@@ -76,6 +79,19 @@ export default function CartolaMappingPanel() {
     }
   };
 
+  const loadCartolaClubs = async () => {
+    setLoadingClubs(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/cartola/clubs`, { headers: authHeaders() });
+      const data = await res.json();
+      setCartolaClubs(data.data || []);
+    } catch {
+      setCartolaClubs([]);
+    } finally {
+      setLoadingClubs(false);
+    }
+  };
+
   useEffect(() => {
     if (!teamId) return;
     loadTeamPlayers(teamId);
@@ -83,12 +99,22 @@ export default function CartolaMappingPanel() {
 
   useEffect(() => {
     loadCartolaMarket();
+    loadCartolaClubs();
   }, []);
+
+  const cartolaClubMap = useMemo(() => {
+    const map = {};
+    for (const c of cartolaClubs) {
+      map[String(c.id)] = c;
+    }
+    return map;
+  }, [cartolaClubs]);
 
   const filteredCartola = useMemo(() => {
     const q = normalizeText(cartolaSearch);
     return (cartolaPlayers || [])
       .filter((p) => (onlyProbables ? Number(p.status_id) === 7 : true))
+      .filter((p) => (cartolaClubFilter ? String(p.clube_id) === String(cartolaClubFilter) : true))
       .filter((p) => {
         if (!q) return true;
         return (
@@ -98,7 +124,7 @@ export default function CartolaMappingPanel() {
         );
       })
       .slice(0, 250);
-  }, [cartolaPlayers, cartolaSearch, onlyProbables]);
+  }, [cartolaPlayers, cartolaSearch, onlyProbables, cartolaClubFilter]);
 
   const handleApplySelectedToPlayer = (playerId) => {
     if (!selectedCartola) return;
@@ -157,11 +183,14 @@ export default function CartolaMappingPanel() {
         <div className="flex gap-2 flex-wrap">
           <button
             type="button"
-            onClick={loadCartolaMarket}
+            onClick={() => {
+              loadCartolaMarket();
+              loadCartolaClubs();
+            }}
             className="rounded-lg border border-gray-800 bg-gray-800/40 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-gray-800/70"
-            disabled={loadingCartola}
+            disabled={loadingCartola || loadingClubs}
           >
-            {loadingCartola ? 'Atualizando...' : 'Atualizar Cartola'}
+            {loadingCartola || loadingClubs ? 'Atualizando...' : 'Atualizar Cartola'}
           </button>
         </div>
       </div>
@@ -283,6 +312,20 @@ export default function CartolaMappingPanel() {
                 />
                 Somente provaveis
               </label>
+              <select
+                className="input-field"
+                style={{ width: 160 }}
+                value={cartolaClubFilter}
+                onChange={(e) => setCartolaClubFilter(e.target.value)}
+              >
+                <option value="">Todos os times</option>
+                {cartolaClubs.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.abbreviation ? `${c.abbreviation} - ` : ''}
+                    {c.name}
+                  </option>
+                ))}
+              </select>
               <input
                 className="input-field"
                 style={{ width: 220 }}
@@ -309,6 +352,7 @@ export default function CartolaMappingPanel() {
               <div className="mt-2 max-h-[520px] overflow-y-auto space-y-2 pr-1">
                 {filteredCartola.map((p) => {
                   const isSelected = selectedCartola?.atleta_id === p.atleta_id;
+                  const club = cartolaClubMap[String(p.clube_id)] || null;
                   return (
                     <button
                       key={p.atleta_id}
@@ -326,7 +370,11 @@ export default function CartolaMappingPanel() {
                             {p.apelido || p.nome || 'Sem nome'}
                           </p>
                           <p className="text-xs text-gray-500 truncate">
-                            ID {p.atleta_id} • {CARTOLA_POS[p.posicao_id] || `POS ${p.posicao_id}`} • clube {p.clube_id}
+                            ID {p.atleta_id}
+                            {' • '}
+                            {CARTOLA_POS[p.posicao_id] || `POS ${p.posicao_id}`}
+                            {' • '}
+                            {club ? `${club.abbreviation || ''}${club.abbreviation ? ' - ' : ''}${club.name}` : `clube ${p.clube_id}`}
                           </p>
                         </div>
                         <span
@@ -350,4 +398,3 @@ export default function CartolaMappingPanel() {
     </div>
   );
 }
-
