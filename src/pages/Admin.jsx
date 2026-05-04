@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { API_URL } from '../config.js';
 import AdminFormationManager from '../components/AdminFormationManager.jsx';
 import ChampionshipAdminPanel from '../components/ChampionshipAdminPanel.jsx';
+import CartolaMappingPanel from '../components/CartolaMappingPanel.jsx';
 import DraftHistory from '../components/DraftHistory.jsx';
 import DraftPlayerCard from '../components/DraftPlayerCard.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
@@ -2086,10 +2087,12 @@ export default function Admin({ onBack }) {
         {!loadingCards && cards.length === 0 && (
           <p className="text-gray-500 text-sm">Nenhum resultado. Selecione filtros e clique em Buscar.</p>
         )}
-        {selectedCard && (
+      {selectedCard && (
           <PlayerStatsModal player={selectedCard} onClose={() => setSelectedCard(null)} />
         )}
       </div>
+
+      <CartolaMappingPanel />
     </div>
   );
 }
