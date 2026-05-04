@@ -30,13 +30,13 @@ const SLOT_TONE_CLASSES = {
 
 // Bench slot definitions
 const BENCH_SLOTS = [
-  { slot: 12, label: 'RES 1', sub: 'Goleiro' },
-  { slot: 13, label: 'RES 2', sub: 'Defensor' },
-  { slot: 14, label: 'RES 3', sub: 'Defensor' },
-  { slot: 15, label: 'RES 4', sub: 'Meia ou Atacante' },
-  { slot: 16, label: 'RES 5', sub: 'Meia ou Atacante' },
-  { slot: 17, label: 'RES 6', sub: 'Meia ou Atacante' },
-  { slot: 18, label: 'RES 7', sub: 'Meia ou Atacante' },
+  { slot: 12, label: 'RES 1' },
+  { slot: 13, label: 'RES 2' },
+  { slot: 14, label: 'RES 3' },
+  { slot: 15, label: 'RES 4' },
+  { slot: 16, label: 'RES 5' },
+  { slot: 17, label: 'RES 6' },
+  { slot: 18, label: 'RES 7' },
 ];
 
 function authFetch(url, options = {}) {
@@ -987,7 +987,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               </div>
 
               <div className="flex h-[calc(100%-4.5rem)] flex-col items-center gap-2 overflow-y-auto pr-1">
-                {BENCH_SLOTS.map(({ slot, label, sub }) => {
+                {BENCH_SLOTS.map(({ slot, label }) => {
                   const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
                   const confirmedPick = picksBySlot[slot];
                   const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
@@ -1024,18 +1024,17 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                     );
                   }
 
-                  return (
-                    <button
-                      key={slot}
-                      onClick={() => handleSlotClick(slot)}
-                      className="flex flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10"
-                      style={{ flexShrink: 0, width: '5rem', height: '6.6rem' }}
-                    >
-                      <span className="text-[11px] font-bold text-gray-300">{label}</span>
-                      <span className="text-[9px] text-gray-500">{sub}</span>
-                    </button>
-                  );
-                })}
+                   return (
+                     <button
+                       key={slot}
+                       onClick={() => handleSlotClick(slot)}
+                       className="flex flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10"
+                       style={{ flexShrink: 0, width: '5rem', height: '6.6rem' }}
+                     >
+                       <span className="text-[11px] font-bold text-gray-300">{label}</span>
+                     </button>
+                   );
+                 })}
               </div>
           </aside>
         </>
