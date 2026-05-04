@@ -14,6 +14,8 @@ function normalizeText(value) {
     .replace(/[^a-z0-9]/g, '');
 }
 
+const NAME_COLLATOR = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+
 const CARTOLA_POS = {
   1: 'GOL',
   2: 'LAT',
@@ -151,7 +153,7 @@ export default function CartolaMappingPanel() {
 
   const filteredCartola = useMemo(() => {
     const q = normalizeText(cartolaSearch);
-    return (cartolaPlayers || [])
+    const filtered = (cartolaPlayers || [])
       .filter((p) => (onlyProbables ? Number(p.status_id) === 7 : true))
       .filter((p) => (cartolaClubFilter ? String(p.clube_id) === String(cartolaClubFilter) : true))
       .filter((p) => {
@@ -162,7 +164,16 @@ export default function CartolaMappingPanel() {
           String(p.atleta_id || '').includes(q)
         );
       })
-      .slice(0, 250);
+      .slice()
+      .sort((a, b) => {
+        const an = a.apelido || a.nome || '';
+        const bn = b.apelido || b.nome || '';
+        const cmp = NAME_COLLATOR.compare(an, bn);
+        if (cmp !== 0) return cmp;
+        return Number(a.atleta_id || 0) - Number(b.atleta_id || 0);
+      });
+
+    return filtered.slice(0, 250);
   }, [cartolaPlayers, cartolaSearch, onlyProbables, cartolaClubFilter]);
 
   const handleApplySelectedToPlayer = (playerId) => {
@@ -212,8 +223,16 @@ export default function CartolaMappingPanel() {
 
   const visiblePlayers = useMemo(() => {
     const list = players || [];
-    if (!onlyUnmapped) return list;
-    return list.filter((p) => p.cartola_id == null);
+    const filtered = onlyUnmapped ? list.filter((p) => p.cartola_id == null) : list;
+    return filtered
+      .slice()
+      .sort((a, b) => {
+        const an = a.display_name || a.name || '';
+        const bn = b.display_name || b.name || '';
+        const cmp = NAME_COLLATOR.compare(an, bn);
+        if (cmp !== 0) return cmp;
+        return String(a.id || '').localeCompare(String(b.id || ''));
+      });
   }, [players, onlyUnmapped]);
 
   return (
