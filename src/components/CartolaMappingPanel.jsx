@@ -132,6 +132,22 @@ export default function CartolaMappingPanel() {
     return map;
   }, [cartolaClubs]);
 
+  const cartolaClubsWithProbables = useMemo(() => {
+    const clubIds = new Set();
+    for (const p of cartolaPlayers || []) {
+      if (Number(p.status_id) === 7 && p.clube_id != null) {
+        clubIds.add(String(p.clube_id));
+      }
+    }
+    return (cartolaClubs || []).filter((c) => clubIds.has(String(c.id)));
+  }, [cartolaClubs, cartolaPlayers]);
+
+  useEffect(() => {
+    if (!cartolaClubFilter) return;
+    const stillValid = cartolaClubsWithProbables.some((c) => String(c.id) === String(cartolaClubFilter));
+    if (!stillValid) setCartolaClubFilter('');
+  }, [cartolaClubFilter, cartolaClubsWithProbables]);
+
   const filteredCartola = useMemo(() => {
     const q = normalizeText(cartolaSearch);
     return (cartolaPlayers || [])
@@ -357,7 +373,7 @@ export default function CartolaMappingPanel() {
                 onChange={(e) => setCartolaClubFilter(e.target.value)}
               >
                 <option value="">Todos os times</option>
-                {cartolaClubs.map((c) => (
+                {cartolaClubsWithProbables.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.abbreviation ? `${c.abbreviation} - ` : ''}
                     {c.name}
