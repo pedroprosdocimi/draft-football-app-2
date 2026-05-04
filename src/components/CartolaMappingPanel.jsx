@@ -44,6 +44,7 @@ export default function CartolaMappingPanel() {
 
   const [localEdits, setLocalEdits] = useState({}); // { playerId: string }
   const [savingId, setSavingId] = useState(null);
+  const [syncingProbables, setSyncingProbables] = useState(false);
   const [msg, setMsg] = useState(null);
 
   const loadTeams = async () => {
@@ -114,6 +115,24 @@ export default function CartolaMappingPanel() {
       setCartolaClubs([]);
     } finally {
       setLoadingClubs(false);
+    }
+  };
+
+  const syncProbablesNow = async () => {
+    setSyncingProbables(true);
+    setMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/cartola/probables/sync`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao sincronizar (HTTP ${res.status}).`);
+      setMsg(`Sincronizado: ${data.inserted || 0} provaveis (mapeados: ${data.mapped || 0}).`);
+    } catch (err) {
+      setMsg(err.message);
+    } finally {
+      setSyncingProbables(false);
     }
   };
 
@@ -255,6 +274,15 @@ export default function CartolaMappingPanel() {
             disabled={loadingCartola || loadingClubs}
           >
             {loadingCartola || loadingClubs ? 'Atualizando...' : 'Atualizar Cartola'}
+          </button>
+          <button
+            type="button"
+            onClick={syncProbablesNow}
+            className="rounded-lg bg-draft-green px-3 py-2 text-xs font-semibold text-white hover:bg-green-500 disabled:opacity-60"
+            disabled={syncingProbables}
+            title="Preenche round_probable_players para a rodada ativa usando os cartola_id mapeados"
+          >
+            {syncingProbables ? 'Sincronizando...' : 'Sincronizar provaveis agora'}
           </button>
           <button
             type="button"
