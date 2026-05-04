@@ -29,6 +29,7 @@ export default function CartolaMappingPanel() {
   const [teamId, setTeamId] = useState('');
   const [players, setPlayers] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [onlyUnmapped, setOnlyUnmapped] = useState(true);
 
   const [cartolaPlayers, setCartolaPlayers] = useState([]);
   const [loadingCartola, setLoadingCartola] = useState(false);
@@ -209,6 +210,12 @@ export default function CartolaMappingPanel() {
     setLocalEdits((prev) => ({ ...prev, [playerId]: '' }));
   };
 
+  const visiblePlayers = useMemo(() => {
+    const list = players || [];
+    if (!onlyUnmapped) return list;
+    return list.filter((p) => p.cartola_id == null);
+  }, [players, onlyUnmapped]);
+
   return (
     <div className="card mt-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -256,21 +263,31 @@ export default function CartolaMappingPanel() {
               <p className="text-sm text-white">Escolha um time e preencha o cartola_id.</p>
             </div>
 
-            <select
-              className="input-field"
-              style={{ minWidth: 220 }}
-              value={teamId}
-              onChange={(e) => setTeamId(e.target.value)}
-              disabled={loadingTeams}
-            >
-              <option value="">Selecione um time</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.short_code ? `${t.short_code} - ` : ''}
-                  {t.name}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="flex items-center gap-2 text-xs text-gray-400">
+                <input
+                  type="checkbox"
+                  checked={onlyUnmapped}
+                  onChange={(e) => setOnlyUnmapped(e.target.checked)}
+                />
+                Somente nao mapeados
+              </label>
+              <select
+                className="input-field"
+                style={{ minWidth: 220 }}
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
+                disabled={loadingTeams}
+              >
+                <option value="">Selecione um time</option>
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.short_code ? `${t.short_code} - ` : ''}
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="mt-3">
@@ -287,15 +304,15 @@ export default function CartolaMappingPanel() {
               </div>
             )}
 
-            {!loadingPlayers && teamId && players.length === 0 && (
+            {!loadingPlayers && teamId && visiblePlayers.length === 0 && (
               <div className="text-xs text-gray-500">Nenhum jogador encontrado para este time.</div>
             )}
 
             {!teamId && <div className="text-xs text-gray-500">Selecione um time para listar jogadores.</div>}
 
-            {players.length > 0 && (
+            {visiblePlayers.length > 0 && (
               <div className="mt-2 space-y-2">
-                {players.map((p) => {
+                {visiblePlayers.map((p) => {
                   const editVal = localEdits[p.id];
                   const value = editVal != null ? editVal : p.cartola_id != null ? String(p.cartola_id) : '';
                   return (
