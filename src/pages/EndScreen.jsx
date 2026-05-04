@@ -424,15 +424,33 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
     try {
       setSavingSwap(true);
-      await putPick(playerB.player_id, slotA);
-      await putPick(playerA.player_id, slotB);
+
+      const isBenchA = slotA > STARTER_SLOT_LIMIT;
+      const isBenchB = slotB > STARTER_SLOT_LIMIT;
+
+      // If swapping bench <-> starter, write the starter slot first (it can fail validation),
+      // so we don't end up with a partial server state.
+      if (isBenchA !== isBenchB) {
+        const starterSlot = isBenchA ? slotB : slotA;
+        const benchSlot = isBenchA ? slotA : slotB;
+        const benchPlayerId = isBenchA ? playerA.player_id : playerB.player_id;
+        const starterPlayerId = isBenchA ? playerB.player_id : playerA.player_id;
+
+        await putPick(benchPlayerId, starterSlot);
+        await putPick(starterPlayerId, benchSlot);
+      } else {
+        await putPick(playerB.player_id, slotA);
+        await putPick(playerA.player_id, slotB);
+      }
     } catch (error) {
       setSlotPlayers(previous);
       showSwapError(error.message || 'Nao foi possivel trocar os jogadores.');
+      // Reload to recover if the server accepted one PUT and rejected the other.
+      await loadData();
     } finally {
       setSavingSwap(false);
     }
-  }, [draftId, getSwapInvalidReason, isSwapValid, isCaptainSlot, showSwapError, slotPlayers, starterPlacements]);
+  }, [draftId, getSwapInvalidReason, isSwapValid, isCaptainSlot, loadData, showSwapError, slotPlayers, starterPlacements]);
 
   // ── Drag & drop ────────────────────────────────────────────────────────────
 

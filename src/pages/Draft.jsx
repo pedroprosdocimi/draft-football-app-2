@@ -599,21 +599,30 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
     try {
       setLoading(true);
-      await putPick(playerBId, slotA);
-      await putPick(playerAId, slotB);
+
+      const isBenchA = slotA >= 12;
+      const isBenchB = slotB >= 12;
+
+      // If swapping bench <-> starter, write the starter slot first (it can fail validation),
+      // so we don't end up with a partial server state.
+      if (isBenchA !== isBenchB) {
+        const starterSlot = isBenchA ? slotB : slotA;
+        const benchSlot = isBenchA ? slotA : slotB;
+        const benchPlayerId = isBenchA ? playerAId : playerBId;
+        const starterPlayerId = isBenchA ? playerBId : playerAId;
+
+        await putPick(benchPlayerId, starterSlot);
+        await putPick(starterPlayerId, benchSlot);
+      } else {
+        await putPick(playerBId, slotA);
+        await putPick(playerAId, slotB);
+      }
 
       await loadDraft();
     } catch (e) {
       showSwapError(e.message);
-      // Revert
-      setPickedPlayers((prev) => {
-        const next = { ...prev };
-        const a = prev[slotA];
-        const b = prev[slotB];
-        if (a !== undefined) next[slotB] = a; else delete next[slotB];
-        if (b !== undefined) next[slotA] = b; else delete next[slotA];
-        return next;
-      });
+      // Reload to ensure we don't keep a partial swap if the server accepted one PUT and rejected the other.
+      await loadDraft();
     } finally {
       setLoading(false);
     }
