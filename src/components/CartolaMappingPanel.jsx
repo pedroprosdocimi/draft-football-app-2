@@ -25,6 +25,7 @@ const CARTOLA_POS = {
 
 export default function CartolaMappingPanel() {
   const [teams, setTeams] = useState([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
   const [teamId, setTeamId] = useState('');
   const [players, setPlayers] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
@@ -42,11 +43,30 @@ export default function CartolaMappingPanel() {
   const [savingId, setSavingId] = useState(null);
   const [msg, setMsg] = useState(null);
 
+  const loadTeams = async () => {
+    const token = localStorage.getItem('draft_token');
+    if (!token) {
+      setMsg('Token nao encontrado. Faca login novamente.');
+      setTeams([]);
+      return;
+    }
+
+    setLoadingTeams(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/teams`, { headers: authHeaders() });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Falha ao carregar times (HTTP ${res.status}).`);
+      setTeams(data.data || []);
+    } catch (err) {
+      setTeams([]);
+      setMsg(err.message);
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
   useEffect(() => {
-    fetch(`${API_URL}/admin/teams`, { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((data) => setTeams(data.data || []))
-      .catch(() => setTeams([]));
+    loadTeams();
   }, []);
 
   const loadTeamPlayers = async (tid) => {
@@ -192,6 +212,15 @@ export default function CartolaMappingPanel() {
           >
             {loadingCartola || loadingClubs ? 'Atualizando...' : 'Atualizar Cartola'}
           </button>
+          <button
+            type="button"
+            onClick={loadTeams}
+            className="rounded-lg border border-gray-800 bg-gray-800/40 px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-gray-800/70"
+            disabled={loadingTeams}
+            title="Recarregar times do nosso banco"
+          >
+            {loadingTeams ? 'Carregando...' : 'Recarregar times'}
+          </button>
         </div>
       </div>
 
@@ -214,6 +243,7 @@ export default function CartolaMappingPanel() {
               style={{ minWidth: 220 }}
               value={teamId}
               onChange={(e) => setTeamId(e.target.value)}
+              disabled={loadingTeams}
             >
               <option value="">Selecione um time</option>
               {teams.map((t) => (
