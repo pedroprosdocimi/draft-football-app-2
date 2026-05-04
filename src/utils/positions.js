@@ -127,11 +127,6 @@ export function getPlayerEligibleDetailedPositionIds(player, limit = 2) {
 
 export function matchesDetailedPositionSlot(player, slotDetailedPositionId) {
   const normalizedSlotId = normalizeDetailedPositionId(slotDetailedPositionId);
-  const primaryPositionId = getPlayerPrimaryDetailedPositionId(player);
-
-  if (normalizedSlotId === 6) {
-    return primaryPositionId === 6;
-  }
 
   return getPlayerEligibleDetailedPositionIds(player, 2).includes(normalizedSlotId);
 }
