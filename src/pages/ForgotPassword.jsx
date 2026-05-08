@@ -2,31 +2,31 @@ import React, { useState } from 'react';
 import { API_URL } from '../config.js';
 
 export default function ForgotPassword({ onGoLogin }) {
-  const [step, setStep] = useState(1); // 1=verificar identidade, 2=nova senha
-  const [username, setUsername] = useState('');
-  const [telefone, setTelefone] = useState('');
+  const [step, setStep] = useState(1); // 1=request code, 2=reset
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmar, setConfirmar] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleVerify = async (e) => {
+  const handleRequestCode = async (e) => {
     e.preventDefault();
-    if (!username.trim() || !telefone.trim()) return;
+    if (!email.trim()) return;
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/verify-identity`, {
+      const res = await fetch(`${API_URL}/users/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), telefone: telefone.trim() }),
+        body: JSON.stringify({ email: email.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) return setError(data.error || 'Dados inválidos.');
+      if (!res.ok) return setError(data.error || 'Nao foi possivel solicitar o codigo.');
       setStep(2);
     } catch {
-      setError('Erro de conexão com o servidor.');
+      setError('Erro de conexao com o servidor.');
     } finally {
       setLoading(false);
     }
@@ -34,22 +34,23 @@ export default function ForgotPassword({ onGoLogin }) {
 
   const handleReset = async (e) => {
     e.preventDefault();
-    if (novaSenha.length < 6) return setError('A senha deve ter no mínimo 6 caracteres.');
-    if (novaSenha !== confirmar) return setError('As senhas não coincidem.');
+    if (code.trim().length !== 6) return setError('O codigo deve ter 6 digitos.');
+    if (novaSenha.length < 8) return setError('A senha deve ter no minimo 8 caracteres.');
+    if (novaSenha !== confirmar) return setError('As senhas nao coincidem.');
 
     setError('');
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+      const res = await fetch(`${API_URL}/users/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), telefone: telefone.trim(), nova_senha: novaSenha }),
+        body: JSON.stringify({ email: email.trim(), code: code.trim(), password: novaSenha }),
       });
       const data = await res.json();
       if (!res.ok) return setError(data.error || 'Erro ao redefinir senha.');
       setSuccess(true);
     } catch {
-      setError('Erro de conexão com o servidor.');
+      setError('Erro de conexao com o servidor.');
     } finally {
       setLoading(false);
     }
@@ -58,17 +59,16 @@ export default function ForgotPassword({ onGoLogin }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
-
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🔑</div>
-          <h1 className="text-3xl font-bold text-white mb-1">Draft Draft Football</h1>
+          <div className="text-6xl mb-4">KEY</div>
+          <h1 className="text-3xl font-bold text-white mb-1">Draft Football</h1>
           <p className="text-gray-400 text-sm">Redefinir senha</p>
         </div>
 
         <div className="card">
           {success ? (
             <div className="text-center space-y-4">
-              <div className="text-4xl">✅</div>
+              <div className="text-4xl">OK</div>
               <p className="text-green-400 font-medium">Senha redefinida com sucesso!</p>
               <button onClick={onGoLogin} className="btn-primary w-full">
                 Fazer login
@@ -76,30 +76,20 @@ export default function ForgotPassword({ onGoLogin }) {
             </div>
           ) : step === 1 ? (
             <>
-              <h2 className="text-lg font-semibold text-white mb-2">Verificar identidade</h2>
-              <p className="text-gray-500 text-sm mb-6">Informe seu username e telefone cadastrado.</p>
+              <h2 className="text-lg font-semibold text-white mb-2">Recuperar senha</h2>
+              <p className="text-gray-500 text-sm mb-6">Informe seu email para receber um codigo.</p>
 
-              <form onSubmit={handleVerify} className="space-y-4">
+              <form onSubmit={handleRequestCode} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Username</label>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
                   <input
-                    type="text"
+                    type="email"
                     className="input-field"
-                    placeholder="seu_username"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     autoFocus
                     autoCapitalize="none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Telefone</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    placeholder="(11) 99999-9999"
-                    value={telefone}
-                    onChange={e => setTelefone(e.target.value)}
                   />
                 </div>
 
@@ -109,12 +99,8 @@ export default function ForgotPassword({ onGoLogin }) {
                   </p>
                 )}
 
-                <button
-                  type="submit"
-                  className="btn-primary w-full"
-                  disabled={loading || !username.trim() || !telefone.trim()}
-                >
-                  {loading ? 'Verificando...' : 'Continuar'}
+                <button type="submit" className="btn-primary w-full" disabled={loading || !email.trim()}>
+                  {loading ? 'Enviando...' : 'Enviar codigo'}
                 </button>
               </form>
             </>
@@ -122,19 +108,30 @@ export default function ForgotPassword({ onGoLogin }) {
             <>
               <h2 className="text-lg font-semibold text-white mb-2">Nova senha</h2>
               <p className="text-gray-500 text-sm mb-6">
-                Conta: <span className="text-white font-medium">{username}</span>
+                Email: <span className="text-white font-medium">{email}</span>
               </p>
 
               <form onSubmit={handleReset} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Codigo</label>
+                  <input
+                    type="text"
+                    className="input-field text-center text-2xl tracking-[0.5em] font-bold"
+                    placeholder="000000"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\\D/g, ''))}
+                    autoFocus
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Nova senha</label>
                   <input
                     type="password"
                     className="input-field"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Minimo 8 caracteres"
                     value={novaSenha}
-                    onChange={e => setNovaSenha(e.target.value)}
-                    autoFocus
+                    onChange={(e) => setNovaSenha(e.target.value)}
                   />
                 </div>
                 <div>
@@ -142,9 +139,9 @@ export default function ForgotPassword({ onGoLogin }) {
                   <input
                     type="password"
                     className="input-field"
-                    placeholder="••••••"
+                    placeholder="********"
                     value={confirmar}
-                    onChange={e => setConfirmar(e.target.value)}
+                    onChange={(e) => setConfirmar(e.target.value)}
                   />
                 </div>
 
@@ -157,17 +154,23 @@ export default function ForgotPassword({ onGoLogin }) {
                 <button
                   type="submit"
                   className="btn-primary w-full"
-                  disabled={loading || !novaSenha || !confirmar}
+                  disabled={loading || code.trim().length !== 6 || !novaSenha || !confirmar}
                 >
                   {loading ? 'Salvando...' : 'Redefinir senha'}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => { setStep(1); setError(''); }}
+                  onClick={() => {
+                    setStep(1);
+                    setError('');
+                    setCode('');
+                    setNovaSenha('');
+                    setConfirmar('');
+                  }}
                   className="w-full text-sm text-gray-500 hover:text-gray-300 transition-colors"
                 >
-                  ← Voltar
+                  {'<- Voltar'}
                 </button>
               </form>
             </>
@@ -179,7 +182,7 @@ export default function ForgotPassword({ onGoLogin }) {
                 onClick={onGoLogin}
                 className="text-draft-green hover:text-green-400 text-sm font-medium transition-colors"
               >
-                ← Voltar ao login
+                {'<- Voltar ao login'}
               </button>
             </div>
           )}
