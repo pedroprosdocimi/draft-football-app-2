@@ -127,23 +127,32 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
             </div>
           </div>
 
-          {/* Cartola status â€” under score */}
+          {/* Cartola status - bottom-right */}
           {cartolaStatus?.label && (
             <div
               style={{
                 position: 'absolute',
-                top: 26,
-                left: 0,
-                padding: '3px 5px',
-                borderRadius: '0 8px 8px 0',
+                bottom: 2,
+                right: 0,
+                padding: '3px 6px',
+                borderRadius: '8px 0 0 8px',
                 background: cartolaStatus.background,
                 border: `1px solid ${cartolaStatus.border}`,
-                borderLeft: 'none',
+                borderRight: 'none',
                 backdropFilter: 'blur(8px)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
               }}
               title={cartolaStatus.name || undefined}
             >
-              <div style={{ fontSize: 9, fontWeight: 900, color: cartolaStatus.text, lineHeight: 1 }}>
+              <div
+                style={{
+                  fontSize: 9,
+                  fontWeight: 900,
+                  letterSpacing: '0.06em',
+                  color: cartolaStatus.text,
+                  lineHeight: 1,
+                }}
+              >
                 {cartolaStatus.label}
               </div>
             </div>

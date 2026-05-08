@@ -237,33 +237,6 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             {avgScore}
           </div>
           <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>{scoreLabel}</div>
-          {cartolaStatus?.label && (
-            <div
-              style={{
-                marginTop: compact ? 3 : 4,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: compact ? '2px 4px' : '3px 6px',
-                borderRadius: 999,
-                background: cartolaStatus.background,
-                border: `1px solid ${cartolaStatus.border}`,
-              }}
-              title={cartolaStatus.name || undefined}
-            >
-              <span
-                style={{
-                  fontSize: compact ? 8 : 9,
-                  fontWeight: 900,
-                  letterSpacing: '0.06em',
-                  color: cartolaStatus.text,
-                  lineHeight: 1,
-                }}
-              >
-                {cartolaStatus.label}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Bottom-right: minutes + matches */}
@@ -283,6 +256,34 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             textAlign: 'right',
           }}
         >
+          {cartolaStatus?.label && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                marginBottom: compact ? 4 : 6,
+              }}
+              title={cartolaStatus.name || undefined}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  padding: compact ? '2px 4px' : '3px 6px',
+                  borderRadius: 999,
+                  background: cartolaStatus.background,
+                  border: `1px solid ${cartolaStatus.border}`,
+                  color: cartolaStatus.text,
+                  fontSize: compact ? 8 : 9,
+                  fontWeight: 900,
+                  letterSpacing: '0.06em',
+                  lineHeight: 1,
+                }}
+              >
+                {cartolaStatus.label}
+              </span>
+            </div>
+          )}
           <div style={{ fontSize: compact ? 9 : 11, fontWeight: 700, color: '#d1d5db', lineHeight: 1 }}>
             {avgMinutes}'
           </div>
