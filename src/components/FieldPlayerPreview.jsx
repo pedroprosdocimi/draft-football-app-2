@@ -7,6 +7,7 @@ import {
   normalizeDetailedPositionId,
 } from '../utils/positions.js';
 import { nationalityToIso2 } from '../utils/nationality.js';
+import { getCartolaStatusMeta } from '../utils/cartolaStatus.js';
 
 const TEAM_COLORS = {
   FLA: { p: '#CC0000', s: '#1a1a1a' },
@@ -73,6 +74,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const primaryPositionPalette = getDetailedPositionPalette(displayedPrimaryPositionId);
 
   const iso2 = nationalityToIso2(player?.nationality || '');
+  const cartolaStatus = getCartolaStatusMeta(player?.cartola_status_id);
 
   return (
     <div className="w-[5rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[6.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
@@ -124,6 +126,28 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
               {avgScore}
             </div>
           </div>
+
+          {/* Cartola status â€” under score */}
+          {cartolaStatus?.label && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 26,
+                left: 0,
+                padding: '3px 5px',
+                borderRadius: '0 8px 8px 0',
+                background: cartolaStatus.background,
+                border: `1px solid ${cartolaStatus.border}`,
+                borderLeft: 'none',
+                backdropFilter: 'blur(8px)',
+              }}
+              title={cartolaStatus.name || undefined}
+            >
+              <div style={{ fontSize: 9, fontWeight: 900, color: cartolaStatus.text, lineHeight: 1 }}>
+                {cartolaStatus.label}
+              </div>
+            </div>
+          )}
 
           {/* Main position + alt positions — right edge, slightly below top */}
           <div

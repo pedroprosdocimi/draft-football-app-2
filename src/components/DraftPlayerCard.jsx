@@ -1,5 +1,6 @@
 import React from 'react';
 import { nationalityToIso2 } from '../utils/nationality.js';
+import { getCartolaStatusMeta } from '../utils/cartolaStatus.js';
 import {
   getDetailedPositionLabel,
   getDetailedPositionPalette,
@@ -63,6 +64,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
   const borderColor = BORDER_COLORS[player.position_id] || '#6b7280';
   const iso2 = nationalityToIso2(player.nationality || '');
   const displayName = player.display_name || player.name;
+  const cartolaStatus = getCartolaStatusMeta(player.cartola_status_id);
 
   const primaryPositionId = getPlayerPrimaryDetailedPositionId(player);
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
@@ -235,6 +237,33 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
             {avgScore}
           </div>
           <div style={{ fontSize: 8, color: mutedLabelColor, letterSpacing: '0.04em' }}>{scoreLabel}</div>
+          {cartolaStatus?.label && (
+            <div
+              style={{
+                marginTop: compact ? 3 : 4,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: compact ? '2px 4px' : '3px 6px',
+                borderRadius: 999,
+                background: cartolaStatus.background,
+                border: `1px solid ${cartolaStatus.border}`,
+              }}
+              title={cartolaStatus.name || undefined}
+            >
+              <span
+                style={{
+                  fontSize: compact ? 8 : 9,
+                  fontWeight: 900,
+                  letterSpacing: '0.06em',
+                  color: cartolaStatus.text,
+                  lineHeight: 1,
+                }}
+              >
+                {cartolaStatus.label}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Bottom-right: minutes + matches */}
