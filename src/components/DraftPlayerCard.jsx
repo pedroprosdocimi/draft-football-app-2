@@ -278,6 +278,7 @@ export default function DraftPlayerCard({ player, onClick, isMyTurn, compact = f
                   fontWeight: 900,
                   letterSpacing: '0.06em',
                   lineHeight: 1,
+                  zIndex: 30,
                 }}
               >
                 {cartolaStatus.label}

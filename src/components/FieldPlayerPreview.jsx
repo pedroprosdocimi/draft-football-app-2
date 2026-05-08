@@ -134,6 +134,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
                 position: 'absolute',
                 bottom: 2,
                 right: 0,
+                zIndex: 30,
                 padding: '3px 6px',
                 borderRadius: '8px 0 0 8px',
                 background: cartolaStatus.background,
