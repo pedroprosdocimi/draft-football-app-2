@@ -42,6 +42,48 @@ function stageMatchLabel(stageLabel, matchNumber) {
   return `${formatPosition(matchNumber)} ${stageLabel}`;
 }
 
+function placementFromLabel(label) {
+  const match = String(label || '').match(/^(\d+)(?:º|o|°)\s+Colocado$/i);
+  return match ? Number(match[1]) : null;
+}
+
+function hydratePlacementTeam(team, standings) {
+  const placement = placementFromLabel(team?.team_name);
+  if (!placement) return team;
+
+  const standing = standings?.[placement - 1];
+  if (!standing) return team;
+
+  return {
+    ...team,
+    user_id: standing.user_id,
+    coach_name: standing.coach_name,
+    team_name: standing.team_name,
+    seed_order: standing.position,
+  };
+}
+
+function hydrateProjectedBracket(stages, standings) {
+  if (!stages?.length || !standings?.length) return stages;
+
+  return stages.map((stage) => ({
+    ...stage,
+    matches: stage.matches.map((match) => ({
+      ...match,
+      home: hydratePlacementTeam(match.home, standings),
+      away: hydratePlacementTeam(match.away, standings),
+    })),
+  }));
+}
+
+function bracketHasPlacementLabels(stages) {
+  return Boolean(stages?.some((stage) => (
+    stage.matches.some((match) => (
+      placementFromLabel(match.home?.team_name) || placementFromLabel(match.away?.team_name)
+    ))
+  )));
+}
+
 const BRACKET_LAYOUT = {
   canvasPaddingX: 20,
   canvasPaddingY: 20,
@@ -447,6 +489,11 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
 
   const viewerRequestStatus = data?.viewer_join_request_status || null;
   const shouldShowJoinPrompt = user && data && !data.viewer_is_participant;
+  const hydratedBracket = useMemo(
+    () => hydrateProjectedBracket(data?.bracket, data?.qualification_standings),
+    [data?.bracket, data?.qualification_standings],
+  );
+  const hasProjectedPlacementLabels = bracketHasPlacementLabels(hydratedBracket);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.14),_transparent_30%),linear-gradient(180deg,_#070b11,_#0f1724)] px-4 py-8">
@@ -567,13 +614,13 @@ export default function Championship({ championshipId, shareCode, user, onGoHome
               />
             )}
 
-            {data.type === 'hybrid' && !data.knockout_ready && (
+            {data.type === 'hybrid' && !data.knockout_ready && hasProjectedPlacementLabels && (
               <section className="rounded-3xl border border-sky-500/20 bg-sky-500/10 px-5 py-4 text-sm text-sky-200">
                 O chaveamento final já aparece projetado pelas posições da fase inicial e será preenchido com os times reais depois da rodada {data.league_phase_end_round_number}.
               </section>
             )}
 
-            <BracketSection stages={data.bracket} />
+            <BracketSection stages={hydratedBracket} />
           </div>
         )}
       </div>
