@@ -266,16 +266,16 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           {displayName}
         </div>
 
-        <div className="mt-1 grid grid-cols-6 gap-x-0.5 sm:mt-1.5 sm:gap-x-1">
+        <div className="mt-1 grid grid-cols-6 gap-x-1 sm:mt-1.5 sm:gap-x-1.5">
           {attrs.map(([label]) => (
             <div key={label} className="min-w-0 text-center leading-none">
-              <span className="text-[7px] font-black text-amber-950/70 sm:text-[8px]">
+              <span className="block text-[5px] font-semibold text-amber-950/65 sm:text-[6px]">
                 {label}
               </span>
             </div>
           ))}
         </div>
-        <div className="mt-0.5 grid grid-cols-6 gap-x-0.5 sm:gap-x-1">
+        <div className="mt-0.5 grid grid-cols-6 gap-x-1 sm:gap-x-1.5">
           {attrs.map(([label, key]) => (
             <div key={label} className="min-w-0 text-center leading-none">
               <span className="text-[8px] font-black text-amber-950 sm:text-[10px]">
