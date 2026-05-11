@@ -85,7 +85,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const iso2 = nationalityToIso2(player?.nationality || '');
   const cartolaStatus = getCartolaStatusMeta(player?.cartola_status_id);
   const positionLabel = getDetailedPositionLabel(displayedPrimaryPositionId) || posLabel;
-  const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
+  const nameFontSize = displayName.length > 12 ? 8 : displayName.length > 9 ? 9 : 10;
 
   return (
     <div
@@ -124,7 +124,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           </svg>
         )}
 
-        <div className="absolute left-[15%] top-[12%] w-[2rem] text-center sm:w-[2.6rem]">
+        <div className="absolute left-[9%] top-[12%] w-[2rem] text-center sm:w-[2.6rem]">
           <div className="text-[20px] font-black leading-none sm:text-[26px]">{avgScore}</div>
           <div className="mt-0.5 text-[10px] font-black uppercase leading-none sm:text-[12px]">
             {positionLabel}

@@ -89,7 +89,7 @@ export default function DraftPlayerCard({
   const H = compact ? 196 : large ? 348 : 294;
   const scoreFz = compact ? 30 : large ? 54 : 46;
   const posFz = compact ? 15 : large ? 28 : 24;
-  const nameFz = compact ? 18 : large ? 33 : 28;
+  const nameFz = compact ? 20 : large ? 37 : 31;
   const attrLabelFz = compact ? 11 : large ? 20 : 17;
   const attrValFz = compact ? 15 : large ? 28 : 24;
   const jerseyH = compact ? '43%' : large ? '48%' : '47%';
@@ -197,7 +197,7 @@ export default function DraftPlayerCard({
           </svg>
         )}
 
-        <div style={{ position: 'absolute', left: '12%', top: '12%', width: compact ? 44 : large ? 76 : 64, textAlign: 'center' }}>
+        <div style={{ position: 'absolute', left: '7%', top: '12%', width: compact ? 44 : large ? 76 : 64, textAlign: 'center' }}>
           <div style={{ fontSize: scoreFz, fontWeight: 950, lineHeight: 0.92 }}>{avgScore}</div>
           <div style={{ marginTop: compact ? 2 : 4, fontSize: posFz, fontWeight: 900, lineHeight: 1 }}>
             {positionLabel}
