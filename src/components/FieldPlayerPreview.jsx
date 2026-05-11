@@ -103,14 +103,14 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           <img
             src={player.team_jersey_url}
             alt={player.team_short_code}
-            className="absolute bottom-[29%] left-[58%] h-[46%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_14px_rgba(62,39,6,0.45)] sm:bottom-[28%] sm:h-[48%]"
+            className="absolute bottom-[33%] left-[63%] h-[46%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_14px_rgba(62,39,6,0.45)] sm:bottom-[32%] sm:h-[48%]"
           />
         ) : (
           <svg
             viewBox="0 0 120 95"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute bottom-[29%] left-[58%] h-[46%] w-auto -translate-x-1/2 drop-shadow-[0_8px_14px_rgba(62,39,6,0.45)] sm:bottom-[28%] sm:h-[48%]"
+            className="absolute bottom-[33%] left-[63%] h-[46%] w-auto -translate-x-1/2 drop-shadow-[0_8px_14px_rgba(62,39,6,0.45)] sm:bottom-[32%] sm:h-[48%]"
           >
             <defs>
               <clipPath id={`field-jersey-${player?.id || displayName}`}>
@@ -160,12 +160,12 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           </div>
         </div>
 
-        <div className="absolute bottom-[14%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
+        <div className="absolute bottom-[16%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
           {attrs.map(([label]) => (
             <div key={label} className="text-[5px] font-black leading-none sm:text-[6px]">{label}</div>
           ))}
         </div>
-        <div className="absolute bottom-[7%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
+        <div className="absolute bottom-[9%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
           {attrs.map(([label, key]) => (
             <div key={label} className="text-[7px] font-black leading-none sm:text-[9px]">
               {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}
@@ -174,7 +174,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
         </div>
 
         {iso2 && (
-          <div className="absolute bottom-[2.5%] left-1/2 -translate-x-1/2">
+          <div className="absolute bottom-[3%] left-1/2 -translate-x-1/2">
             <span className={`fi fi-${iso2}`} style={{ display: 'inline-block', width: 13, height: 9 }} />
           </div>
         )}

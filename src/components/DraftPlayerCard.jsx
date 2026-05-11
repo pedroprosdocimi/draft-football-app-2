@@ -161,8 +161,8 @@ export default function DraftPlayerCard({
             alt={player.team_short_code}
             style={{
               position: 'absolute',
-              left: '58%',
-              bottom: '30%',
+              left: '63%',
+              bottom: '34%',
               height: jerseyH,
               width: 'auto',
               transform: 'translateX(-50%)',
@@ -177,8 +177,8 @@ export default function DraftPlayerCard({
             xmlns="http://www.w3.org/2000/svg"
             style={{
               position: 'absolute',
-              left: '58%',
-              bottom: '30%',
+              left: '63%',
+              bottom: '34%',
               height: jerseyH,
               width: 'auto',
               transform: 'translateX(-50%)',
@@ -283,7 +283,7 @@ export default function DraftPlayerCard({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '14%',
+            bottom: '16%',
             width: '82%',
             transform: 'translateX(-50%)',
             display: 'grid',
@@ -302,7 +302,7 @@ export default function DraftPlayerCard({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '7.2%',
+            bottom: '9.2%',
             width: '82%',
             transform: 'translateX(-50%)',
             display: 'grid',
@@ -318,7 +318,7 @@ export default function DraftPlayerCard({
         </div>
 
         {iso2 && (
-          <div style={{ position: 'absolute', bottom: '2.4%', left: '50%', transform: 'translateX(-50%)' }}>
+          <div style={{ position: 'absolute', bottom: '3%', left: '50%', transform: 'translateX(-50%)' }}>
             <span
               className={`fi fi-${iso2}`}
               style={{ display: 'inline-block', width: compact ? 20 : large ? 34 : 28, height: compact ? 14 : large ? 24 : 20 }}
