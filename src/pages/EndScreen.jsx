@@ -32,19 +32,12 @@ function authFetch(url, options = {}) {
 
 function normalizePlayer(pick) {
   if (!pick) return null;
-  const avgScore = Number.isFinite(pick.avg_score)
-    ? pick.avg_score
-    : Number.isFinite(pick.average_score)
-      ? pick.average_score
-      : 0;
-  const roundScore = Number.isFinite(pick.round_score) ? pick.round_score : 0;
+  const roundScore = Number.isFinite(pick.round_score) ? pick.round_score : null;
   return {
     ...pick,
     id: pick.id ?? pick.player_id ?? null,
-    score_value: avgScore,
-    score_label: 'score med.',
-    round_score_value: roundScore,
-    round_score_label: 'rodada',
+    score_value: roundScore ?? pick.avg_score ?? 0,
+    score_label: 'rodada',
   };
 }
 
@@ -95,8 +88,8 @@ function buildAutoSubstitutionView(slotPlayers, starterPlacements) {
 
     displaySlots[starterSlot.position] = {
       ...benchCandidate.player,
-      round_score_value: (Number(benchCandidate.player.round_score) || 0) / 2,
-      round_score_label: 'rodada/2',
+      score_value: (Number(benchCandidate.player.round_score) || 0) / 2,
+      score_label: 'rodada/2',
       auto_substitution: {
         type: 'in',
         starter_slot: starterSlot.position,
@@ -106,8 +99,8 @@ function buildAutoSubstitutionView(slotPlayers, starterPlacements) {
 
     displaySlots[benchCandidate.slot] = {
       ...starter,
-      round_score_value: Number(starter.round_score) || 0,
-      round_score_label: 'rodada',
+      score_value: Number(starter.round_score) || 0,
+      score_label: 'rodada',
       auto_substitution: {
         type: 'out',
         starter_slot: starterSlot.position,
@@ -135,19 +128,6 @@ function SubstitutionBadge({ type }) {
       }`}
     >
       {isIn ? 'Entrou' : 'Saiu'}
-    </div>
-  );
-}
-
-function RoundScoreBadge({ player }) {
-  const score = Number.isFinite(player?.round_score_value) ? player.round_score_value : 0;
-  const scoreColor = score > 0 ? 'text-emerald-200' : score < 0 ? 'text-red-200' : 'text-gray-300';
-
-  return (
-    <div className="mx-auto mt-1 w-[3.2rem] rounded-full border border-white/10 bg-slate-950/80 px-2 py-0.5 text-center shadow-[0_8px_18px_rgba(0,0,0,0.32)] sm:w-[4rem]">
-      <span className={`text-[11px] font-black leading-none ${scoreColor}`}>
-        {score.toFixed(1)}
-      </span>
     </div>
   );
 }
@@ -260,8 +240,8 @@ export default function EndScreen({ draftId, user, onGoHome }) {
 
     next[captainSlotPosition] = {
       ...next[captainSlotPosition],
-      round_score_value: (Number(next[captainSlotPosition].round_score_value) || 0) * CAPTAIN_MULTIPLIER,
-      round_score_label: `${next[captainSlotPosition].round_score_label || 'rodada'} x1.5`,
+      score_value: (Number(next[captainSlotPosition].score_value) || 0) * CAPTAIN_MULTIPLIER,
+      score_label: `${next[captainSlotPosition].score_label || 'rodada'} x1.5`,
     };
 
     return next;
@@ -725,7 +705,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                       posLabel={posLabel}
                       slotPositionId={slot.detailed_position_id}
                     />
-                    <RoundScoreBadge player={player} />
                   </div>
                 ) : (
                   <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-dashed border-white/15 bg-slate-950/30 px-2.5 py-2 text-center opacity-40">
@@ -810,7 +789,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                 >
                   <SubstitutionBadge type={substitutionType} />
                   <FieldPlayerPreview player={player} posLabel={posLabel} />
-                  <RoundScoreBadge player={player} />
                 </div>
               );
             }
@@ -849,7 +827,6 @@ export default function EndScreen({ draftId, user, onGoHome }) {
                 : null
             }
           />
-          <RoundScoreBadge player={draggingPlayer} />
         </div>
       )}
 
