@@ -141,16 +141,12 @@ function SubstitutionBadge({ type }) {
 
 function RoundScoreBadge({ player }) {
   const score = Number.isFinite(player?.round_score_value) ? player.round_score_value : 0;
-  const label = player?.round_score_label || 'rodada';
   const scoreColor = score > 0 ? 'text-emerald-200' : score < 0 ? 'text-red-200' : 'text-gray-300';
 
   return (
-    <div className="mx-auto mt-1 w-[4.6rem] rounded-full border border-white/10 bg-slate-950/80 px-2 py-0.5 text-center shadow-[0_8px_18px_rgba(0,0,0,0.32)] sm:w-[5.8rem]">
+    <div className="mx-auto mt-1 w-[3.2rem] rounded-full border border-white/10 bg-slate-950/80 px-2 py-0.5 text-center shadow-[0_8px_18px_rgba(0,0,0,0.32)] sm:w-[4rem]">
       <span className={`text-[11px] font-black leading-none ${scoreColor}`}>
         {score.toFixed(1)}
-      </span>
-      <span className="ml-1 text-[8px] font-semibold uppercase tracking-wide text-gray-500">
-        {label}
       </span>
     </div>
   );
