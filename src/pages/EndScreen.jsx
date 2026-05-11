@@ -32,12 +32,16 @@ function authFetch(url, options = {}) {
 
 function normalizePlayer(pick) {
   if (!pick) return null;
-  const roundScore = Number.isFinite(pick.round_score) ? pick.round_score : null;
+  const avgScore = Number.isFinite(pick.avg_score)
+    ? pick.avg_score
+    : Number.isFinite(pick.average_score)
+      ? pick.average_score
+      : 0;
   return {
     ...pick,
     id: pick.id ?? pick.player_id ?? null,
-    score_value: roundScore ?? pick.avg_score ?? 0,
-    score_label: 'rodada',
+    score_value: avgScore,
+    score_label: 'score med.',
   };
 }
 
@@ -88,8 +92,6 @@ function buildAutoSubstitutionView(slotPlayers, starterPlacements) {
 
     displaySlots[starterSlot.position] = {
       ...benchCandidate.player,
-      score_value: (Number(benchCandidate.player.round_score) || 0) / 2,
-      score_label: 'rodada/2',
       auto_substitution: {
         type: 'in',
         starter_slot: starterSlot.position,
@@ -99,8 +101,6 @@ function buildAutoSubstitutionView(slotPlayers, starterPlacements) {
 
     displaySlots[benchCandidate.slot] = {
       ...starter,
-      score_value: Number(starter.round_score) || 0,
-      score_label: 'rodada',
       auto_substitution: {
         type: 'out',
         starter_slot: starterSlot.position,
@@ -235,17 +235,8 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   }, [draft?.captain_player_id, slotPlayers]);
 
   const visualSlotPlayers = useMemo(() => {
-    const next = { ...autoSubstitutionView.displaySlots };
-    if (captainSlotPosition == null || !next[captainSlotPosition]) return next;
-
-    next[captainSlotPosition] = {
-      ...next[captainSlotPosition],
-      score_value: (Number(next[captainSlotPosition].score_value) || 0) * CAPTAIN_MULTIPLIER,
-      score_label: `${next[captainSlotPosition].score_label || 'rodada'} x1.5`,
-    };
-
-    return next;
-  }, [autoSubstitutionView.displaySlots, captainSlotPosition]);
+    return { ...autoSubstitutionView.displaySlots };
+  }, [autoSubstitutionView.displaySlots]);
 
   const visualBenchSlots = useMemo(() => (
     autoSubstitutionView.benchSlots.map((item) => ({
