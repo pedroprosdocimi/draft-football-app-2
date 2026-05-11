@@ -55,7 +55,7 @@ const GOALKEEPER_ATTRS = [
   ['FIS', 'attr_fis'],
 ];
 
-const CARD_CLIP_PATH = 'polygon(50% 3%, 94% 17%, 94% 83%, 50% 97%, 6% 83%, 6% 17%)';
+const CARD_CLIP_PATH = 'polygon(50% 5%, 93% 13%, 93% 87%, 50% 95%, 7% 87%, 7% 13%)';
 
 export default function DraftPlayerCard({
   player,
