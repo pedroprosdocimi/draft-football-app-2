@@ -268,16 +268,16 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
 
         <div className="mt-1 grid grid-cols-6 sm:mt-1.5">
           {attrs.map(([label]) => (
-            <div key={label} className="min-w-0 border-r border-amber-950/18 text-center leading-none last:border-r-0">
+            <div key={label} className="min-w-0 text-center leading-none">
               <span className="block text-[5px] font-bold text-amber-950/70 sm:text-[6px]">
                 {label}
               </span>
             </div>
           ))}
         </div>
-        <div className="mt-0.5 grid grid-cols-6">
+        <div className="grid grid-cols-6">
           {attrs.map(([label, key]) => (
-            <div key={label} className="min-w-0 border-r border-amber-950/18 text-center leading-none last:border-r-0">
+            <div key={label} className="min-w-0 text-center leading-none">
               <span className="text-[8px] font-black text-amber-950 sm:text-[10px]">
                 {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}
               </span>
