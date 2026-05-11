@@ -4,6 +4,7 @@ import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
+import { useMobileScrollLock } from '../utils/useMobileScrollLock.js';
 
 const BENCH_SLOTS = [
   { slot: 12, label: 'RES 1' },
@@ -170,25 +171,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     loadData();
   }, [loadData]);
 
-  // Lock scroll for the entire screen lifetime
-  useEffect(() => {
-    const body = document.body;
-    const root = document.documentElement;
-    const prevBodyOverflow = body.style.overflow;
-    const prevRootOverflow = root.style.overflow;
-    const prevBodyOverscroll = body.style.overscrollBehaviorY;
-    const prevRootOverscroll = root.style.overscrollBehaviorY;
-    body.style.overflow = 'hidden';
-    root.style.overflow = 'hidden';
-    body.style.overscrollBehaviorY = 'none';
-    root.style.overscrollBehaviorY = 'none';
-    return () => {
-      body.style.overflow = prevBodyOverflow;
-      root.style.overflow = prevRootOverflow;
-      body.style.overscrollBehaviorY = prevBodyOverscroll;
-      root.style.overscrollBehaviorY = prevRootOverscroll;
-    };
-  }, []);
+  useMobileScrollLock();
 
   useEffect(() => () => {
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
@@ -267,23 +250,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
     (!draft.edit_deadline || new Date() < new Date(draft.edit_deadline))
   );
 
-  // Lock body scroll while dragging
-  useEffect(() => {
-    if (draggingSlot === null) return undefined;
-    const body = document.body;
-    const root = document.documentElement;
-    const prevBodyOverflow = body.style.overflow;
-    const prevRootOverflow = root.style.overflow;
-    const prevBodyTouchAction = body.style.touchAction;
-    body.style.overflow = 'hidden';
-    root.style.overflow = 'hidden';
-    body.style.touchAction = 'none';
-    return () => {
-      body.style.overflow = prevBodyOverflow;
-      root.style.overflow = prevRootOverflow;
-      body.style.touchAction = prevBodyTouchAction;
-    };
-  }, [draggingSlot]);
+  useMobileScrollLock(draggingSlot !== null, { lockTouch: true });
 
   useEffect(() => {
     if (draggingSlot !== null) return;
@@ -619,7 +586,7 @@ export default function EndScreen({ draftId, user, onGoHome }) {
   }
 
   return (
-    <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
+    <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:h-auto sm:min-h-screen sm:overflow-visible sm:p-4 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Voltar</button>
         <span className="text-xs text-gray-500 font-mono uppercase text-center">

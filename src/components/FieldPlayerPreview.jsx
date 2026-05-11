@@ -32,6 +32,24 @@ const TEAM_COLORS = {
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },
 };
 
+const OUTFIELD_ATTRS = [
+  ['ATA', 'attr_ata'],
+  ['COM', 'attr_com'],
+  ['CRI', 'attr_cri'],
+  ['DEF', 'attr_def'],
+  ['PAS', 'attr_pas'],
+  ['FIS', 'attr_fis'],
+];
+
+const GOALKEEPER_ATTRS = [
+  ['GOL', 'attr_gol'],
+  ['COM', 'attr_com'],
+  ['CRI', 'attr_cri'],
+  ['DEF', 'attr_def'],
+  ['PAS', 'attr_pas'],
+  ['FIS', 'attr_fis'],
+];
+
 function formatName(name) {
   const parts = name.trim().split(/\s+/);
   if (parts.length < 2) return name;
@@ -64,6 +82,8 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
   const rawAltPositions = getPlayerAlternativeDetailedPositionIds(player, 2);
   const displayedPrimaryPositionId = normalizedSlotPos || normalizedPlayerPos;
+  const isGoalkeeper = displayedPrimaryPositionId === 1 || player?.detailed_position_id === 1;
+  const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const altPositions = [...new Set(
     displayedPrimaryPositionId !== normalizedPlayerPos
       ? [normalizedPlayerPos, ...rawAltPositions]
@@ -227,20 +247,36 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
         </div>
       </div>
 
-      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2">
+      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(247,212,110,0.95)_0%,rgba(180,132,38,0.98)_100%)] px-1.5 pt-1.5 pb-2 text-center text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.28)] sm:px-2.5 sm:pt-2 sm:pb-2.5">
         <div
           style={{
             fontSize: nameFontSize,
-            fontWeight: 800,
+            fontWeight: 900,
             textTransform: 'uppercase',
-            letterSpacing: '0.02em',
-            color: '#ffffff',
+            letterSpacing: '0',
+            color: '#3f2b07',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
+            textOverflow: 'ellipsis',
             lineHeight: 1.2,
+            paddingBottom: 4,
+            borderBottom: '1px solid rgba(63,43,7,0.22)',
           }}
         >
           {displayName}
+        </div>
+
+        <div className="mt-1 grid grid-cols-3 gap-x-1 gap-y-0.5 sm:mt-1.5 sm:gap-x-1.5">
+          {attrs.map(([label, key]) => (
+            <div key={label} className="flex items-baseline justify-center gap-0.5 leading-none">
+              <span className="text-[7px] font-black text-amber-950/70 sm:text-[8px]">
+                {label}
+              </span>
+              <span className="text-[8px] font-black text-amber-950 sm:text-[10px]">
+                {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

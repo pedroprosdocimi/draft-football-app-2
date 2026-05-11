@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { API_URL } from '../config.js';
+import { useMobileScrollLock } from '../utils/useMobileScrollLock.js';
 
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
@@ -118,26 +119,7 @@ export default function FixturesBrowser({
     load(initialRoundNumber);
   }, [initialRoundNumber, load]);
 
-  // Lock body scroll when shown as a full page (not embedded)
-  useEffect(() => {
-    if (embedded) return undefined;
-    const body = document.body;
-    const root = document.documentElement;
-    const prevBodyOverflow = body.style.overflow;
-    const prevRootOverflow = root.style.overflow;
-    const prevBodyOverscroll = body.style.overscrollBehaviorY;
-    const prevRootOverscroll = root.style.overscrollBehaviorY;
-    body.style.overflow = 'hidden';
-    root.style.overflow = 'hidden';
-    body.style.overscrollBehaviorY = 'none';
-    root.style.overscrollBehaviorY = 'none';
-    return () => {
-      body.style.overflow = prevBodyOverflow;
-      root.style.overflow = prevRootOverflow;
-      body.style.overscrollBehaviorY = prevBodyOverscroll;
-      root.style.overscrollBehaviorY = prevRootOverscroll;
-    };
-  }, [embedded]);
+  useMobileScrollLock(!embedded);
 
   const goRound = (targetRound) => {
     if (!data || targetRound < 1 || targetRound > data.total_rounds) return;
@@ -164,7 +146,7 @@ export default function FixturesBrowser({
   }, [data]);
 
   return (
-    <div className={`${embedded ? 'h-full' : 'h-[100dvh]'} overflow-hidden flex flex-col max-w-lg mx-auto px-4 py-4`}>
+    <div className={`${embedded ? 'h-full' : 'h-[100dvh] sm:h-auto sm:min-h-screen sm:overflow-visible'} overflow-hidden flex flex-col max-w-lg mx-auto px-4 py-4`}>
       <div className="flex items-center gap-3 mb-5">
         <button
           onClick={onBack}
@@ -221,7 +203,7 @@ export default function FixturesBrowser({
       )}
 
       {!loading && !error && data && groupedFixtures.length > 0 && (
-        <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pr-1 pb-2">
+        <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pr-1 pb-2 sm:flex-none sm:overflow-visible">
           {groupedFixtures.map((group) => (
             <div key={group.key} className="flex flex-col gap-3">
               <div className="px-1">
