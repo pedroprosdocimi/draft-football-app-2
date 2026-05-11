@@ -33,19 +33,19 @@ const TEAM_COLORS = {
 
 const OUTFIELD_ATTRS = [
   ['ATA', 'attr_ata'],
-  ['CRI', 'attr_cri'],
-  ['PAS', 'attr_pas'],
-  ['DEF', 'attr_def'],
   ['COM', 'attr_com'],
+  ['CRI', 'attr_cri'],
+  ['DEF', 'attr_def'],
+  ['PAS', 'attr_pas'],
   ['FIS', 'attr_fis'],
 ];
 
 const GOALKEEPER_ATTRS = [
   ['GOL', 'attr_gol'],
-  ['CRI', 'attr_cri'],
-  ['PAS', 'attr_pas'],
-  ['DEF', 'attr_def'],
   ['COM', 'attr_com'],
+  ['CRI', 'attr_cri'],
+  ['DEF', 'attr_def'],
+  ['PAS', 'attr_pas'],
   ['FIS', 'attr_fis'],
 ];
 
@@ -160,13 +160,15 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           </div>
         </div>
 
-        <div className="absolute bottom-[12%] left-1/2 grid w-[72%] -translate-x-1/2 grid-cols-3 gap-y-1 text-center">
+        <div className="absolute bottom-[20%] left-1/2 grid w-[88%] -translate-x-1/2 grid-cols-6 text-center">
+          {attrs.map(([label]) => (
+            <div key={label} className="text-[5px] font-black leading-none sm:text-[6px]">{label}</div>
+          ))}
+        </div>
+        <div className="absolute bottom-[13%] left-1/2 grid w-[88%] -translate-x-1/2 grid-cols-6 text-center">
           {attrs.map(([label, key]) => (
-            <div key={label} className="leading-none">
-              <div className="text-[5px] font-black leading-none sm:text-[6px]">{label}</div>
-              <div className="mt-0.5 text-[7px] font-black leading-none sm:text-[9px]">
-                {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}
-              </div>
+            <div key={label} className="text-[7px] font-black leading-none sm:text-[9px]">
+              {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}
             </div>
           ))}
         </div>
