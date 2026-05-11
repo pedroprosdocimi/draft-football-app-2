@@ -49,7 +49,7 @@ const GOALKEEPER_ATTRS = [
   ['FIS', 'attr_fis'],
 ];
 
-const CARD_CLIP_PATH = 'polygon(50% 0%, 57% 4%, 66% 3%, 82% 12%, 96% 25%, 100% 31%, 100% 88%, 88% 94%, 64% 96%, 50% 100%, 36% 96%, 12% 94%, 0% 88%, 0% 31%, 4% 25%, 18% 12%, 34% 3%, 43% 4%)';
+const CARD_CLIP_PATH = 'polygon(50% 0%, 96% 25%, 96% 75%, 50% 100%, 4% 75%, 4% 25%)';
 
 function formatName(name) {
   const parts = name.trim().split(/\s+/);
