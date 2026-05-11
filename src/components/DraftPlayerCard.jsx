@@ -39,19 +39,19 @@ const BORDER_COLORS = {
 
 const OUTFIELD_ATTRS = [
   ['ATA', 'attr_ata'],
-  ['COM', 'attr_com'],
   ['CRI', 'attr_cri'],
-  ['DEF', 'attr_def'],
   ['PAS', 'attr_pas'],
+  ['DEF', 'attr_def'],
+  ['COM', 'attr_com'],
   ['FIS', 'attr_fis'],
 ];
 
 const GOALKEEPER_ATTRS = [
   ['GOL', 'attr_gol'],
-  ['COM', 'attr_com'],
   ['CRI', 'attr_cri'],
-  ['DEF', 'attr_def'],
   ['PAS', 'attr_pas'],
+  ['DEF', 'attr_def'],
+  ['COM', 'attr_com'],
   ['FIS', 'attr_fis'],
 ];
 
@@ -283,36 +283,23 @@ export default function DraftPlayerCard({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '20%',
-            width: '88%',
+            bottom: '9.5%',
+            width: '72%',
             transform: 'translateX(-50%)',
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
-            textAlign: 'center',
-          }}
-        >
-          {attrs.map(([label]) => (
-            <div key={label} style={{ fontSize: attrLabelFz, fontWeight: 900, lineHeight: 1 }}>
-              {label}
-            </div>
-          ))}
-        </div>
-
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: '13.2%',
-            width: '88%',
-            transform: 'translateX(-50%)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            rowGap: compact ? 5 : large ? 10 : 8,
             textAlign: 'center',
           }}
         >
           {attrs.map(([label, key]) => (
-            <div key={label} style={{ fontSize: attrValFz, fontWeight: 950, lineHeight: 1 }}>
-              {Number.isFinite(player[key]) ? Math.round(player[key]) : 0}
+            <div key={label} style={{ lineHeight: 1 }}>
+              <div style={{ fontSize: attrLabelFz, fontWeight: 900, lineHeight: 1 }}>
+                {label}
+              </div>
+              <div style={{ marginTop: compact ? 2 : 3, fontSize: attrValFz, fontWeight: 950, lineHeight: 1 }}>
+                {Number.isFinite(player[key]) ? Math.round(player[key]) : 0}
+              </div>
             </div>
           ))}
         </div>
