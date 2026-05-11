@@ -7,7 +7,6 @@ import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import FixturesBrowser from '../components/FixturesBrowser.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
-import { useMobileScrollLock } from '../utils/useMobileScrollLock.js';
 
 // Maps detailed_position_id to basic position_id
 const DETAILED_TO_BASIC = {
@@ -187,14 +186,54 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
   }, []);
 
-  useMobileScrollLock(draggingSlot !== null, { lockTouch: true });
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    if (draggingSlot === null) return undefined;
+
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyTouchAction = body.style.touchAction;
+
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    body.style.touchAction = 'none';
+
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+      body.style.touchAction = prevBodyTouchAction;
+    };
+  }, [draggingSlot]);
 
   useEffect(() => {
     if (draggingSlot !== null) return;
     setDragPointer(null);
   }, [draggingSlot]);
 
-  useMobileScrollLock();
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    const prevBodyOverscroll = body.style.overscrollBehaviorY;
+    const prevRootOverscroll = root.style.overscrollBehaviorY;
+
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    body.style.overscrollBehaviorY = 'none';
+    root.style.overscrollBehaviorY = 'none';
+
+    return () => {
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+      body.style.overscrollBehaviorY = prevBodyOverscroll;
+      root.style.overscrollBehaviorY = prevRootOverscroll;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isBenchPhase && !isCaptainPhase) {
@@ -731,7 +770,7 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   }
 
   return (
-    <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:h-auto sm:min-h-screen sm:overflow-visible sm:p-4 max-w-2xl mx-auto">
+    <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
       {showFixturesModal && (
         <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm">
           <div className="mx-auto h-full w-full max-w-xl">

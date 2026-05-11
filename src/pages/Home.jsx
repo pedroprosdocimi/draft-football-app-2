@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { API_URL } from '../config.js';
-import { useMobileScrollLock } from '../utils/useMobileScrollLock.js';
 
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
@@ -150,7 +149,26 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const [playedRounds, setPlayedRounds] = useState([]);
   const [playedRoundsLoading, setPlayedRoundsLoading] = useState(false);
 
-  useMobileScrollLock();
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverscroll = html.style.overscrollBehaviorY;
+    const prevBodyOverscroll = body.style.overscrollBehaviorY;
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    html.style.overscrollBehaviorY = 'none';
+    body.style.overscrollBehaviorY = 'none';
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehaviorY = prevHtmlOverscroll;
+      body.style.overscrollBehaviorY = prevBodyOverscroll;
+    };
+  }, []);
 
   const loadDrafts = async () => {
     setLoading(true);
@@ -266,7 +284,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
   const canCreateDraft = Boolean(currentRound) && !currentRoundActiveDraft;
 
   return (
-    <div className="h-dvh overflow-hidden flex flex-col items-center p-4 sm:h-auto sm:min-h-screen sm:overflow-visible">
+    <div className="h-dvh overflow-hidden flex flex-col items-center p-4">
       <StandingsModal
         open={standingsOpen}
         loading={standingsLoading}
@@ -277,7 +295,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
         onViewDraft={handleViewStandingsDraft}
       />
 
-      <div className="w-full max-w-md flex flex-col flex-1 min-h-0 sm:flex-none">
+      <div className="w-full max-w-md flex flex-col flex-1 min-h-0">
         <div className="text-center mb-4">
           <div className="text-6xl mb-2">⚽</div>
           <h1 className="text-3xl md:text-4xl font-bold text-white">Tira Tira</h1>
@@ -334,7 +352,7 @@ export default function Home({ user, onLogout, onGoAdmin, onStartDraft, onViewDr
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto sm:flex-none sm:overflow-visible">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {activeTab === 'current' && (
             <div className="pb-4">
               <div className="card mb-4">
