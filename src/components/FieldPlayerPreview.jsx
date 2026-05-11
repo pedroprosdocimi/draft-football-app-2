@@ -89,7 +89,7 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
 
   return (
     <div
-      className="relative w-[5.35rem] overflow-hidden shadow-[0_14px_24px_rgba(0,0,0,0.34)] sm:w-[6.85rem] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]"
+      className="relative w-[5.75rem] overflow-hidden shadow-[0_14px_24px_rgba(0,0,0,0.34)] sm:w-[7.35rem] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]"
       style={{
         clipPath: CARD_CLIP_PATH,
         background: 'linear-gradient(145deg,#f9e69a 0%,#d8a83c 45%,#fff1aa 100%)',
@@ -160,12 +160,12 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           </div>
         </div>
 
-        <div className="absolute bottom-[20%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
+        <div className="absolute bottom-[20%] left-1/2 grid w-[88%] -translate-x-1/2 grid-cols-6 text-center">
           {attrs.map(([label]) => (
             <div key={label} className="text-[5px] font-black leading-none sm:text-[6px]">{label}</div>
           ))}
         </div>
-        <div className="absolute bottom-[13%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
+        <div className="absolute bottom-[13%] left-1/2 grid w-[88%] -translate-x-1/2 grid-cols-6 text-center">
           {attrs.map(([label, key]) => (
             <div key={label} className="text-[7px] font-black leading-none sm:text-[9px]">
               {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}

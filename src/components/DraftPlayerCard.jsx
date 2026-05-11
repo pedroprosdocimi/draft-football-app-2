@@ -85,7 +85,7 @@ export default function DraftPlayerCard({
     s: '#FFFFFF',
   };
 
-  const W = compact ? 140 : large ? 248 : 210;
+  const W = compact ? 152 : large ? 268 : 228;
   const H = compact ? 196 : large ? 348 : 294;
   const scoreFz = compact ? 30 : large ? 54 : 46;
   const posFz = compact ? 15 : large ? 28 : 24;
@@ -257,7 +257,7 @@ export default function DraftPlayerCard({
             position: 'absolute',
             left: '50%',
             bottom: '28%',
-            width: '82%',
+            width: '88%',
             transform: 'translateX(-50%)',
             borderTop: '1px solid rgba(63,43,7,0.22)',
             paddingTop: compact ? 6 : large ? 12 : 10,
@@ -284,7 +284,7 @@ export default function DraftPlayerCard({
             position: 'absolute',
             left: '50%',
             bottom: '20%',
-            width: '82%',
+            width: '88%',
             transform: 'translateX(-50%)',
             display: 'grid',
             gridTemplateColumns: 'repeat(6, 1fr)',
@@ -303,7 +303,7 @@ export default function DraftPlayerCard({
             position: 'absolute',
             left: '50%',
             bottom: '13.2%',
-            width: '82%',
+            width: '88%',
             transform: 'translateX(-50%)',
             display: 'grid',
             gridTemplateColumns: 'repeat(6, 1fr)',
