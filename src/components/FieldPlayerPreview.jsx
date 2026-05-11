@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   getDetailedPositionLabel,
-  getDetailedPositionPalette,
   getPlayerAlternativeDetailedPositionIds,
   getPlayerPrimaryDetailedPositionId,
   normalizeDetailedPositionId,
@@ -32,12 +31,30 @@ const TEAM_COLORS = {
   CHA: { p: '#1A5C2A', s: '#FFFFFF' },
 };
 
+const OUTFIELD_ATTRS = [
+  ['ATA', 'attr_ata'],
+  ['COM', 'attr_com'],
+  ['CRI', 'attr_cri'],
+  ['DEF', 'attr_def'],
+  ['PAS', 'attr_pas'],
+  ['FIS', 'attr_fis'],
+];
+
+const GOALKEEPER_ATTRS = [
+  ['GOL', 'attr_gol'],
+  ['COM', 'attr_com'],
+  ['CRI', 'attr_cri'],
+  ['DEF', 'attr_def'],
+  ['PAS', 'attr_pas'],
+  ['FIS', 'attr_fis'],
+];
+
+const CARD_CLIP_PATH = 'polygon(50% 0%, 57% 4%, 66% 3%, 82% 12%, 96% 25%, 100% 31%, 100% 88%, 88% 94%, 64% 96%, 50% 100%, 36% 96%, 12% 94%, 0% 88%, 0% 31%, 4% 25%, 18% 12%, 34% 3%, 43% 4%)';
+
 function formatName(name) {
   const parts = name.trim().split(/\s+/);
   if (parts.length < 2) return name;
-  // Always abbreviate first name, keep rest
   const abbreviated = `${parts[0][0]}. ${parts.slice(1).join(' ')}`;
-  // If still long, abbreviate all but last word
   if (abbreviated.length > 12) {
     const last = parts[parts.length - 1];
     return `${parts[0][0]}. ${last}`;
@@ -54,7 +71,6 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
       ? player.avg_score
       : 0;
   const avgScore = displayScoreValue.toFixed(1);
-  const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
   const jerseyColors = {
     p: player?.primary_color || TEAM_COLORS[player?.team_short_code]?.p || '#1e293b',
     s: player?.secondary_color || TEAM_COLORS[player?.team_short_code]?.s || '#f8fafc',
@@ -64,36 +80,37 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
   const normalizedSlotPos = slotPositionId ? normalizeDetailedPositionId(slotPositionId) : null;
   const rawAltPositions = getPlayerAlternativeDetailedPositionIds(player, 2);
   const displayedPrimaryPositionId = normalizedSlotPos || normalizedPlayerPos;
-  const altPositions = [...new Set(
-    displayedPrimaryPositionId !== normalizedPlayerPos
-      ? [normalizedPlayerPos, ...rawAltPositions]
-      : rawAltPositions
-  )]
-    .filter((id) => id !== displayedPrimaryPositionId)
-    .slice(0, 2);
-  const primaryPositionPalette = getDetailedPositionPalette(displayedPrimaryPositionId);
-
+  const isGoalkeeper = displayedPrimaryPositionId === 1 || player?.detailed_position_id === 1;
+  const attrs = isGoalkeeper ? GOALKEEPER_ATTRS : OUTFIELD_ATTRS;
   const iso2 = nationalityToIso2(player?.nationality || '');
   const cartolaStatus = getCartolaStatusMeta(player?.cartola_status_id);
+  const positionLabel = getDetailedPositionLabel(displayedPrimaryPositionId) || posLabel;
+  const nameFontSize = displayName.length > 12 ? 7 : displayName.length > 9 ? 8 : 9;
 
   return (
-    <div className="w-[5rem] overflow-hidden rounded-[20px] border border-white/10 bg-slate-950/82 shadow-[0_14px_24px_rgba(0,0,0,0.34)] backdrop-blur-md sm:w-[6.5rem] sm:rounded-[24px] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]">
-      <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(30,41,59,0.98)_0%,rgba(15,23,42,0.96)_100%)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_42%)]" />
+    <div
+      className="relative w-[5.35rem] overflow-hidden shadow-[0_14px_24px_rgba(0,0,0,0.34)] sm:w-[6.85rem] sm:shadow-[0_18px_32px_rgba(0,0,0,0.36)]"
+      style={{
+        clipPath: CARD_CLIP_PATH,
+        background: 'linear-gradient(145deg,#f9e69a 0%,#d8a83c 45%,#fff1aa 100%)',
+      }}
+    >
+      <div className="relative min-h-[7.05rem] overflow-hidden text-[#3f2b07] sm:min-h-[8.7rem]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_36%_8%,rgba(255,255,255,0.45),transparent_26%),linear-gradient(135deg,transparent_0%,transparent_36%,rgba(153,96,17,0.22)_37%,rgba(255,255,255,0.24)_43%,transparent_44%),linear-gradient(160deg,transparent_0%,transparent_53%,rgba(190,122,23,0.32)_54%,transparent_65%)]" />
+        <div className="absolute inset-x-2 top-[42%] h-8 -rotate-[24deg] bg-gradient-to-r from-transparent via-yellow-700/30 to-transparent sm:h-10" />
 
-        {/* Jersey — centered */}
         {player?.team_jersey_url ? (
           <img
             src={player.team_jersey_url}
             alt={player.team_short_code}
-            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[29%] left-[58%] h-[46%] w-auto -translate-x-1/2 object-contain drop-shadow-[0_8px_14px_rgba(62,39,6,0.45)] sm:bottom-[28%] sm:h-[48%]"
           />
         ) : (
           <svg
             viewBox="0 0 120 95"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="absolute bottom-[-2%] left-1/2 h-[72%] w-auto -translate-x-1/2 drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)]"
+            className="absolute bottom-[29%] left-[58%] h-[46%] w-auto -translate-x-1/2 drop-shadow-[0_8px_14px_rgba(62,39,6,0.45)] sm:bottom-[28%] sm:h-[48%]"
           >
             <defs>
               <clipPath id={`field-jersey-${player?.id || displayName}`}>
@@ -107,141 +124,60 @@ export default function FieldPlayerPreview({ player, posLabel, slotPositionId = 
           </svg>
         )}
 
-        <div className="relative min-h-[4.6rem] sm:min-h-[5.7rem]">
-          {/* Score — left edge, slightly below top */}
+        <div className="absolute left-[13%] top-[18%] text-center">
+          <div className="text-[20px] font-black leading-none sm:text-[26px]">{avgScore}</div>
+          <div className="mt-0.5 text-[10px] font-black uppercase leading-none sm:text-[12px]">
+            {positionLabel}
+          </div>
+        </div>
+
+        {cartolaStatus?.label && (
           <div
-            style={{
-              position: 'absolute',
-              top: 2,
-              left: 0,
-              padding: '3px 5px',
-              borderRadius: '0 8px 8px 0',
-              background: 'rgba(2,6,23,0.62)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              borderLeft: 'none',
-              backdropFilter: 'blur(8px)',
-            }}
+            className="absolute left-[15%] top-[36%] z-30 rounded-full px-1.5 py-0.5"
+            style={{ background: cartolaStatus.background, border: `1px solid ${cartolaStatus.border}` }}
+            title={cartolaStatus.name || undefined}
           >
-            <div style={{ fontSize: 13, fontWeight: 900, color: '#fbbf24', lineHeight: 1 }}>
-              {avgScore}
+            <div className="text-[7px] font-black leading-none" style={{ color: cartolaStatus.text }}>
+              {cartolaStatus.label}
             </div>
           </div>
+        )}
 
-          {/* Cartola status - bottom-right */}
-          {cartolaStatus?.label && (
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 2,
-                right: 0,
-                zIndex: 30,
-                padding: '3px 6px',
-                borderRadius: '8px 0 0 8px',
-                background: cartolaStatus.background,
-                border: `1px solid ${cartolaStatus.border}`,
-                borderRight: 'none',
-                backdropFilter: 'blur(8px)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
-              }}
-              title={cartolaStatus.name || undefined}
-            >
-              <div
-                style={{
-                  fontSize: 9,
-                  fontWeight: 900,
-                  letterSpacing: '0.06em',
-                  color: cartolaStatus.text,
-                  lineHeight: 1,
-                }}
-              >
-                {cartolaStatus.label}
-              </div>
-            </div>
-          )}
-
-          {/* Main position + alt positions — right edge, slightly below top */}
+        <div className="absolute bottom-[24%] left-1/2 w-[82%] -translate-x-1/2 border-t border-yellow-900/20 pt-1 text-center sm:pt-1.5">
           <div
             style={{
-              position: 'absolute',
-              top: 5,
-              right: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
+              fontSize: nameFontSize,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              color: '#3f2b07',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: 1.1,
             }}
           >
-            <div
-              style={{
-                padding: '3px 5px',
-              borderRadius: '8px 0 0 8px',
-                background: primaryPositionPalette.background,
-                border: `1px solid ${primaryPositionPalette.border}`,
-                borderRight: 'none',
-                backdropFilter: 'blur(8px)',
-                fontSize: 9,
-                fontWeight: 900,
-                color: primaryPositionPalette.text,
-                lineHeight: 1,
-                letterSpacing: '0.5px',
-                textTransform: 'uppercase',
-              }}
-            >
-              {getDetailedPositionLabel(displayedPrimaryPositionId) || posLabel}
-            </div>
-            {altPositions.map((id) => (
-              <div
-                key={id}
-                style={{
-                  padding: '2px 5px 2px 4px',
-                  borderRadius: '6px 0 0 6px',
-                  background: getDetailedPositionPalette(id).background,
-                  border: `1px solid ${getDetailedPositionPalette(id).border}`,
-                  borderRight: 'none',
-                  borderTop: 'none',
-                  backdropFilter: 'blur(8px)',
-                  fontSize: 7,
-                  fontWeight: 600,
-                  color: getDetailedPositionPalette(id).text,
-                  lineHeight: 1,
-                  textTransform: 'uppercase',
-                }}
-              >
-                {getDetailedPositionLabel(id)}
-              </div>
-            ))}
+            {displayName}
           </div>
+        </div>
 
-          {/* Flag — bottom-left */}
-          {iso2 && (
-            <div style={{ position: 'absolute', bottom: 2, left: 4 }}>
-              <span
-                className={`fi fi-${iso2}`}
-                style={{
-                  display: 'inline-block',
-                  width: 18,
-                  height: 13,
-                }}
-              />
+        <div className="absolute bottom-[14%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
+          {attrs.map(([label]) => (
+            <div key={label} className="text-[5px] font-black leading-none sm:text-[6px]">{label}</div>
+          ))}
+        </div>
+        <div className="absolute bottom-[7%] left-1/2 grid w-[82%] -translate-x-1/2 grid-cols-6 text-center">
+          {attrs.map(([label, key]) => (
+            <div key={label} className="text-[7px] font-black leading-none sm:text-[9px]">
+              {Number.isFinite(player?.[key]) ? Math.round(player[key]) : 0}
             </div>
-          )}
+          ))}
         </div>
-      </div>
 
-      <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(8,13,25,0.98)_0%,rgba(2,6,23,1)_100%)] px-1.5 py-1.5 text-center sm:px-2.5 sm:py-2">
-        <div
-          style={{
-            fontSize: nameFontSize,
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.02em',
-            color: '#ffffff',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            lineHeight: 1.2,
-          }}
-        >
-          {displayName}
-        </div>
+        {iso2 && (
+          <div className="absolute bottom-[2.5%] left-1/2 -translate-x-1/2">
+            <span className={`fi fi-${iso2}`} style={{ display: 'inline-block', width: 13, height: 9 }} />
+          </div>
+        )}
       </div>
     </div>
   );
