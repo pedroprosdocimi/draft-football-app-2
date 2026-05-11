@@ -162,7 +162,7 @@ export default function DraftPlayerCard({
             style={{
               position: 'absolute',
               left: '63%',
-              bottom: '34%',
+              bottom: '38%',
               height: jerseyH,
               width: 'auto',
               transform: 'translateX(-50%)',
@@ -178,7 +178,7 @@ export default function DraftPlayerCard({
             style={{
               position: 'absolute',
               left: '63%',
-              bottom: '34%',
+              bottom: '38%',
               height: jerseyH,
               width: 'auto',
               transform: 'translateX(-50%)',
@@ -197,7 +197,7 @@ export default function DraftPlayerCard({
           </svg>
         )}
 
-        <div style={{ position: 'absolute', left: '13%', top: '18%', textAlign: 'center' }}>
+        <div style={{ position: 'absolute', left: '12%', top: '12%', width: compact ? 44 : large ? 76 : 64, textAlign: 'center' }}>
           <div style={{ fontSize: scoreFz, fontWeight: 950, lineHeight: 0.92 }}>{avgScore}</div>
           <div style={{ marginTop: compact ? 2 : 4, fontSize: posFz, fontWeight: 900, lineHeight: 1 }}>
             {positionLabel}
@@ -256,7 +256,7 @@ export default function DraftPlayerCard({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '24%',
+            bottom: '28%',
             width: '82%',
             transform: 'translateX(-50%)',
             borderTop: '1px solid rgba(63,43,7,0.22)',
@@ -283,7 +283,7 @@ export default function DraftPlayerCard({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '16%',
+            bottom: '20%',
             width: '82%',
             transform: 'translateX(-50%)',
             display: 'grid',
@@ -302,7 +302,7 @@ export default function DraftPlayerCard({
           style={{
             position: 'absolute',
             left: '50%',
-            bottom: '9.2%',
+            bottom: '13.2%',
             width: '82%',
             transform: 'translateX(-50%)',
             display: 'grid',
@@ -318,7 +318,7 @@ export default function DraftPlayerCard({
         </div>
 
         {iso2 && (
-          <div style={{ position: 'absolute', bottom: '3%', left: '50%', transform: 'translateX(-50%)' }}>
+          <div style={{ position: 'absolute', bottom: '32%', left: '16%' }}>
             <span
               className={`fi fi-${iso2}`}
               style={{ display: 'inline-block', width: compact ? 20 : large ? 34 : 28, height: compact ? 14 : large ? 24 : 20 }}
