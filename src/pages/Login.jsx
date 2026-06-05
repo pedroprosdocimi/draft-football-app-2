@@ -94,7 +94,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
 
   useEffect(() => {
     const update = () => setIsDesktop(window.innerWidth >= 1024);
@@ -119,7 +119,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
         return;
       }
       localStorage.setItem('draft_token', data.token);
-      onLogin(data.user);
+      onLogin?.(data.user);
     } catch {
       setError('Erro de conexão com o servidor.');
     } finally {
@@ -127,46 +127,44 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
     }
   };
 
-  const handleFocus = (e) => {
-    e.target.style.borderColor = '#1a6b3c';
-    e.target.style.background = '#1b2228';
-    e.target.style.boxShadow = '0 0 0 3px rgba(26,107,60,.22)';
+  const [focusedField, setFocusedField] = useState(null);
+
+  const desktop = isDesktop;
+  const iconSz = desktop ? 18 : 17;
+
+  const focusStyle = {
+    borderColor: '#1a6b3c',
+    background: '#1b2228',
+    boxShadow: '0 0 0 3px rgba(26,107,60,.22)',
   };
 
-  const handleBlur = (e) => {
-    e.target.style.borderColor = '#2a313a';
-    e.target.style.background = '#1c2126';
-    e.target.style.boxShadow = 'none';
-  };
-
-  const iD = isDesktop;
-  const iconSz = iD ? 18 : 17;
-
-  const inputBase = {
+  const inputBase = (field) => ({
     width: '100%',
-    height: iD ? 50 : 46,
-    borderRadius: iD ? 12 : 11,
-    background: '#1c2126',
-    border: '1px solid #2a313a',
+    height: desktop ? 50 : 46,
+    borderRadius: desktop ? 12 : 11,
+    background: focusedField === field ? '#1b2228' : '#1c2126',
+    border: `1px solid ${focusedField === field ? '#1a6b3c' : '#2a313a'}`,
+    boxShadow: focusedField === field ? '0 0 0 3px rgba(26,107,60,.22)' : 'none',
     color: '#e8eaed',
     fontFamily: "'Inter', sans-serif",
     outline: 'none',
     transition: 'border-color .15s, box-shadow .15s, background .15s',
-    fontSize: iD ? 15 : 14.5,
-  };
+    fontSize: desktop ? 15 : 14.5,
+  });
 
   const formFields = (
     <>
       {/* Email */}
-      <div style={{ marginBottom: iD ? 18 : 16 }}>
-        <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#a8aeb6', marginBottom: 7 }}>
+      <div style={{ marginBottom: desktop ? 18 : 16 }}>
+        <label htmlFor="login-email" style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#a8aeb6', marginBottom: 7 }}>
           Email
         </label>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <span style={{ position: 'absolute', left: iD ? 14 : 13, color: '#6c727a', pointerEvents: 'none', display: 'flex' }}>
+          <span style={{ position: 'absolute', left: desktop ? 14 : 13, color: '#6c727a', pointerEvents: 'none', display: 'flex' }}>
             <IconEnvelope size={iconSz} />
           </span>
           <input
+            id="login-email"
             type="email"
             placeholder="seu@email.com"
             value={email}
@@ -174,32 +172,33 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
             autoComplete="email"
             autoFocus
             className="placeholder-[#4a4f56]"
-            style={{ ...inputBase, paddingLeft: iD ? 44 : 40, paddingRight: iD ? 16 : 14 }}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            onFocus={() => setFocusedField('email')}
+            onBlur={() => setFocusedField(null)}
+            style={{ ...inputBase('email'), paddingLeft: desktop ? 44 : 40, paddingRight: desktop ? 16 : 14 }}
           />
         </div>
       </div>
 
       {/* Password */}
-      <div style={{ marginBottom: iD ? 8 : 4 }}>
-        <label style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#a8aeb6', marginBottom: 7 }}>
+      <div style={{ marginBottom: desktop ? 8 : 4 }}>
+        <label htmlFor="login-password" style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#a8aeb6', marginBottom: 7 }}>
           Senha
         </label>
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <span style={{ position: 'absolute', left: iD ? 14 : 13, color: '#6c727a', pointerEvents: 'none', display: 'flex' }}>
+          <span style={{ position: 'absolute', left: desktop ? 14 : 13, color: '#6c727a', pointerEvents: 'none', display: 'flex' }}>
             <IconLock size={iconSz} />
           </span>
           <input
+            id="login-password"
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             value={password}
             onChange={e => setPassword(e.target.value)}
             autoComplete="current-password"
             className="placeholder-[#4a4f56]"
-            style={{ ...inputBase, paddingLeft: iD ? 44 : 40, paddingRight: iD ? 44 : 40 }}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            onFocus={() => setFocusedField('password')}
+            onBlur={() => setFocusedField(null)}
+            style={{ ...inputBase('password'), paddingLeft: desktop ? 44 : 40, paddingRight: desktop ? 44 : 40 }}
           />
           <button
             type="button"
@@ -207,22 +206,22 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
             aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             style={{
               position: 'absolute', right: 8,
-              height: iD ? 34 : 32, width: iD ? 34 : 32,
+              height: desktop ? 34 : 32, width: desktop ? 34 : 32,
               border: 0, background: 'transparent',
               display: 'grid', placeItems: 'center',
               color: '#6c727a', cursor: 'pointer', borderRadius: 8, padding: 0,
             }}
           >
-            <IconEye size={iD ? 19 : 18} crossed={showPassword} />
+            <IconEye size={desktop ? 19 : 18} crossed={showPassword} />
           </button>
         </div>
       </div>
 
       {/* Forgot */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: iD ? '-2px 0 18px' : '-4px 0 16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: desktop ? '-2px 0 18px' : '-4px 0 16px' }}>
         <button
           type="button"
-          onClick={onGoForgot}
+          onClick={() => onGoForgot?.()}
           style={{ background: 'none', border: 0, padding: 2, fontSize: 12, color: '#6c727a', cursor: 'pointer', fontFamily: 'inherit' }}
           onMouseEnter={e => e.currentTarget.style.color = '#fbd07a'}
           onMouseLeave={e => e.currentTarget.style.color = '#6c727a'}
@@ -232,14 +231,14 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
       </div>
 
       {/* Error */}
-      {error && <p style={{ color: '#ef5350', fontSize: 13, margin: '0 0 12px' }}>{error}</p>}
+      {error && <p role="alert" style={{ color: '#ef5350', fontSize: 13, margin: '0 0 12px' }}>{error}</p>}
 
       {/* Submit */}
       <button
         type="submit"
         disabled={loading}
         style={{
-          width: '100%', height: iD ? 50 : 48,
+          width: '100%', height: desktop ? 50 : 48,
           border: 0, borderRadius: 12,
           cursor: loading ? 'not-allowed' : 'pointer',
           fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 15, letterSpacing: '.01em',
@@ -340,7 +339,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
               Não tem conta?{' '}
               <button
                 type="button"
-                onClick={onGoRegister}
+                onClick={() => onGoRegister?.()}
                 style={{ background: 'none', border: 'none', color: '#fbd07a', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', padding: 0 }}
                 onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
                 onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
@@ -404,7 +403,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
           {/* Ghost button */}
           <button
             type="button"
-            onClick={onGoRegister}
+            onClick={() => onGoRegister?.()}
             style={{
               width: '100%', height: 48, border: '1px solid #2a313a', borderRadius: 12,
               background: 'transparent', color: '#e8eaed',
