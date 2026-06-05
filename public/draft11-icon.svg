@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 100 100" fill="none">
+  <defs>
+    
+    <linearGradient id="tileG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f7a46"></stop>
+      <stop offset="1" stop-color="#0b3a20"></stop>
+    </linearGradient>
+    <clipPath id="tileClip"><rect x="3" y="3" width="94" height="94" rx="26"></rect></clipPath>
+  </defs>
+
+  <rect x="3" y="3" width="94" height="94" rx="26" fill="url(#tileG)"></rect>
+
+  
+  <g clip-path="url(#tileClip)">
+    <rect x="3" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"></rect>
+    <rect x="18.666" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"></rect>
+    <rect x="34.333" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"></rect>
+    <rect x="50" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"></rect>
+    <rect x="65.666" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"></rect>
+    <rect x="81.333" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"></rect>
+    
+    <rect x="3" y="3" width="94" height="48" rx="26" fill="#ffffff" opacity="0.05"></rect>
+  </g>
+
+  
+  <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"></rect>
+
+  
+  <text class="d11" x="50" y="49" text-anchor="middle" dominant-baseline="central" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
+  <text class="d11" x="50" y="72" text-anchor="middle" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+</svg>
