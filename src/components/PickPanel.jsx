@@ -3,18 +3,14 @@ import PlayerFigure, { NATIONAL_KITS } from './PlayerFigure.jsx';
 import { nationalityToIso2 } from '../utils/nationality.js';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
 
-const DETAILED_TO_BASIC = {
-  1:1, 2:2, 3:2, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:4, 11:4, 12:4, 13:4,
-};
-
 const BENCH_SLOT_META = {
-  12: { label: 'GOL RES', basicPos: 1 },
-  13: { label: 'DEF RES', basicPos: 2 },
-  14: { label: 'DEF RES', basicPos: 2 },
-  15: { label: 'M/A RES', basicPos: 3 },
-  16: { label: 'M/A RES', basicPos: 3 },
-  17: { label: 'M/A RES', basicPos: 3 },
-  18: { label: 'M/A RES', basicPos: 3 },
+  12: { label: 'GOL RES' },
+  13: { label: 'DEF RES' },
+  14: { label: 'DEF RES' },
+  15: { label: 'M/A RES' },
+  16: { label: 'M/A RES' },
+  17: { label: 'M/A RES' },
+  18: { label: 'M/A RES' },
 };
 
 const DETAIL_TO_POS_COLOR = {
@@ -125,13 +121,9 @@ export default function PickPanel({
 
   const posColor = isCaptainPick
     ? '#f5a623'
-    : (DETAIL_TO_POS_COLOR[slotDetailedPositionId] ?? '#f5a623');
+    : (DETAIL_TO_POS_COLOR[normalizedSlotPositionId] ?? '#f5a623');
 
-  const slotChipLabel = isCaptainPick
-    ? 'CAPITAO'
-    : isBenchSlot
-      ? benchMeta.label
-      : (posLabel || 'VAGA');
+  const slotChipLabel = posLabel || 'VAGA';
 
   useEffect(() => {
     setIsEntering(false);
