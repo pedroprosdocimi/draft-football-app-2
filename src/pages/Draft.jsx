@@ -7,6 +7,8 @@ import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PlayerStatsModal from '../components/PlayerStatsModal.jsx';
 import FixturesBrowser from '../components/FixturesBrowser.jsx';
 import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
+import PlayerFigure, { NATIONAL_KITS } from '../components/PlayerFigure.jsx';
+import { nationalityToIso2 } from '../utils/nationality.js';
 
 // Maps detailed_position_id to basic position_id
 const DETAILED_TO_BASIC = {
@@ -26,6 +28,21 @@ const SLOT_TONE_CLASSES = {
   PE: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
   PD: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
   ATA: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
+};
+
+const GRAY_KIT = NATIONAL_KITS['_'];
+
+const POS_FULL = {
+  GOL: 'Goleiro', ZAG: 'Zagueiro', LD: 'Lateral Dir.', LE: 'Lateral Esq.',
+  VOL: 'Volante', MC: 'Meio-campo', MEI: 'Meia', MD: 'Meia Dir.', ME: 'Meia Esq.',
+  PD: 'Ponta Dir.', PE: 'Ponta Esq.', ATA: 'Centroavante',
+};
+
+const DRAFT_DETAIL_TO_LINE = {
+  1: 'var(--c-gk)',
+  2: 'var(--c-def)', 3: 'var(--c-def)', 4: 'var(--c-def)',
+  5: 'var(--c-mid)', 6: 'var(--c-mid)', 7: 'var(--c-mid)', 8: 'var(--c-mid)', 9: 'var(--c-mid)',
+  10: 'var(--c-att)', 11: 'var(--c-att)', 12: 'var(--c-att)', 13: 'var(--c-att)',
 };
 
 // Bench slot definitions
@@ -93,6 +110,9 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
   const fieldGestureRef = React.useRef(null);
   const swapErrorTimeoutRef = React.useRef(null);
   const longPressTimeoutRef = React.useRef(null);
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= 1024
+  );
   const isBenchPhase = draft?.status === 'bench_drafting';
   const isCaptainPhase = draft?.status === 'captain_pick';
 
@@ -155,6 +175,21 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     };
   }, [draggingPlayer?.detailed_position_id, draggingSlot, formationSlots, starterPlacements]);
 
+  const activeNextSlot = useMemo(() => {
+    if (draft?.status !== 'drafting') return null;
+    return starterPlacements.find(
+      (s) => !picksBySlot[s.position] && !pickedPlayers[s.position]
+    ) ?? null;
+  }, [draft?.status, starterPlacements, picksBySlot, pickedPlayers]);
+
+  const pickedFlags = useMemo(() => {
+    return [...new Set(
+      (draft?.picks ?? [])
+        .map((p) => nationalityToIso2(p.nationality ?? ''))
+        .filter(Boolean)
+    )];
+  }, [draft?.picks]);
+
   const loadDraft = useCallback(async () => {
     try {
       const res = await authFetch(`${API_URL}/drafts/${draftId}`);
@@ -184,6 +219,12 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     animTimeoutsRef.current.forEach(clearTimeout);
     if (swapErrorTimeoutRef.current) clearTimeout(swapErrorTimeoutRef.current);
     if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
+  }, []);
+
+  useEffect(() => {
+    const fn = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
   }, []);
 
   useEffect(() => {
@@ -753,6 +794,35 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     setCaptainCandidateId(String(normalizedPlayer.id));
   }, [handleOpenPlayerStats, isCaptainSelectionMode]);
 
+  const Emblem = ({ s = 30 }) => (
+    <span className="demblem" dangerouslySetInnerHTML={{ __html:
+      `<svg width="${s}" height="${s}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="tg${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f7a46"/><stop offset="1" stop-color="#0b3a20"/></linearGradient>
+        <clipPath id="tc${s}"><rect x="3" y="3" width="94" height="94" rx="26"/></clipPath></defs>
+        <rect x="3" y="3" width="94" height="94" rx="26" fill="url(#tg${s})"/>
+        <g clip-path="url(#tc${s})">
+          <rect x="3" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
+          <rect x="18.666" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
+          <rect x="34.333" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
+          <rect x="50" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
+          <rect x="65.666" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
+          <rect x="81.333" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
+          <rect x="3" y="3" width="94" height="48" rx="26" fill="#ffffff" opacity="0.05"/>
+        </g>
+        <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"/>
+        <text x="50" y="49" text-anchor="middle" dominant-baseline="central" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
+        <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+      </svg>`
+    }} />
+  );
+
+  const ArrowR = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+    </svg>
+  );
+
   if (!draft) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -769,8 +839,343 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
     return <FormationPickerPhase onPick={handleSetFormation} />;
   }
 
+  const phaseLabel = isCaptainPhase ? 'Capitão' : isBenchPhase ? 'Reservas' : 'Titulares';
+  const pickedCount = draft.picks?.length ?? 0;
+  const totalSlots = isBenchPhase ? 11 + BENCH_SLOTS.length : 11;
+  const pct = totalSlots > 0 ? (pickedCount / totalSlots) * 100 : 0;
+
+  const renderPitch = () => {
+    return (
+      <div
+        className="pitch"
+        data-theme="stadium"
+        ref={fieldRef}
+        style={{
+          cursor: draggingSlot !== null ? 'grabbing' : 'default',
+          touchAction: draggingSlot !== null ? 'none' : 'auto',
+        }}
+      >
+        {isCaptainSelectionMode && (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 5, background: 'rgba(0,0,0,0.34)' }} />
+        )}
+        <div className="pl pl-frame" />
+        <div className="pl pl-half" />
+        <div className="pl pl-circle" />
+        <div className="pl pl-spot" />
+        <div className="pl pl-boxT" />
+        <div className="pl pl-boxB" />
+        <div className="pl pl-gaT" />
+        <div className="pl pl-gaB" />
+
+        {starterPlacements.map((slot) => {
+          const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || slot.label || '?';
+          const lineColor = DRAFT_DETAIL_TO_LINE[slot.detailed_position_id] ?? 'var(--c-mid)';
+          const playerObj = normalizeDraftPlayer(pickedPlayers[slot.position] ?? null);
+          const confirmedPick = picksBySlot[slot.position];
+          const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
+          const isLocked = isBenchPhase && !playerObj && !confirmedPick;
+          const showFieldCard = Boolean(playerObj || confirmedPick);
+          const isCaptainSelected = isCaptainPhase && captainCandidateId &&
+            String(cardPlayer?.id) === String(captainCandidateId);
+          const isNextPick = !isBenchPhase && !isCaptainPhase &&
+            activeNextSlot?.position === slot.position;
+          const cardAnimationStyle = poppingSlot === slot.position
+            ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' }
+            : undefined;
+          const posFullLabel = POS_FULL[posLabel] ?? posLabel;
+
+          return (
+            <div
+              key={slot.key}
+              className="slot"
+              data-filled={showFieldCard ? 'true' : undefined}
+              style={{ top: `${slot.top}%`, left: `${slot.left}%` }}
+            >
+              {showFieldCard ? (
+                <div
+                  onPointerDown={isCaptainPhase ? undefined : (e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
+                  onClick={
+                    isCaptainPhase
+                      ? () => handleCaptainFieldClick(slot.position, cardPlayer)
+                      : () => {
+                          if (!fieldGestureRef.current?.moved) {
+                            clearLongPressTimeout();
+                            fieldGestureRef.current = null;
+                            setDraggingSlot(null);
+                            setDragPointer(null);
+                            handleOpenPlayerStats(cardPlayer);
+                          }
+                        }
+                  }
+                  style={{
+                    ...cardAnimationStyle,
+                    touchAction: isCaptainPhase ? 'manipulation' : 'none',
+                    cursor: isCaptainPhase ? 'pointer' : draggingSlot === slot.position ? 'grabbing' : 'grab',
+                    opacity: draggingSlot === slot.position ? 0.5 : 1,
+                    outline: isCaptainSelected
+                      ? '3px solid rgba(250,204,21,0.98)'
+                      : isCaptainSelectionMode
+                        ? '2px solid rgba(255,255,255,0.38)'
+                        : selectedSwapSlot === slot.position
+                          ? '2px solid rgba(250,204,21,0.95)'
+                          : dropTargetSlot === slot.position
+                            ? '2px solid rgba(110,231,183,0.8)'
+                            : 'none',
+                    borderRadius: '12px',
+                    transition: 'opacity 0.15s, outline 0.1s, transform 0.16s',
+                    transform: isCaptainSelectionMode ? 'scale(1.03)' : undefined,
+                    position: 'relative',
+                    zIndex: isCaptainSelectionMode ? 25 : undefined,
+                  }}
+                >
+                  <FieldPlayerPreview
+                    player={cardPlayer}
+                    posLabel={posLabel}
+                    slotPositionId={slot.detailed_position_id}
+                    captainPlayerId={draft.captain_player_id}
+                  />
+                </div>
+              ) : isLocked ? (
+                <div
+                  className="fcard is-empty"
+                  style={{ '--line-c': lineColor, opacity: 0.4, pointerEvents: 'none' }}
+                >
+                  <div className="fcard-veil" />
+                  <PlayerFigure kit={GRAY_KIT} number="" surname="" uid={`lock-${slot.position}`} className="sil" />
+                  <div className="fcard-body">
+                    <div className="fcard-head">
+                      <span />
+                      <span className="fcard-pos">{posLabel}</span>
+                    </div>
+                  </div>
+                  <div className="e-label">Fechado</div>
+                </div>
+              ) : (
+                <div
+                  className={`fcard is-empty${isNextPick ? ' is-active' : ''}`}
+                  style={{ '--line-c': lineColor }}
+                  onClick={() => handleSlotClick(slot.position)}
+                >
+                  <div className="fcard-veil" />
+                  <PlayerFigure kit={GRAY_KIT} number="" surname="" uid={`sil-${slot.position}`} className="sil" />
+                  {isNextPick && <div className="nexttag">PRÓXIMA</div>}
+                  <div className="fcard-body">
+                    <div className="fcard-head">
+                      <span />
+                      <span className="fcard-pos">{posLabel}</span>
+                    </div>
+                  </div>
+                  <div className="e-plus">+</div>
+                  <div className="e-label">{posFullLabel}</div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderMobile = () => (
+    <>
+      <div className="dhead">
+        <div className="dhead-brand">
+          <span className="wm bricol">
+            <Emblem s={26} />
+            draft<span className="g">11</span>
+          </span>
+          <span className="wc-tag"><span className="star">★</span> COPA 2026</span>
+        </div>
+        <div className="dhead-ctrl">
+          <button className="dback" onClick={onGoHome}>‹ Sair</button>
+          <span className="dphase">
+            {phaseLabel} <span className="fmt">· {draft.formation}</span>
+          </span>
+          <button className="dpill" onClick={() => setShowFixturesModal(true)}>Partidas</button>
+        </div>
+        <div className="dprog">
+          <span className="lab">{pickedCount}/{totalSlots}</span>
+          <div className="bar">
+            <div className="fill" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="dfieldwrap">
+        {renderPitch()}
+      </div>
+
+      {activeNextSlot && draft.status === 'drafting' && (() => {
+        const lc = DRAFT_DETAIL_TO_LINE[activeNextSlot.detailed_position_id] ?? 'var(--c-mid)';
+        const pfl = POS_FULL[getDetailedPositionLabel(activeNextSlot.detailed_position_id)] ??
+          getDetailedPositionLabel(activeNextSlot.detailed_position_id) ?? '?';
+        return (
+          <div className="ddock">
+            <div className="ddock-inner">
+              <div
+                className="fcard is-empty is-active"
+                style={{ '--line-c': lc, '--fcw': '50px', flexShrink: 0 }}
+                onClick={() => handleSlotClick(activeNextSlot.position)}
+              >
+                <div className="fcard-veil" />
+                <PlayerFigure kit={GRAY_KIT} number="" surname="" uid="dock-next" className="sil" />
+                <div className="nexttag">PRÓXIMA</div>
+                <div className="fcard-body"><div className="fcard-head"><span /></div></div>
+                <div className="e-plus">+</div>
+              </div>
+              <div className="grow">
+                <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 800, fontSize: 15, color: 'var(--text)' }}>
+                  {pfl}
+                </div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-3)', marginTop: 2 }}>
+                  Toque na carta para escolher o jogador
+                </div>
+              </div>
+              <button
+                className="btn-pick"
+                style={{ margin: 0, width: 'auto', padding: '0 18px', height: 42, whiteSpace: 'nowrap' }}
+                onClick={() => handleSlotClick(activeNextSlot.position)}
+              >
+                Escolher <ArrowR />
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+    </>
+  );
+
+  const renderDesktop = () => {
+    const nextSlot = activeNextSlot;
+    const nextLc = nextSlot
+      ? (DRAFT_DETAIL_TO_LINE[nextSlot.detailed_position_id] ?? 'var(--c-mid)')
+      : 'var(--c-mid)';
+    const nextPosLabel = nextSlot
+      ? (POS_FULL[getDetailedPositionLabel(nextSlot.detailed_position_id)] ??
+         getDetailedPositionLabel(nextSlot.detailed_position_id) ?? '?')
+      : '?';
+
+    return (
+      <>
+        <div className="rail rail-l">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+            <Emblem s={34} />
+            <span className="bricol" style={{ fontWeight: 800, fontSize: 20, color: 'var(--text)' }}>
+              draft<span style={{ color: 'var(--gold)' }}>11</span>
+            </span>
+          </div>
+          <span className="wc-tag"><span className="star">★</span> COPA DO MUNDO 2026</span>
+          <div className="rcard">
+            <h4>Seu Draft</h4>
+            <div className="rrow">
+              <span className="k">Rodada</span>
+              <span className="v">{draft.round_id}</span>
+            </div>
+            <div className="rrow">
+              <span className="k">Formação</span>
+              <span className="v gold">{draft.formation}</span>
+            </div>
+            <div className="rrow">
+              <span className="k">Fase</span>
+              <span className="v">{phaseLabel}</span>
+            </div>
+            <div className="rrow">
+              <span className="k">Escalados</span>
+              <span className="v">{pickedCount} / {totalSlots}</span>
+            </div>
+          </div>
+          <div className="rcard">
+            <h4>Progresso</h4>
+            <div className="dprog">
+              <span className="lab">{pickedCount}/{totalSlots}</span>
+              <div className="bar"><div className="fill" style={{ width: `${pct}%` }} /></div>
+            </div>
+          </div>
+          <div className="rail-spacer" />
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              className="dpill"
+              style={{ flex: 1, justifyContent: 'center', height: 38 }}
+              onClick={() => setShowFixturesModal(true)}
+            >Partidas</button>
+            <button
+              className="dpill"
+              style={{ flex: 1, justifyContent: 'center', height: 38 }}
+              onClick={onGoHome}
+            >Sair</button>
+          </div>
+        </div>
+
+        <div className="pitch-center">
+          {renderPitch()}
+        </div>
+
+        <div className="rail rail-r">
+          {nextSlot && draft.status === 'drafting' && (
+            <div className="nextpick" style={{ '--puck': nextLc }}>
+              <div className="eyebrow">Próxima escolha</div>
+              <div className="np-row">
+                <div
+                  className="fcard is-empty is-active"
+                  style={{ '--line-c': nextLc, '--fcw': '68px', flexShrink: 0 }}
+                  onClick={() => handleSlotClick(nextSlot.position)}
+                >
+                  <div className="fcard-veil" />
+                  <PlayerFigure kit={GRAY_KIT} number="" surname="" uid="rail-next" className="sil" />
+                  <div className="nexttag">PRÓXIMA</div>
+                  <div className="fcard-body"><div className="fcard-head"><span /></div></div>
+                  <div className="e-plus">+</div>
+                </div>
+                <div>
+                  <div className="np-name">{nextPosLabel}</div>
+                  <div className="np-sub">{options?.length ?? '–'} jogadores disponíveis</div>
+                </div>
+              </div>
+              <button className="btn-pick" onClick={() => handleSlotClick(nextSlot.position)}>
+                Escolher jogador <ArrowR />
+              </button>
+            </div>
+          )}
+          <div className="rcard">
+            <h4>Posições</h4>
+            <div className="legend">
+              <div className="li"><span className="sw" style={{ background: 'var(--c-gk)' }} /> Goleiro</div>
+              <div className="li"><span className="sw" style={{ background: 'var(--c-def)' }} /> Defesa</div>
+              <div className="li"><span className="sw" style={{ background: 'var(--c-mid)' }} /> Meio-campo</div>
+              <div className="li"><span className="sw" style={{ background: 'var(--c-att)' }} /> Ataque</div>
+            </div>
+          </div>
+          {pickedFlags.length > 0 && (
+            <div className="rcard">
+              <h4>Seleções no pote</h4>
+              <div className="rail-flags">
+                {pickedFlags.map((iso) => (
+                  <span key={iso} className={`fi fi-${iso}`} />
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="rail-spacer" />
+        </div>
+      </>
+    );
+  };
+
   return (
-    <div className="h-[100dvh] overflow-hidden flex flex-col p-3 sm:p-4 max-w-2xl mx-auto">
+    <>
+      <style>{`
+        @keyframes card-pop {
+          0%   { transform: scale(0.3); opacity: 0; }
+          60%  { transform: scale(1.08); opacity: 1; }
+          100% { transform: scale(1);   opacity: 1; }
+        }
+        @keyframes captain-cta-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(252,211,77,0.18); opacity: 1; }
+          50%       { box-shadow: 0 0 0 10px rgba(252,211,77,0); opacity: 0.78; }
+        }
+      `}</style>
+
+      {/* Fixed overlays */}
       {showFixturesModal && (
         <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm">
           <div className="mx-auto h-full w-full max-w-xl">
@@ -784,66 +1189,25 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <div className="flex items-center gap-2">
-          <button onClick={onGoHome} className="text-xs text-gray-600 hover:text-white">&larr; Sair</button>
-          <button
-            type="button"
-            onClick={() => setShowFixturesModal(true)}
-            className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-300 transition-colors hover:border-white/25 hover:text-white"
-          >
-            Partidas
-          </button>
-        </div>
-        <span className="text-xs text-gray-500 font-mono uppercase">
-          {isCaptainPhase ? 'Capitão' : isBenchPhase ? 'Reservas' : 'Titulares'} - {draft.formation}
-        </span>
-        <span className="text-xs text-gray-600">{(draft.picks || []).length}/{11 + BENCH_SLOTS.length} picks</span>
-      </div>
-
       {error && (
-        <div className="mb-3 bg-red-900/30 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-2">
-          {error}
+        <div className="fixed inset-x-0 top-4 z-[90] flex justify-center px-4 pointer-events-none">
+          <div className="w-full max-w-sm rounded-2xl border border-red-700 bg-red-900/30 px-4 py-2 text-sm text-red-300 shadow-lg">
+            {error}
+          </div>
         </div>
       )}
 
       {swapError && (
         <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-5 pt-6 sm:hidden">
           <div className="w-full max-w-sm rounded-2xl border border-red-400/35 bg-slate-950/96 px-5 py-4 text-center shadow-[0_24px_60px_rgba(0,0,0,0.5)] ring-1 ring-red-300/15 backdrop-blur-md">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-red-300/80">
-              Erro
-            </div>
-            <p className="mt-2 text-sm font-medium leading-5 text-red-100">
-              {swapError}
-            </p>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-red-300/80">Erro</div>
+            <p className="mt-2 text-sm font-medium leading-5 text-red-100">{swapError}</p>
           </div>
         </div>
       )}
 
-
-
-      {/* Field - always visible during starter and bench drafting */}
-      <style>{`
-        @keyframes card-pop {
-          0%   { transform: scale(0.3); opacity: 0; }
-          60%  { transform: scale(1.08); opacity: 1; }
-          100% { transform: scale(1);   opacity: 1; }
-        }
-
-        @keyframes captain-cta-pulse {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(252, 211, 77, 0.18);
-            opacity: 1;
-          }
-          50% {
-            box-shadow: 0 0 0 10px rgba(252, 211, 77, 0);
-            opacity: 0.78;
-          }
-        }
-      `}</style>
       {isCaptainPhase && (
-        <div className="mb-3 flex justify-end">
+        <div style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 50 }}>
           <button
             type="button"
             onClick={handleCaptainModeButton}
@@ -863,130 +1227,8 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
           </button>
         </div>
       )}
-      <div className="flex-1 min-h-0 bg-green-950/40 border border-green-900/30 rounded-2xl p-2.5 sm:p-3">
-        <div
-          ref={fieldRef}
-          className="relative mx-auto h-full min-h-0 w-full overflow-hidden rounded-[26px] border border-emerald-300/15 bg-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.35)] sm:rounded-[30px]"
-          style={{
-            backgroundImage:
-              'linear-gradient(180deg, rgba(34,197,94,0.12) 0%, rgba(6,78,59,0.5) 45%, rgba(2,44,34,0.92) 100%), repeating-linear-gradient(180deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 42px)',
-            cursor: draggingSlot !== null ? 'grabbing' : 'default',
-            touchAction: draggingSlot !== null ? 'none' : 'pan-y',
-          }}
-        >
-          {isCaptainSelectionMode && (
-            <div className="absolute inset-0 z-[5] bg-black/34" />
-          )}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(110,231,183,0.14),transparent_34%),radial-gradient(circle_at_bottom,rgba(16,185,129,0.12),transparent_30%)]" />
-          <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/8 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent" />
-          <div className="absolute inset-3 rounded-[22px] border border-white/10" />
-          <div className="absolute left-6 right-6 top-1/2 h-px -translate-y-1/2 bg-white/10" />
-          <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
-          <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/30" />
-          <div className="absolute left-1/2 top-3 h-12 w-28 -translate-x-1/2 rounded-b-[20px] border border-t-0 border-white/10" />
-          <div className="absolute left-1/2 bottom-3 h-12 w-28 -translate-x-1/2 rounded-t-[20px] border border-b-0 border-white/10" />
-          <div className="absolute left-1/2 top-3 h-6 w-14 -translate-x-1/2 rounded-b-[14px] border border-t-0 border-white/10" />
-          <div className="absolute left-1/2 bottom-3 h-6 w-14 -translate-x-1/2 rounded-t-[14px] border border-b-0 border-white/10" />
 
-          {starterPlacements.map((slot) => {
-            const posLabel = getDetailedPositionLabel(slot.detailed_position_id) || slot.label || '?';
-            const toneClasses = SLOT_TONE_CLASSES[posLabel] || 'border-white/15 bg-slate-950/88 text-white ring-white/10';
-            const playerObj = normalizeDraftPlayer(pickedPlayers[slot.position] ?? null);
-            const confirmedPick = picksBySlot[slot.position];
-            const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
-            const isLocked = isBenchPhase && !playerObj && !confirmedPick;
-            const showFieldCard = Boolean(playerObj);
-            const isCaptainSelected = isCaptainPhase && captainCandidateId && String(cardPlayer?.id) === String(captainCandidateId);
-            const cardAnimationStyle = poppingSlot === slot.position
-              ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' }
-              : undefined;
-
-            const slotBody = (
-              <>
-                <div className={`relative flex h-14 w-14 items-center justify-center rounded-full border font-black tracking-wide shadow-[0_6px_18px_rgba(0,0,0,0.28)] ring-1 ${toneClasses}`}>
-                  <div className="absolute inset-1 rounded-full bg-gradient-to-b from-white/10 to-transparent" />
-                  <span className="relative z-10 text-[11px]">{posLabel}</span>
-                </div>
-
-                {confirmedPick ? (
-                  <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                    Confirmado
-                  </div>
-                ) : isLocked ? (
-                  <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-                    Fechado
-                  </div>
-                ) : (
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-white/80">
-                    +
-                  </div>
-                )}
-              </>
-            );
-
-            return (
-              <div
-                key={slot.key}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
-                style={{
-                  top: `${slot.top}%`,
-                  left: `${slot.left}%`,
-                  zIndex: showFieldCard ? 20 : 10,
-                }}
-              >
-                {showFieldCard || confirmedPick ? (
-                  <div
-                    onPointerDown={isCaptainPhase ? undefined : (e) => handleFieldPointerDown(e, slot.position, cardPlayer)}
-                    onClick={isCaptainPhase ? () => handleCaptainFieldClick(slot.position, cardPlayer) : () => { if (!fieldGestureRef.current?.moved) { clearLongPressTimeout(); fieldGestureRef.current = null; setDraggingSlot(null); setDragPointer(null); handleOpenPlayerStats(cardPlayer); } }}
-                    style={{
-                      ...cardAnimationStyle,
-                      touchAction: isCaptainPhase ? 'manipulation' : 'none',
-                      cursor: isCaptainPhase ? 'pointer' : draggingSlot === slot.position ? 'grabbing' : 'grab',
-                      opacity: draggingSlot === slot.position ? 0.5 : 1,
-                      outline: isCaptainSelected
-                        ? '3px solid rgba(250,204,21,0.98)'
-                        : isCaptainSelectionMode
-                          ? '2px solid rgba(255,255,255,0.38)'
-                        : selectedSwapSlot === slot.position
-                        ? '2px solid rgba(250,204,21,0.95)'
-                        : dropTargetSlot === slot.position
-                          ? '2px solid rgba(110,231,183,0.8)'
-                          : 'none',
-                      borderRadius: '20px',
-                      transition: 'opacity 0.15s, outline 0.1s, transform 0.16s',
-                      transform: isCaptainSelectionMode ? 'scale(1.03)' : undefined,
-                      position: 'relative',
-                      zIndex: isCaptainSelectionMode ? 25 : undefined,
-                    }}
-                  >
-                    {isCaptainSelected && (
-                      <div className="absolute -top-2 left-1/2 z-20 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-amber-200/90 bg-amber-400 text-[11px] font-black text-slate-950 shadow-[0_10px_18px_rgba(0,0,0,0.32)]">
-                        C
-                      </div>
-                    )}
-                    <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} slotPositionId={slot.detailed_position_id} />
-                  </div>
-                ) : isLocked ? (
-                  <div className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-white/10 bg-slate-950/60 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.24)] backdrop-blur-sm">
-                    {slotBody}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleSlotClick(slot.position)}
-                    className="flex min-w-[5.5rem] flex-col items-center gap-1.5 rounded-[24px] border border-dashed border-white/20 bg-slate-950/30 px-2.5 py-2 text-center shadow-[0_14px_28px_rgba(0,0,0,0.18)] transition-all hover:border-emerald-300/40 hover:bg-emerald-300/10"
-                    style={{ touchAction: 'manipulation' }}
-                  >
-                    {slotBody}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Bench slots - lateral drawer during bench and captain phases */}
+      {/* Bench drawer */}
       {(isBenchPhase || isCaptainPhase) && (
         <>
           {isBenchDrawerOpen && (
@@ -997,7 +1239,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               className="fixed inset-0 z-30 bg-black/45 backdrop-blur-[1px]"
             />
           )}
-
           {!isBenchDrawerOpen && (
             <div className="pointer-events-none fixed bottom-6 right-0 z-40">
               <button
@@ -1011,76 +1252,92 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
               </button>
             </div>
           )}
-
           <aside
             className={`pointer-events-auto fixed inset-y-0 right-0 z-40 h-screen w-[min(56vw,11rem)] rounded-l-3xl border border-r-0 border-white/10 bg-slate-500/50 px-3 py-5 shadow-[-24px_0_50px_rgba(0,0,0,0.4)] backdrop-blur-md transition-transform duration-300 sm:w-[12rem] ${isBenchDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
           >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300/70">Reservas</span>
-                <button
-                  type="button"
-                  onClick={() => setIsBenchDrawerOpen(false)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-sm font-black text-red-400 transition hover:bg-red-500/30"
-                >
-                  ✕
-                </button>
-              </div>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-300/70">Reservas</span>
+              <button
+                type="button"
+                onClick={() => setIsBenchDrawerOpen(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/40 bg-red-500/15 text-sm font-black text-red-400 transition hover:bg-red-500/30"
+              >✕</button>
+            </div>
+            <div className="flex h-[calc(100%-4.5rem)] flex-col items-center gap-2 overflow-y-auto pr-1">
+              {BENCH_SLOTS.map(({ slot, label }) => {
+                const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
+                const confirmedPick = picksBySlot[slot];
+                const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
+                const posLabel = playerObj
+                  ? getDetailedPositionLabel(playerObj.detailed_position_id)
+                  : confirmedPick
+                    ? getDetailedPositionLabel(confirmedPick.detailed_position_id)
+                    : null;
+                const isSelected = selectedSwapSlot === slot;
 
-              <div className="flex h-[calc(100%-4.5rem)] flex-col items-center gap-2 overflow-y-auto pr-1">
-                {BENCH_SLOTS.map(({ slot, label }) => {
-                  const playerObj = normalizeDraftPlayer(pickedPlayers[slot] ?? null);
-                  const confirmedPick = picksBySlot[slot];
-                  const cardPlayer = playerObj ?? normalizeDraftPlayer(confirmedPick);
-                  const posLabel = playerObj
-                    ? getDetailedPositionLabel(playerObj.detailed_position_id)
-                    : confirmedPick
-                      ? getDetailedPositionLabel(confirmedPick.detailed_position_id)
-                      : null;
+                if (playerObj || confirmedPick) {
+                  return (
+                    <div
+                      key={slot}
+                      onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
+                      onClick={() => {
+                        if (!fieldGestureRef.current?.moved) {
+                          clearLongPressTimeout();
+                          fieldGestureRef.current = null;
+                          setDraggingSlot(null);
+                          setDragPointer(null);
+                          handleOpenPlayerStats(cardPlayer);
+                        }
+                      }}
+                      style={{
+                        ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
+                        flexShrink: 0,
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        cursor: draggingSlot === slot ? 'grabbing' : 'pointer',
+                        opacity: draggingSlot === slot ? 0.5 : 1,
+                        outline: isSelected
+                          ? '2px solid rgba(250,204,21,0.95)'
+                          : selectedSwapSlot !== null
+                            ? '2px solid rgba(110,231,183,0.35)'
+                            : 'none',
+                        borderRadius: '12px',
+                        transition: 'outline 0.1s, opacity 0.15s',
+                        touchAction: draggingSlot === slot ? 'none' : 'manipulation',
+                      }}
+                    >
+                      <FieldPlayerPreview
+                        player={cardPlayer}
+                        posLabel={posLabel}
+                        captainPlayerId={draft.captain_player_id}
+                      />
+                    </div>
+                  );
+                }
 
-                  const isSelected = selectedSwapSlot === slot;
-
-                  if (playerObj || confirmedPick) {
-                    return (
-                      <div
-                        key={slot}
-                        onPointerDown={(e) => handleFieldPointerDown(e, slot, cardPlayer)}
-                        onClick={() => { if (!fieldGestureRef.current?.moved) { clearLongPressTimeout(); fieldGestureRef.current = null; setDraggingSlot(null); setDragPointer(null); handleOpenPlayerStats(cardPlayer); } }}
-                        style={{
-                          ...(poppingSlot === slot ? { animation: 'card-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) both' } : {}),
-                          flexShrink: 0,
-                          width: '100%',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          cursor: draggingSlot === slot ? 'grabbing' : 'pointer',
-                          opacity: draggingSlot === slot ? 0.5 : 1,
-                          outline: isSelected ? '2px solid rgba(250,204,21,0.95)' : selectedSwapSlot !== null ? '2px solid rgba(110,231,183,0.35)' : 'none',
-                          borderRadius: '20px',
-                          transition: 'outline 0.1s, opacity 0.15s',
-                          touchAction: draggingSlot === slot ? 'none' : 'manipulation',
-                        }}
-                      >
-                        <FieldPlayerPreview player={cardPlayer} posLabel={posLabel} />
-                      </div>
-                    );
-                  }
-
-                   return (
-                     <button
-                       key={slot}
-                       onClick={() => handleSlotClick(slot)}
-                       className="flex flex-col items-center justify-center gap-1 rounded-[20px] border-2 border-dashed border-gray-600 transition-all hover:border-emerald-400/50 hover:bg-emerald-300/10"
-                       style={{ flexShrink: 0, width: '5rem', height: '6.6rem' }}
-                     >
-                       <span className="text-[11px] font-bold text-gray-300">{label}</span>
-                     </button>
-                   );
-                 })}
-              </div>
+                return (
+                  <div
+                    key={slot}
+                    className="fcard is-empty"
+                    style={{ '--line-c': 'var(--text-3)', '--fcw': '76px', flexShrink: 0 }}
+                    onClick={() => handleSlotClick(slot)}
+                  >
+                    <div className="fcard-veil" />
+                    <PlayerFigure kit={GRAY_KIT} number="" surname="" uid={`bench-sil-${slot}`} className="sil" />
+                    <div className="fcard-body">
+                      <div className="fcard-head"><span /><span className="fcard-pos">{label}</span></div>
+                    </div>
+                    <div className="e-plus">+</div>
+                    <div className="e-label">{label}</div>
+                  </div>
+                );
+              })}
+            </div>
           </aside>
         </>
       )}
 
-      {/* Player options overlay */}
       {options && (
         <PickPanel
           options={options}
@@ -1095,30 +1352,21 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
       {draggingPlayer && dragPointer && (
         <div
           className="pointer-events-none fixed left-0 top-0 z-[70]"
-          style={{
-            transform: `translate(${dragPointer.x}px, ${dragPointer.y}px)`,
-          }}
+          style={{ transform: `translate(${dragPointer.x}px, ${dragPointer.y}px)` }}
         >
-          <div
-            className="origin-center -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_22px_48px_rgba(0,0,0,0.48)]"
-            style={{
-              transform: 'translate(-50%, -50%) scale(1.03) rotate(-4deg)',
-            }}
-          >
+          <div style={{ transform: 'translate(-50%, -50%) scale(1.03) rotate(-4deg)' }}>
             <FieldPlayerPreview
               player={draggingPlayer}
               posLabel={draggingSlotDetails.posLabel}
               slotPositionId={draggingSlotDetails.slotPositionId}
+              captainPlayerId={draft.captain_player_id}
             />
           </div>
         </div>
       )}
 
       {selectedCard && (
-        <PlayerStatsModal
-          player={selectedCard}
-          onClose={() => setSelectedCard(null)}
-        />
+        <PlayerStatsModal player={selectedCard} onClose={() => setSelectedCard(null)} />
       )}
 
       {showConfirmDraftModal && (
@@ -1135,21 +1383,22 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
                 type="button"
                 onClick={() => setShowConfirmDraftModal(false)}
                 className="flex-1 rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-semibold text-gray-300 transition hover:bg-white/10"
-              >
-                Voltar
-              </button>
+              >Voltar</button>
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => { setShowConfirmDraftModal(false); handleCaptain(captainCandidateId); }}
                 className="flex-1 rounded-xl border border-emerald-400/40 bg-emerald-500/20 py-2.5 text-sm font-bold text-emerald-300 transition hover:bg-emerald-500/35 disabled:opacity-60"
-              >
-                Confirmar
-              </button>
+              >Confirmar</button>
             </div>
           </div>
         </div>
       )}
-    </div>
+
+      {/* Main layout shell */}
+      <div className="dscreen" data-device={isDesktop ? 'desktop' : 'mobile'}>
+        {isDesktop ? renderDesktop() : renderMobile()}
+      </div>
+    </>
   );
 }
