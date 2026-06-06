@@ -15,21 +15,6 @@ const DETAILED_TO_BASIC = {
   1:1, 2:2, 3:2, 4:2, 5:3, 6:3, 7:3, 8:3, 9:3, 10:4, 11:4, 12:4, 13:4
 };
 
-const SLOT_TONE_CLASSES = {
-  GOL: 'border-sky-300/40 bg-sky-950/95 text-sky-100 ring-sky-300/20',
-  ZAG: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
-  LD: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
-  LE: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
-  VOL: 'border-emerald-300/40 bg-emerald-950/95 text-emerald-100 ring-emerald-300/20',
-  MC: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
-  MD: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
-  ME: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
-  MEI: 'border-amber-300/40 bg-amber-950/95 text-amber-100 ring-amber-300/20',
-  PE: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
-  PD: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
-  ATA: 'border-rose-300/40 bg-rose-950/95 text-rose-100 ring-rose-300/20',
-};
-
 const GRAY_KIT = NATIONAL_KITS['_'];
 
 const POS_FULL = {
@@ -55,6 +40,35 @@ const BENCH_SLOTS = [
   { slot: 17, label: 'RES 6' },
   { slot: 18, label: 'RES 7' },
 ];
+
+const Emblem = ({ s = 30 }) => (
+  <span className="demblem" dangerouslySetInnerHTML={{ __html:
+    `<svg width="${s}" height="${s}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="tg${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f7a46"/><stop offset="1" stop-color="#0b3a20"/></linearGradient>
+      <clipPath id="tc${s}"><rect x="3" y="3" width="94" height="94" rx="26"/></clipPath></defs>
+      <rect x="3" y="3" width="94" height="94" rx="26" fill="url(#tg${s})"/>
+      <g clip-path="url(#tc${s})">
+        <rect x="3" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
+        <rect x="18.666" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
+        <rect x="34.333" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
+        <rect x="50" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
+        <rect x="65.666" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
+        <rect x="81.333" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
+        <rect x="3" y="3" width="94" height="48" rx="26" fill="#ffffff" opacity="0.05"/>
+      </g>
+      <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"/>
+      <text x="50" y="49" text-anchor="middle" dominant-baseline="central" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
+      <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+    </svg>`
+  }} />
+);
+
+const ArrowR = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+  </svg>
+);
 
 function authFetch(url, options = {}) {
   const token = localStorage.getItem('draft_token');
@@ -793,35 +807,6 @@ export default function Draft({ draftId, user, onGoHome, onComplete }) {
 
     setCaptainCandidateId(String(normalizedPlayer.id));
   }, [handleOpenPlayerStats, isCaptainSelectionMode]);
-
-  const Emblem = ({ s = 30 }) => (
-    <span className="demblem" dangerouslySetInnerHTML={{ __html:
-      `<svg width="${s}" height="${s}" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs><linearGradient id="tg${s}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f7a46"/><stop offset="1" stop-color="#0b3a20"/></linearGradient>
-        <clipPath id="tc${s}"><rect x="3" y="3" width="94" height="94" rx="26"/></clipPath></defs>
-        <rect x="3" y="3" width="94" height="94" rx="26" fill="url(#tg${s})"/>
-        <g clip-path="url(#tc${s})">
-          <rect x="3" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
-          <rect x="18.666" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
-          <rect x="34.333" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
-          <rect x="50" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
-          <rect x="65.666" y="3" width="15.666" height="94" fill="#ffffff" opacity="0.05"/>
-          <rect x="81.333" y="3" width="15.666" height="94" fill="#06351c" opacity="0.30"/>
-          <rect x="3" y="3" width="94" height="48" rx="26" fill="#ffffff" opacity="0.05"/>
-        </g>
-        <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"/>
-        <text x="50" y="49" text-anchor="middle" dominant-baseline="central" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
-        <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
-      </svg>`
-    }} />
-  );
-
-  const ArrowR = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
-    </svg>
-  );
 
   if (!draft) {
     return (
