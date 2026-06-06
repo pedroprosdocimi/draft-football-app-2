@@ -1,4 +1,3 @@
-import React from 'react';
 import PlayerFigure, { NATIONAL_KITS } from './PlayerFigure.jsx';
 import { nationalityToIso2 } from '../utils/nationality.js';
 import { getDetailedPositionLabel } from '../utils/positions.js';
