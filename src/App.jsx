@@ -10,6 +10,7 @@ import EndScreen from './pages/EndScreen.jsx';
 import Admin from './pages/Admin.jsx';
 import Partidas from './pages/Partidas.jsx';
 import Championship from './pages/Championship.jsx';
+import Landing from './pages/Landing.jsx';
 
 function getInitialChampionshipShareCode() {
   return new URLSearchParams(window.location.search).get('championship') || null;
@@ -24,7 +25,7 @@ function syncChampionshipQuery(shareCode) {
 
 export default function App() {
   const initialShareCode = getInitialChampionshipShareCode();
-  const [authPage, setAuthPage] = useState('login');
+  const [authPage, setAuthPage] = useState('landing');
   const [verifyEmail, setVerifyEmail] = useState(null); // { email, password }
   const [user, setUser] = useState(null);
   const [page, setPage] = useState(initialShareCode ? 'championship' : 'home');
@@ -91,6 +92,12 @@ export default function App() {
   if (!user && page !== 'championship') {
     return (
       <div className="min-h-screen">
+        {authPage === 'landing' && (
+          <Landing
+            onGoLogin={() => setAuthPage('login')}
+            onGoRegister={() => setAuthPage('register')}
+          />
+        )}
         {authPage === 'login' && (
           <Login onLogin={handleLogin}
             onGoRegister={() => setAuthPage('register')}
