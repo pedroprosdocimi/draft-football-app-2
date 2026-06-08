@@ -53,7 +53,7 @@ const Emblem = ({ size }) => (
     </g>
     <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" strokeWidth="0.9" opacity="0.55"/>
     <text x="50" y="49" textAnchor="middle" dominantBaseline="central" fontFamily="'Bricolage Grotesque', sans-serif" fontWeight="800" fontSize="44" letterSpacing="-2" fill="#f6f8f6">11</text>
-    <text x="50" y="72" textAnchor="middle" fontFamily="'Bricolage Grotesque', sans-serif" fontWeight="700" fontSize="8" letterSpacing="4" fill="#fbd07a">DRAFT</text>
+    <text x="50" y="72" textAnchor="middle" fontFamily="'Bricolage Grotesque', sans-serif" fontWeight="700" fontSize="8" letterSpacing="2.5" fill="#fbd07a">DRAFTING</text>
   </svg>
 );
 
@@ -282,7 +282,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
           {/* Top row */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: '-.01em', color: '#e8eaed' }}>
-              draft<span style={{ color: '#fbd07a' }}>11</span>
+              drafting<span style={{ color: '#fbd07a' }}>11</span>
             </span>
             <WcTag />
           </div>
@@ -375,7 +375,7 @@ export default function Login({ onLogin, onGoRegister, onGoForgot }) {
           fontFamily: "'Bricolage Grotesque', sans-serif", fontWeight: 800,
           fontSize: 32, letterSpacing: '-.02em', margin: 0, lineHeight: 1, color: '#e8eaed',
         }}>
-          draft<span style={{ color: '#f5a623' }}>11</span>
+          drafting<span style={{ color: '#f5a623' }}>11</span>
         </h1>
         <WcTag />
         <p style={{ margin: 0, fontSize: 13.5, color: '#a8aeb6' }}>Monte sua seleção e dispute a Copa</p>

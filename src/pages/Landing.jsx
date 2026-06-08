@@ -37,7 +37,7 @@ function Emblem({ s = 40 }) {
         </g>
         <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"/>
         <text x="50" y="49" text-anchor="middle" dominant-baseline="central" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
-        <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+        <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="2.5" fill="#fbd07a">DRAFTING</text>
       </svg>`
     }} />
   );
@@ -48,7 +48,7 @@ function Brand({ s = 40, wm = 22 }) {
     <div className="land-brand">
       <Emblem s={s} />
       <div>
-        <div className="land-wm" data-sz={String(wm)}>draft<span className="g">11</span></div>
+        <div className="land-wm" data-sz={String(wm)}>drafting<span className="g">11</span></div>
         <div className="land-wm-sub">Copa do Mundo 2026</div>
       </div>
     </div>

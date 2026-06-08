@@ -94,7 +94,7 @@ function Emblem({ s = 34 }) {
         </g>
         <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"/>
         <text x="50" y="49" text-anchor="middle" dominant-baseline="central" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
-        <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+        <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="2.5" fill="#fbd07a">DRAFTING</text>
       </svg>`
     }} />
   );
@@ -107,7 +107,7 @@ function Brand({ large = false }) {
     <div className="home-brand">
       <Emblem s={large ? 40 : 34} />
       <div>
-        <div className="home-wm" style={{ fontSize: large ? 22 : 19 }}>draft<span className="g">11</span></div>
+        <div className="home-wm" style={{ fontSize: large ? 22 : 19 }}>drafting<span className="g">11</span></div>
         <div className="home-wm-sub">Copa do Mundo 2026</div>
       </div>
     </div>

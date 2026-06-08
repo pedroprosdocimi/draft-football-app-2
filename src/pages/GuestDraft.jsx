@@ -220,7 +220,7 @@ const Emblem = ({ s = 26 }) => (
       </g>
       <rect x="7" y="7" width="86" height="86" rx="22" fill="none" stroke="#fbd07a" stroke-width="0.9" opacity="0.55"/>
       <text x="50" y="49" text-anchor="middle" dominant-baseline="central" font-family="'Bricolage Grotesque',sans-serif" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
-      <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+      <text x="50" y="72" text-anchor="middle" font-family="'Bricolage Grotesque',sans-serif" font-weight="700" font-size="8" letter-spacing="2.5" fill="#fbd07a">DRAFTING</text>
     </svg>`
   }} />
 );
@@ -402,7 +402,7 @@ export default function GuestDraft({ formation, onConvert, onBack }) {
     <>
       <div className="dhead">
         <div className="dhead-brand">
-          <span className="wm bricol"><Emblem s={26} />draft<span className="g">11</span></span>
+          <span className="wm bricol"><Emblem s={26} />drafting<span className="g">11</span></span>
           <span className="wc-tag"><span className="star">★</span> COPA 2026</span>
         </div>
         <div className="dhead-ctrl">
@@ -461,7 +461,7 @@ export default function GuestDraft({ formation, onConvert, onBack }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
             <Emblem s={34} />
             <span className="bricol" style={{ fontWeight: 800, fontSize: 20, color: 'var(--text)' }}>
-              draft<span style={{ color: 'var(--gold)' }}>11</span>
+              drafting<span style={{ color: 'var(--gold)' }}>11</span>
             </span>
           </div>
           <span className="wc-tag"><span className="star">★</span> COPA DO MUNDO 2026</span>

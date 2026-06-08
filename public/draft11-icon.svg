@@ -27,5 +27,5 @@
 
   
   <text class="d11" x="50" y="49" text-anchor="middle" dominant-baseline="central" font-weight="800" font-size="44" letter-spacing="-2" fill="#f6f8f6">11</text>
-  <text class="d11" x="50" y="72" text-anchor="middle" font-weight="700" font-size="8" letter-spacing="4" fill="#fbd07a">DRAFT</text>
+  <text class="d11" x="50" y="72" text-anchor="middle" font-weight="700" font-size="8" letter-spacing="2.5" fill="#fbd07a">DRAFTING</text>
 </svg>
