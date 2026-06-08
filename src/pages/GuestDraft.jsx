@@ -4,7 +4,7 @@ import { getFormationPreviewLayout } from '../components/FormationPreview.jsx';
 import FieldPlayerPreview from '../components/FieldPlayerPreview.jsx';
 import PickPanel from '../components/PickPanel.jsx';
 import PlayerFigure, { NATIONAL_KITS } from '../components/PlayerFigure.jsx';
-import { getDetailedPositionLabel } from '../utils/positions.js';
+import { getDetailedPositionLabel, matchesDetailedPositionSlot } from '../utils/positions.js';
 
 /* ============================================================================
    GuestDraft — fase "drafting" dos 11 titulares sem login.
@@ -281,11 +281,17 @@ export default function GuestDraft({ formation, onConvert, onBack }) {
   const pickedCount = Object.keys(pickedPlayers).length;
   const pct = (pickedCount / 11) * 100;
 
-  // Player options for a slot — demo players not yet used
+  // Player options for a slot — filter by position, shuffle, limit to 5
   const getOptionsForSlot = (slotDetailedPosId) => {
     const usedIds = new Set(Object.values(pickedPlayers).map(p => p.id));
-    // matchesDetailedPositionSlot from PickPanel handles filtering by position
-    return DEMO_PLAYERS.filter(p => !usedIds.has(p.id));
+    const eligible = DEMO_PLAYERS.filter(p =>
+      !usedIds.has(p.id) && matchesDetailedPositionSlot(p, slotDetailedPosId)
+    );
+    for (let i = eligible.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+    }
+    return eligible.slice(0, 5);
   };
 
   const handleSlotClick = (slotPosition) => {
