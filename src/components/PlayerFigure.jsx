@@ -17,6 +17,12 @@ export const NATIONAL_KITS = {
   it: { skin:'#c8956c', hair:'#2e1f12', jersey:'#003d9e', sleeve:'#002d7a', name_color:'#ffffff' },
   hr: { skin:'#c8956c', hair:'#2e1f12', jersey:'#cc0000', sleeve:'#cc0000', name_color:'#ffffff', stripes:true, stripe1:'#cc0000', stripe2:'#ffffff' },
   ma: { skin:'#8a6540', hair:'#1a0f06', jersey:'#c1272d', sleeve:'#a01e22', name_color:'#ffffff' },
+  ch: { skin:'#d4a07a', hair:'#2e1f12', jersey:'#da291c', sleeve:'#b82118', name_color:'#ffffff' },
+  py: { skin:'#8a6540', hair:'#1a0f06', jersey:'#dd1c1a', sleeve:'#dd1c1a', name_color:'#ffffff', stripes:true, stripe1:'#dd1c1a', stripe2:'#f3f4f2' },
+  ec: { skin:'#8a6540', hair:'#1a0f06', jersey:'#ffd100', sleeve:'#003087', name_color:'#003087' },
+  jp: { skin:'#d4b48f', hair:'#0e0a08', jersey:'#1a237e', sleeve:'#15196b', name_color:'#ffffff' },
+  be: { skin:'#c8956c', hair:'#2e1f12', jersey:'#ef2b2d', sleeve:'#1a1a1a', name_color:'#ffd700' },
+  no: { skin:'#d9c5a8', hair:'#4a3218', jersey:'#ef2b2d', sleeve:'#002868', name_color:'#ffffff' },
   _: { skin:'#3a434b', hair:'#2c343b', jersey:'#222a30', sleeve:'#1a2127', name_color:'rgba(0,0,0,0)' },
 };
 
