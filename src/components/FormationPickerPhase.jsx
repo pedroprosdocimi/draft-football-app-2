@@ -104,8 +104,9 @@ export default function FormationPickerPhase({ onPick }) {
 
   useEffect(() => {
     const token = localStorage.getItem('draft_token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-    fetch(`${API_URL}/formations`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_URL}/formations`, { headers })
       .then(async (response) => {
         const data = await response.json();
         if (!response.ok) {

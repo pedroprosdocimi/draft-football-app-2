@@ -11,6 +11,9 @@ import Admin from './pages/Admin.jsx';
 import Partidas from './pages/Partidas.jsx';
 import Championship from './pages/Championship.jsx';
 import Landing from './pages/Landing.jsx';
+import GuestDraft from './pages/GuestDraft.jsx';
+import GuestConvert from './pages/GuestConvert.jsx';
+import FormationPickerPhase from './components/FormationPickerPhase.jsx';
 
 function getInitialChampionshipShareCode() {
   return new URLSearchParams(window.location.search).get('championship') || null;
@@ -27,6 +30,8 @@ export default function App() {
   const initialShareCode = getInitialChampionshipShareCode();
   const [authPage, setAuthPage] = useState('landing');
   const [verifyEmail, setVerifyEmail] = useState(null); // { email, password }
+  const [guestFormation, setGuestFormation] = useState(null);
+  const [guestStarters, setGuestStarters] = useState([]);
   const [user, setUser] = useState(null);
   const [page, setPage] = useState(initialShareCode ? 'championship' : 'home');
   const [draftId, setDraftId] = useState(null);
@@ -96,6 +101,27 @@ export default function App() {
           <Landing
             onGoLogin={() => setAuthPage('login')}
             onGoRegister={() => setAuthPage('register')}
+            onStartGuest={() => setAuthPage('guest-formation')}
+          />
+        )}
+        {authPage === 'guest-formation' && (
+          <FormationPickerPhase
+            onPick={(f) => { setGuestFormation(f); setAuthPage('guest-draft'); }}
+          />
+        )}
+        {authPage === 'guest-draft' && guestFormation && (
+          <GuestDraft
+            formation={guestFormation}
+            onConvert={(starters) => { setGuestStarters(starters); setAuthPage('guest-convert'); }}
+            onBack={() => setAuthPage('guest-formation')}
+          />
+        )}
+        {authPage === 'guest-convert' && (
+          <GuestConvert
+            starters={guestStarters}
+            formation={guestFormation}
+            onRegister={() => setAuthPage('register')}
+            onLogin={() => setAuthPage('login')}
           />
         )}
         {authPage === 'login' && (
