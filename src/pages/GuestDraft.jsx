@@ -24,7 +24,8 @@ const DRAFT_DETAIL_TO_LINE = {
 
 const POS_FULL = {
   GOL: 'Goleiro', ZAG: 'Zagueiro', LD: 'Lateral Dir.', LE: 'Lateral Esq.',
-  VOL: 'Volante', MC: 'Meio-campo', MEI: 'Meia', ATA: 'Atacante', PE: 'Ponta Esq.', PD: 'Ponta Dir.',
+  VOL: 'Volante', MC: 'Meio-campo', MEI: 'Meia', ME: 'Meia Esq.', MD: 'Meia Dir.',
+  ATA: 'Atacante', PE: 'Ponta Esq.', PD: 'Ponta Dir.',
 };
 
 const DEMO_PLAYERS = [
@@ -186,6 +187,20 @@ const DEMO_PLAYERS = [
   { id:146, display_name: 'Jhon Córdoba',         nationality: 'Colombia',       jersey_number:  9, detailed_position_id: 10, avg_score: 7.4 },
   { id:147, display_name: 'Harry Kane',           nationality: 'England',        jersey_number:  9, detailed_position_id: 10, avg_score: 9.0 },
   { id:148, display_name: 'Andrej Kramarić',      nationality: 'Croatia',        jersey_number:  9, detailed_position_id: 10, avg_score: 8.1 },
+  // ── ME (8) ───────────────────────────────────────────────────────────────
+  { id:149, display_name: 'Phil Foden',           nationality: 'England',        jersey_number: 26, detailed_position_id: 8,  avg_score: 8.8 },
+  { id:150, display_name: 'Gavi',                 nationality: 'Spain',          jersey_number:  6, detailed_position_id: 8,  avg_score: 8.4 },
+  { id:151, display_name: 'Adrien Rabiot',        nationality: 'France',         jersey_number: 14, detailed_position_id: 8,  avg_score: 7.8 },
+  { id:152, display_name: 'Serge Gnabry',         nationality: 'Germany',        jersey_number: 20, detailed_position_id: 8,  avg_score: 7.9 },
+  { id:153, display_name: 'Franck Kessié',        nationality: 'Morocco',        jersey_number: 15, detailed_position_id: 8,  avg_score: 7.6 },
+  { id:154, display_name: 'Gio Lo Celso',         nationality: 'Argentina',      jersey_number: 18, detailed_position_id: 8,  avg_score: 7.7 },
+  // ── MD (9) ───────────────────────────────────────────────────────────────
+  { id:155, display_name: 'Gio Reyna',            nationality: 'United States',  jersey_number: 21, detailed_position_id: 9,  avg_score: 7.8 },
+  { id:156, display_name: 'Takumi Minamino',      nationality: 'Japan',          jersey_number: 18, detailed_position_id: 9,  avg_score: 7.7 },
+  { id:157, display_name: 'Facundo Pellistri',    nationality: 'Uruguay',        jersey_number: 21, detailed_position_id: 9,  avg_score: 7.5 },
+  { id:158, display_name: 'Xavi Simons',          nationality: 'Netherlands',    jersey_number: 12, detailed_position_id: 9,  avg_score: 8.1 },
+  { id:159, display_name: 'Charles De Ketelaere', nationality: 'Belgium',        jersey_number: 22, detailed_position_id: 9,  avg_score: 7.9 },
+  { id:160, display_name: 'Jhon Arias',           nationality: 'Colombia',       jersey_number: 17, detailed_position_id: 9,  avg_score: 7.6 },
 ];
 
 const Emblem = ({ s = 26 }) => (
