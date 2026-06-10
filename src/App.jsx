@@ -14,6 +14,7 @@ import Landing from './pages/Landing.jsx';
 import GuestDraft from './pages/GuestDraft.jsx';
 import GuestConvert from './pages/GuestConvert.jsx';
 import FormationPickerPhase from './components/FormationPickerPhase.jsx';
+import Confronto from './pages/Confronto.jsx';
 
 function getInitialChampionshipShareCode() {
   return new URLSearchParams(window.location.search).get('championship') || null;
@@ -102,6 +103,7 @@ export default function App() {
             onGoLogin={() => setAuthPage('login')}
             onGoRegister={() => setAuthPage('register')}
             onStartGuest={() => setAuthPage('guest-formation')}
+            onStartConfronting={() => setAuthPage('confronto')}
           />
         )}
         {authPage === 'guest-formation' && (
@@ -149,6 +151,9 @@ export default function App() {
         )}
         {authPage === 'forgot' && (
           <ForgotPassword onGoLogin={() => setAuthPage('login')} />
+        )}
+        {authPage === 'confronto' && (
+          <Confronto onBack={() => setAuthPage('landing')} />
         )}
       </div>
     );

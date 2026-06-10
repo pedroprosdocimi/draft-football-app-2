@@ -72,7 +72,7 @@ const LiveEyebrow = ({ children, center }) => (
   </span>
 );
 
-export default function Landing({ onGoLogin, onGoRegister, onStartGuest }) {
+export default function Landing({ onGoLogin, onGoRegister, onStartGuest, onStartConfronting }) {
   return (
     <div className="land-root">
       <div className="land-state" data-active="true">
@@ -109,6 +109,13 @@ export default function Landing({ onGoLogin, onGoRegister, onStartGuest }) {
                 <button className="land-btn land-btn-primary land-btn-lg land-btn-block" onClick={onStartGuest}>
                   Montar meu time agora →
                 </button>
+                <button
+                  className="land-btn land-btn-lg land-btn-block"
+                  style={{ background:'rgba(245,166,35,.08)', border:'1px solid rgba(245,166,35,.35)', color:'var(--gold-soft)', marginTop:8 }}
+                  onClick={onStartConfronting}
+                >
+                  ★ Modo Confronto — Copa 2026
+                </button>
                 <button className="land-link" onClick={onGoLogin}>Já tenho conta → <b>Entrar</b></button>
               </div>
             </div>
@@ -141,6 +148,13 @@ export default function Landing({ onGoLogin, onGoRegister, onStartGuest }) {
             <div className="land-right-cta">
               <button className="land-btn land-btn-primary land-btn-lg land-btn-block" onClick={onStartGuest}>
                 Montar meu time agora →
+              </button>
+              <button
+                className="land-btn land-btn-lg land-btn-block"
+                style={{ background:'rgba(245,166,35,.08)', border:'1px solid rgba(245,166,35,.35)', color:'var(--gold-soft)', marginTop:8 }}
+                onClick={onStartConfronting}
+              >
+                ★ Modo Confronto — Copa 2026
               </button>
               <button className="land-link" onClick={onGoLogin}>Já tenho conta → <b>Entrar</b></button>
             </div>
