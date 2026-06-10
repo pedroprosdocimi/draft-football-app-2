@@ -159,6 +159,40 @@ export const FORMATIONS = {
   },
 };
 
+/* Proper CSV line parser — handles quoted fields containing commas */
+function parseCSVLine(line) {
+  const cols = [];
+  let cur = '';
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  cols.push(cur);
+  return cols;
+}
+
+/* Jersey surname: handles suffixes (Jr., Sr.) and short particles */
+function makeSurname(name) {
+  if (!name) return '';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) {
+    const s = parts[0].toUpperCase();
+    return s.length > 8 ? s.slice(0, 7) + '.' : s;
+  }
+  const last = parts[parts.length - 1];
+  const isSuffix = /^(jr\.?|sr\.?|ii|iii|iv)$/i.test(last);
+  const isParticle = /^(de|da|do|dos|das|van|von|del|di|el|al|ben|le|la|les|bin)$/i.test(last);
+  if (isSuffix || (isParticle && parts.length > 2)) {
+    const combined = parts.slice(-2).join(' ').toUpperCase();
+    return combined.length > 9 ? combined.slice(0, 8) + '.' : combined;
+  }
+  const s = last.toUpperCase();
+  return s.length > 8 ? s.slice(0, 7) + '.' : s;
+}
+
 let _cache = null;
 
 export async function loadPlayers() {
@@ -166,7 +200,7 @@ export async function loadPlayers() {
   const res = await fetch('/data/jogadores.csv');
   const text = await res.text();
   const lines = text.trim().split('\n');
-  const header = lines[0].split(',');
+  const header = parseCSVLine(lines[0]);
   const idx = (col) => header.indexOf(col);
 
   const iSel  = idx('Seleção');
@@ -177,7 +211,7 @@ export async function loadPlayers() {
 
   const players = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',');
+    const cols = parseCSVLine(lines[i]);
     if (cols.length < 10) continue;
     const ovr = parseInt(cols[iOvr], 10);
     if (isNaN(ovr)) continue;
@@ -203,13 +237,6 @@ export async function loadPlayers() {
   players.sort((a, b) => b.ovr - a.ovr);
   _cache = players;
   return players;
-}
-
-function makeSurname(name) {
-  if (!name) return '';
-  const parts = name.trim().split(' ');
-  const last = parts[parts.length - 1].toUpperCase();
-  return last.length > 7 ? last.slice(0, 6) + '.' : last;
 }
 
 export function getOptionsForSlot(players, slotType, usedIds = new Set()) {

@@ -20,6 +20,12 @@ function getInitialChampionshipShareCode() {
   return new URLSearchParams(window.location.search).get('championship') || null;
 }
 
+function getInitialMode() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('confronto') || params.get('mode') === 'confronto') return 'confronto';
+  return null;
+}
+
 function syncChampionshipQuery(shareCode) {
   const url = new URL(window.location.href);
   if (shareCode) url.searchParams.set('championship', shareCode);
@@ -29,7 +35,7 @@ function syncChampionshipQuery(shareCode) {
 
 export default function App() {
   const initialShareCode = getInitialChampionshipShareCode();
-  const [authPage, setAuthPage] = useState('landing');
+  const [authPage, setAuthPage] = useState(() => getInitialMode() || 'landing');
   const [verifyEmail, setVerifyEmail] = useState(null); // { email, password }
   const [guestFormation, setGuestFormation] = useState(null);
   const [guestStarters, setGuestStarters] = useState([]);
